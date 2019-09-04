@@ -1,0 +1,31 @@
+Chase Franklin
+chase-franklin@utulsa.edu
+
+CS4013 Journal
+
+# 09/01/2019
+
+## created project structure, init git repository
+   Setup project structure and started version control
+
+## created Makefile
+   Really just a place holder for now. Compiling everything manually with a
+   clang command alias.
+
+## readline
+   Writing a readline function. Appears to be working and adding line numbers
+   as needed for a listing file, but fgets() doesn't seem to grab all 72
+   characters from a line unless I give it a buffer of size 79. Been a while
+   since I've done anything in C, so I'm going to have to read some docs. I
+   wonder if this is even critical given the line length restriction.
+
+# 09/03/2019
+
+## More adventures with Makefile and project structure
+
+   Spent a few hours wrestling with headers and the Makefile so that I can 
+   HOPEFULLY keep this somewhat organized as it grows. I think I'm just about
+   ready to start writing the "machines" for this and creating a reserved word
+   file.
+
+   This will likely change a lot but the current structure looks like this:
