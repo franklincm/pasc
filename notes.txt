@@ -29,3 +29,23 @@ CS4013 Journal
    file.
 
    This will likely change a lot but the current structure looks like this:
+   .
+   ├── bin
+   ├── data
+   │   └── example.pas
+   ├── Makefile
+   ├── notes.txt
+   ├── obj
+   └── src
+       ├── headers
+       │   └── relops.h
+       ├── lex
+       │   ├── identifier.c
+       │   ├── int.c
+       │   ├── longreal.c
+       │   ├── real.c
+       │   ├── relops.c
+       │   ├── reserved.c
+       │   └── ws.c
+       └── readline.c
+
