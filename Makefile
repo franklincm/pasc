@@ -13,7 +13,7 @@ obj/%.o: %.c $(DEPS)
 readline: obj/readline.o obj/relops.o
 	$(CC) $(CFLAGS) -o bin/readline $^
 
-.PHONE: clean
+.PHONY: clean
 clean:
 	rm bin/*
 	rm obj/*
