@@ -26,7 +26,8 @@ CS4013 Journal
    Spent a few hours wrestling with headers and the Makefile so that I can 
    HOPEFULLY keep this somewhat organized as it grows. I think I'm just about
    ready to start writing the "machines" for this and creating a reserved word
-   file.
+   file. I don't expect this to be terribly difficult now that I have some
+   semblance of organization in place.
 
    This will likely change a lot but the current structure looks like this:
    .
