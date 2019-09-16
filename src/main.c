@@ -5,9 +5,17 @@
 void read_print_line(FILE *fp);
 void get_token(char line[]);
 
-int main(void) {
+int main(int argc, char **argv) {
+
+  char *filename = "data/example.pas";
   
-  FILE *fp = fopen("data/example.pas", "r");
+  if (argc == 2) {
+    filename = argv[1];
+  }
+
+  printf("input: %s\n\n", filename);
+  
+  FILE *fp = fopen(filename, "r");
   if(fp == NULL) {
     perror("Unable to open file!");
     exit(1);
