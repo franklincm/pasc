@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "headers/relops.h"
+#include "headers/reserved.h"
 
 void read_print_line(FILE *fp);
-void get_token(char line[]);
+void parse_line(char line[]);
 
 int main(int argc, char **argv) {
 
@@ -22,7 +23,7 @@ int main(int argc, char **argv) {
   }
   
   read_print_line(fp);
-  //printf("TESTINT: %d\n", testInt());
+  parse_reserved_words();
 }
 
 void read_print_line(FILE *fp) {
@@ -32,13 +33,15 @@ void read_print_line(FILE *fp) {
   while(fgets(line_buffer, sizeof line_buffer, fp) != NULL) {
     snprintf(line_num_str, sizeof line_num_str, "%-2d ", line_num);
     fputs(line_num_str, stdout);
-    fputs(line_buffer, stdout);
-    //get_token(line_buffer);
+    //fputs(line_buffer, stdout);
+    parse_line(line_buffer);
     line_num++;
   }
 }
 
 
-void get_token(char line[]) {
-  fputs(line, stdout);
+void parse_line(char line[]) {
+  for(int i = 0; line[i] != 0; i++) {
+    putc(line[i], stdout);
+  }
 }
