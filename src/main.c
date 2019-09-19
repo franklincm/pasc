@@ -1,11 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "headers/linkedlist.h"
 #include "headers/reserved.h"
+#include "headers/token.h"
 
 void read_print_line(FILE *fp);
 void parse_line(char line[]);
 
 int main(int argc, char **argv) {
+
+  /* strnode head = NULL; */
+  /* head = addNode(head, "test"); */
+  /* head = addNode(head, "tester"); */
+  /* head = addNode(head, "testing"); */
+
+  /* strnode p; */
+  /* p = head; */
+  /* while(p != NULL) { */
+  /*   printf("%s\n", p->str); */
+  /*   p = p->next; */
+  /* } */
 
   char *filename = "data/example.pas";
   
