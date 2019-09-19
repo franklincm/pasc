@@ -1,7 +1,8 @@
-int parse_reserved_words();
-
-typedef struct {
-  char lexeme[20];
-  char type[6];
+typedef struct ReservedWord{
+  char *str;
+  char *type;
   int attr;
-} Token;
+} ReservedWord;
+
+
+void parse_reserved_words();

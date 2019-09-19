@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "headers/relops.h"
 #include "headers/reserved.h"
 
 void read_print_line(FILE *fp);
@@ -15,16 +14,29 @@ int main(int argc, char **argv) {
   }
 
   printf("input: %s\n\n", filename);
-  
+
+  // read source file
   FILE *fp = fopen(filename, "r");
   if(fp == NULL) {
     perror("Unable to open file!");
     exit(1);
   }
   
-  read_print_line(fp);
-  parse_reserved_words();
+  //read_print_line(fp);
+  
+  // parse reserved words file
+  ReservedWord reserved_words[20];
+  parse_reserved_words(20, reserved_words);
+
+  for(int i = 0; i < 20; i++) {
+    printf("(%s, %s, %d)\n",
+           reserved_words[i].str,
+           reserved_words[i].type,
+           reserved_words[i].attr);
+  }
 }
+
+
 
 void read_print_line(FILE *fp) {
   char line_buffer[72];
