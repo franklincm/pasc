@@ -8,4 +8,5 @@ typedef struct Token{
   char *f;
 } Token;
 
-Token get_token(char * line, ReservedWord * reserved_words, strnode SymbolTable);
+Token get_token(char * line, ReservedWord *ReservedWords, strnode SymbolTable);
+Token machine(char * f, ReservedWord *ReservedWords, strnode SymbolTable);

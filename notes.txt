@@ -50,3 +50,48 @@ CS4013 Journal
        │   └── ws.c
        └── readline.c
 
+
+# 09/12/19
+
+  renamed a bunch of stuff. now getting the `example.pas` file from argv.
+
+# 09/16/19
+
+  created reserved word file at `data/reserved` which is loaded in `reserved.h`.
+  so far this seems to be parsing the file correctly from within my parsing
+  function in `reserved.h`
+
+
+# 09/17/19
+
+  populating an array with a `reserved word` struct. for now I'm just statically
+  allocating an array and passing a pointer to the parsing function.
+
+  typedef struct ReservedWord{
+  char *str;
+  char *type;
+  int attr;
+  } ReservedWord;
+
+# 09/17/19
+
+  managed to get a linkedlist struct working. I intend to use this to hold
+  identifiers returned by `get_token()`. also had a bunch of unnecessary
+  include statements sprinkled throughout my headers - left over from
+  printf "debugging" haha - so I removed those.
+
+  My Makefile is getting uglier by the minute.
+
+# 09/18/19, 09/19/19, 09/20/19
+
+  I ran into several hours of trouble with the Makefile trying to get it
+  to compile everything correctly. Turns out `gcc` doesn't like when
+  `main.c` and dependent header files include the same user defined
+  headers.
+
+  I've finally managed to start parsing with one machine - idres. I'm passing
+  in a single line of source, and then using a pointer to advance through the
+  string, at which point I create a substring from the line in a buffer, then
+  store that substring and the pointer in a `Token` struct that gets returned.
+
+  

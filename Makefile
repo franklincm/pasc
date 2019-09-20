@@ -1,6 +1,6 @@
 CC = clang
 CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic
-DEPS = relops.h
+DEPS = reserved.h linkedlist.h
 
 VPATH = src:src/lex/:obj
 vpath %.h src/headers/
