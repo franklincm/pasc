@@ -94,4 +94,51 @@ CS4013 Journal
   string, at which point I create a substring from the line in a buffer, then
   store that substring and the pointer in a `Token` struct that gets returned.
 
+  After some reorganization the new directory structure looks like this:
   
+```
+  ├── bin
+  │   └── lex
+  ├── data
+  │   ├── example.pas
+  │   └── reserved
+  ├── Makefile
+  ├── notes.txt
+  ├── obj
+  │   ├── linkedlist.o
+  │   ├── main.o
+  │   ├── reserved.o
+  │   └── token.o
+  └── src
+      ├── headers
+      │   ├── linkedlist.h
+      │   ├── reserved.h
+      │   └── token.h
+      ├── lex
+      │   ├── linkedlist.c
+      │   ├── reserved.c
+      │   └── token.c
+      └── main.c
+```
+
+Makefile
+```
+  CC = clang
+  CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic
+  DEPS = reserved.h linkedlist.h
+
+  VPATH = src:src/lex/:obj
+  vpath %.h src/headers/
+  vpath %.o obj
+
+  obj/%.o: %.c $(DEPS)
+      $(CC) -c -o $@ $< $(CFLAGS)
+
+  lex: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o
+      $(CC) $(CFLAGS) -o bin/lex $^
+
+  .PHONY: clean
+  clean:
+      rm bin/*
+      rm obj/*
+```

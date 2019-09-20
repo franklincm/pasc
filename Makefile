@@ -9,8 +9,8 @@ vpath %.o obj
 obj/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-readline: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o
-	$(CC) $(CFLAGS) -o bin/readline $^
+lex: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o
+	$(CC) $(CFLAGS) -o bin/lex $^
 
 .PHONY: clean
 clean:
