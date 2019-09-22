@@ -39,12 +39,8 @@ node parse_reserved_words() {
       // allocate mem for char array
       n->str = (char*)malloc((strlen(elems[0]) + 1) *sizeof(char));
       strcpy(n->str, elems[0]);
-
-      // ditto above
-      n->type = (char*)malloc((strlen(elems[1]) + 1) *sizeof(char));
-      strcpy(n->type, elems[1]);
-
-      // set attr int
+      
+      n->type = atoi(elems[1]);
       n->attr = atoi(elems[2]);
     }
     reserved_words = insertNode(reserved_words, n);

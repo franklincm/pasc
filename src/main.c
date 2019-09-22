@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
   }
   
   read_print_line(fp);
-  
+
 }
 
 
@@ -29,7 +29,7 @@ void read_print_line(FILE *fp) {
   node reserved_words = parse_reserved_words();
   
   // init symbol table
-  node symbol_table = NULL;
+  static node symbol_table = NULL;
   
   char line_buffer[72];
   int line_num = 1;
@@ -37,12 +37,19 @@ void read_print_line(FILE *fp) {
   while(fgets(line_buffer, sizeof line_buffer, fp) != NULL) {
 
     snprintf(line_num_str, sizeof line_num_str, "%-2d ", line_num);
-    fputs(line_num_str, stdout);
-    fputs(line_buffer, stdout);
+    //fputs(line_num_str, stdout);
+    //fputs(line_buffer, stdout);
     line_num++;
 
     //get_token(line_buffer, reserved_words, symbol_table);
   }
 
-  get_token(line_buffer, reserved_words, symbol_table);
+  fputs(line_buffer, stdout);
+  get_token(line_buffer, reserved_words, &symbol_table);
+  
+  node p = symbol_table;
+  while (p != NULL) {
+    printf("symbol table: %s\n", p->str);
+    p = p->next;
+  }
 }

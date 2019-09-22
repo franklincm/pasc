@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "../headers/token.h"
 
-Token get_token(char *line, node ReservedWords, node SymbolTable) {
+Token get_token(char *line, node ReservedWords, node *SymbolTable) {
 
   static char *f;
   static char line_remaining[72];
@@ -15,18 +15,14 @@ Token get_token(char *line, node ReservedWords, node SymbolTable) {
   }
 
   Token t = machine(line, ReservedWords, SymbolTable);
-  /* if(strcmp(t.str, "UNDEF") != 0) { */
-  /*   printf("%s\n", t.str);     */
-  /* } */
 
   return t;
 }
 
-Token machine(char *f, node ReservedWords, node SymbolTable) {
+Token machine(char *f, node ReservedWords, node *SymbolTable) {
   // this will need to be changed to whitespace machine
   // then loop while t.str == "UNDEF", cascade through
   // the machines.
-
 
   // actually this might need to be more like
   // while(the entire line hasn't been processed...)
@@ -56,28 +52,48 @@ Token machine(char *f, node ReservedWords, node SymbolTable) {
     t = m_catchall(f);
     f = t.f;
     printf("%s\n", t.str);
+
+    printf("idres...\n");
+    t = m_idres(f, ReservedWords, SymbolTable);
+    f = t.f;
+    printf("%s\n", t.str);
+
+    printf("catchall...\n");
+    t = m_catchall(f);
+    f = t.f;
+    printf("%s\n", t.str);
+
+    printf("whitespace...\n");
+    t = m_whitespace(f);
+    f = t.f;
+    printf("%s\n", t.str);
+    
+    printf("idres...\n");
+    t = m_idres(f, ReservedWords, SymbolTable);
+    f = t.f;
+    printf("%s\n", t.str);
   }
-  
 
   // UPDATE F!
-
 
   return t;
 }
 
-Token m_idres(char *f, node ReservedWords, node SymbolTable) {
+Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
 
   char *b = f;
   Token t;
   t.str = "UNDEF";
+  t.type = -1;
 
+  char *strbuffer;
   if(isalpha(*f)) {
     f++;
     while(isalnum(*f)) {
       f++;
     }
 
-    char strbuffer[10];
+    strbuffer = (char *)malloc(sizeof (f-b));
     strncpy(strbuffer, b, f-b);
 
     strbuffer[(f-b)] = '\0';
@@ -85,14 +101,41 @@ Token m_idres(char *f, node ReservedWords, node SymbolTable) {
     strncpy(t.str, strbuffer, f-b);
   }
   
+  // iterate through reserved words for match
+  node p = ReservedWords;
+  while(p != NULL) {
+    if (strcmp(t.str, p->str) == 0) {
+      printf("reserved word: %s\n", t.str);
+      t.type = p->type;
+      t.attr = p->attr;
+    }
+    p = p->next;
+  }
 
-  printf("\n\nchecking reserved words...\n\n");
+  // if not reserved word...
+  if (t.type < 0) {
+    
+    // check IDTOOLONG
+    if (strlen(strbuffer) > 10) {
+      t.type = -1;
+      t.attr = 0;
+    }
 
-  // fuck this, ReservedWords needs to be a linkedlist!
-  /* while(rw < end) { */
-  /*   printf("%s\n", rw->str); */
-  /*   rw++; */
-  /* } */
+    // else get or insert symbol
+    node symbol = getNode(*SymbolTable, t.str);
+    if(symbol == NULL) {
+      symbol = (node)malloc(sizeof(struct LinkedList));
+      symbol->str = t.str;
+      symbol->type = 1;
+      symbol->attr = 1;
+      *SymbolTable = insertNode(*SymbolTable, symbol);
+      printf("INSERT ID: %s\n", t.str);
+    }
+    t.type = symbol->type;
+    t.attr = symbol->attr;
+  }
+  
+  //printf("%s %d %d\n", t.str, t.type, t.attr);
 
   t.f = f;
   return t;  

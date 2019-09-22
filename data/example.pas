@@ -10,3 +10,4 @@ begin
    read(x, y);
    write(gcd(x, y))
 end.
+function gcp(a, b :integer ): integer;

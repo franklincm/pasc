@@ -5,11 +5,4 @@
 
 #endif
 
-typedef struct ReservedWord{
-  char *str;
-  char *type;
-  int attr;
-} ReservedWord;
-
-
 node parse_reserved_words();

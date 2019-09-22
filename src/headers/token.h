@@ -19,8 +19,8 @@ typedef struct Token{
   char *f;
 } Token;
 
-Token get_token(char * line, node ReservedWords, node SymbolTable);
-Token machine(char * f, node ReservedWords, node SymbolTable);
-Token m_idres(char *f, node ReservedWords, node SymbolTable);
+Token get_token(char * line, node ReservedWords, node *SymbolTable);
+Token machine(char * f, node ReservedWords, node *SymbolTable);
+Token m_idres(char *f, node ReservedWords, node *SymbolTable);
 Token m_whitespace(char *f);
 Token m_catchall(char *f);
