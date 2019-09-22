@@ -3,45 +3,53 @@
 #include <string.h>
 #include "../headers/reserved.h"
 
-ReservedWord parse_reserved_word_buffer(char * line);
-
-void parse_reserved_words(int n, ReservedWord reserved[n]) {
+node parse_reserved_words() {
   char *reserved_word_file = "data/reserved";
 
+  // open reserved word file for reading
   FILE *fp = fopen(reserved_word_file, "r");
   if(fp == NULL) {
     perror("Unable to read reserved word file");
     exit(1);
   }
 
-  char reserved_word_buffer[30];
-  int i = 0;
-  while(fgets(reserved_word_buffer, sizeof reserved_word_buffer, fp) != NULL) {
-    reserved[i] = parse_reserved_word_buffer(reserved_word_buffer);
-    i++;
-  }
-}
-
-ReservedWord parse_reserved_word_buffer(char * line) {
-  // get first element in line
-  char * elem = strtok(line, " ");
-
-  // array to hold elements
-  char elems[3][20];
-  int i = 0;
-  while(elem != NULL && i < 3) {
-    strcpy(elems[i], elem);
-    elem = strtok(NULL, " ");
-    i++;
-  }
-
-  // copy segments into ReservedWord struct
-  ReservedWord rw;
-  rw.str = (char*)malloc((strlen(elems[0]) + 1) *sizeof(char));
-  rw.type = (char*)malloc((strlen(elems[1]) + 1) *sizeof(char));
+  // init empty linked list
+  node reserved_words = NULL;
+  char line_buffer[30];
   
-  strcpy(rw.str, elems[0]);
-  strcpy(rw.type, elems[1]);
-  rw.attr = atoi(elems[2]);
-  return rw;
+  // for parsing the 3 "elements" in each line
+  char elems[3][20];
+  int i;
+  while(fgets(line_buffer, sizeof line_buffer, fp) != NULL) {
+    // get first element
+    char *elem = strtok(line_buffer, " ");
+    i = 0;
+    //  put elements into elems[][]
+    while(elem != NULL && i < 3) {
+      strcpy(elems[i], elem);
+      elem = strtok(NULL, " ");
+      i++;
+    }
+
+    // now take the elements in elems,
+    // create a node, then insert it
+    node n = createNode();
+    for(i = 0; i < 3; i++) {
+
+      // allocate mem for char array
+      n->str = (char*)malloc((strlen(elems[0]) + 1) *sizeof(char));
+      strcpy(n->str, elems[0]);
+
+      // ditto above
+      n->type = (char*)malloc((strlen(elems[1]) + 1) *sizeof(char));
+      strcpy(n->type, elems[1]);
+
+      // set attr int
+      n->attr = atoi(elems[2]);
+    }
+    reserved_words = insertNode(reserved_words, n);
+  }
+
+  // return the first node in the list
+  return reserved_words;
 }

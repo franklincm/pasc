@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "../headers/token.h"
 
-Token get_token(char *line, ReservedWord *ReservedWords, strnode SymbolTable) {
+Token get_token(char *line, node ReservedWords, node SymbolTable) {
 
   static char *f;
   static char line_remaining[72];
@@ -22,7 +22,7 @@ Token get_token(char *line, ReservedWord *ReservedWords, strnode SymbolTable) {
   return t;
 }
 
-Token machine(char *f, ReservedWord *ReservedWords, strnode SymbolTable) {
+Token machine(char *f, node ReservedWords, node SymbolTable) {
   // this will need to be changed to whitespace machine
   // then loop while t.str == "UNDEF", cascade through
   // the machines.
@@ -36,32 +36,26 @@ Token machine(char *f, ReservedWord *ReservedWords, strnode SymbolTable) {
     printf("whitespace...\n");
     f = t.f;
     printf("%s\n", t.str);
-    printf("%p\n", f);
 
     printf("idres...\n");
     t = m_idres(f, ReservedWords, SymbolTable);
     f = t.f;
     printf("%s\n", t.str);
-    printf("%p\n", f);
 
     printf("whitespace...\n");
     t = m_whitespace(f);
     f = t.f;
     printf("%s\n", t.str);
-    printf("%p\n", f);
 
     printf("idres...\n");
     t = m_idres(f, ReservedWords, SymbolTable);
     f = t.f;
     printf("%s\n", t.str);
-    printf("%p\n", f);
 
     printf("catchall...\n");
     t = m_catchall(f);
     f = t.f;
     printf("%s\n", t.str);
-    printf("%p\n", f);
-
   }
   
 
@@ -71,7 +65,7 @@ Token machine(char *f, ReservedWord *ReservedWords, strnode SymbolTable) {
   return t;
 }
 
-Token m_idres(char *f, ReservedWord *ReservedWords, strnode SymbolTable) {
+Token m_idres(char *f, node ReservedWords, node SymbolTable) {
 
   char *b = f;
   Token t;
@@ -93,9 +87,6 @@ Token m_idres(char *f, ReservedWord *ReservedWords, strnode SymbolTable) {
   
 
   printf("\n\nchecking reserved words...\n\n");
-  ReservedWord *rw = ReservedWords;
-  ReservedWord *end = ReservedWords + sizeof(ReservedWords)/sizeof(ReservedWords[0]);
-
 
   // fuck this, ReservedWords needs to be a linkedlist!
   /* while(rw < end) { */
