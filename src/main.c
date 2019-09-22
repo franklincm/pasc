@@ -66,8 +66,10 @@ void read_print_line(FILE *fp) {
     fputs(line_buffer, stdout);
     line_num++;
 
-    get_token(line_buffer, reserved_words, symbol_table);
+    //get_token(line_buffer, reserved_words, symbol_table);
   }
+
+  get_token(line_buffer, reserved_words, symbol_table);
 }
 
 

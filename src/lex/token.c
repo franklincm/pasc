@@ -7,32 +7,76 @@
 Token get_token(char *line, ReservedWord *ReservedWords, strnode SymbolTable) {
 
   static char *f;
-  static char l[72];
-  Token t;
-  t.type = NULL;
+  static char line_remaining[72];
 
-  if (strcmp(l, line) != 0) {
-    strcpy(l, line);
-    f = &l[0];
+  if (strcmp(line_remaining, line) != 0) {
+    strcpy(line_remaining, line);
+    f = &line_remaining[0];
   }
 
-  t = machine(line, ReservedWords, SymbolTable);
-  if(strcmp(t.str, "UNDEF") != 0) {
-    printf("%s\n", t.str);    
-  }
+  Token t = machine(line, ReservedWords, SymbolTable);
+  /* if(strcmp(t.str, "UNDEF") != 0) { */
+  /*   printf("%s\n", t.str);     */
+  /* } */
 
   return t;
 }
 
 Token machine(char *f, ReservedWord *ReservedWords, strnode SymbolTable) {
+  // this will need to be changed to whitespace machine
+  // then loop while t.str == "UNDEF", cascade through
+  // the machines.
+
+
+  // actually this might need to be more like
+  // while(the entire line hasn't been processed...)
+  Token t = m_whitespace(f);
+  while (strcmp(t.str, "UNDEF") == 0) {
+    //t = whitespace(f);
+    printf("whitespace...\n");
+    f = t.f;
+    printf("%s\n", t.str);
+    printf("%p\n", f);
+
+    printf("idres...\n");
+    t = m_idres(f, ReservedWords, SymbolTable);
+    f = t.f;
+    printf("%s\n", t.str);
+    printf("%p\n", f);
+
+    printf("whitespace...\n");
+    t = m_whitespace(f);
+    f = t.f;
+    printf("%s\n", t.str);
+    printf("%p\n", f);
+
+    printf("idres...\n");
+    t = m_idres(f, ReservedWords, SymbolTable);
+    f = t.f;
+    printf("%s\n", t.str);
+    printf("%p\n", f);
+
+    printf("catchall...\n");
+    t = m_catchall(f);
+    f = t.f;
+    printf("%s\n", t.str);
+    printf("%p\n", f);
+
+  }
+  
+
+  // UPDATE F!
+
+
+  return t;
+}
+
+Token m_idres(char *f, ReservedWord *ReservedWords, strnode SymbolTable) {
 
   char *b = f;
   Token t;
   t.str = "UNDEF";
 
-  
-  
-  //idres
   if(isalpha(*f)) {
     f++;
     while(isalnum(*f)) {
@@ -43,14 +87,91 @@ Token machine(char *f, ReservedWord *ReservedWords, strnode SymbolTable) {
     strncpy(strbuffer, b, f-b);
 
     strbuffer[(f-b)] = '\0';
-    //printf("%s: %d - %d\n", strbuffer, strlen(strbuffer), f-b);
-    //printf("str: %s, *f: %c\n", strbuffer, *f);
     t.str = (char *)malloc(sizeof strbuffer);
     strncpy(t.str, strbuffer, f-b);
-    //t.str = strbuffer;
-    
   }
   
 
+  printf("\n\nchecking reserved words...\n\n");
+  ReservedWord *rw = ReservedWords;
+  ReservedWord *end = ReservedWords + sizeof(ReservedWords)/sizeof(ReservedWords[0]);
+
+
+  // fuck this, ReservedWords needs to be a linkedlist!
+  /* while(rw < end) { */
+  /*   printf("%s\n", rw->str); */
+  /*   rw++; */
+  /* } */
+
+  t.f = f;
+  return t;  
+}
+
+Token m_whitespace(char *f) {
+  Token t;
+  t.str = "UNDEF";
+  
+  if(isspace(*f)) {
+    f++;
+    while(isspace(*f)) {
+      f++;
+    }
+    t.str = "WS";
+  }
+
+  t.f = f;
+  return t;
+}
+
+Token m_catchall(char *f) {
+  Token t;
+  t.str = "UNDEF";
+
+  switch(*f) {
+  case '+':
+    t.str = "ADD_OP";
+    break;
+  case '-':
+    t.str = "ADD_OP";
+    break;
+  case '*':
+    t.str = "MULT_OP";
+    break;
+  case '/':
+    t.str = "MULT_OP";
+    break;
+  case '.':
+    f++;
+    if (*f == '.') {
+      t.str = "ELIPSIS";
+    } else {
+      f--;
+      t.str = "DOT";
+    }
+    break;
+  case ',':
+    t.str = "COMMA";
+    break;
+  case ';':
+    t.str = "SEMI_COLON";
+    break;
+  case '(':
+    t.str = "OPEN_PAREN";
+    break;
+  case ')':
+    t.str = "CLOSE_PAREN";
+    break;
+  case '[':
+    t.str = "OPEN_BRACKET";
+    break;
+  case ']':
+    t.str = "CLOSE_BRACKET";
+    break;
+  default:
+    t.str = "CAUGHT";
+  }
+  
+  f++;
+  t.f = f;
   return t;
 }
