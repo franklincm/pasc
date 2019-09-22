@@ -1,3 +1,10 @@
+#ifndef LINKED_LIST
+#define LINKED_LIST
+
+#include "./linkedlist.h"
+
+#endif
+
 typedef struct ReservedWord{
   char *str;
   char *type;
@@ -5,4 +12,4 @@ typedef struct ReservedWord{
 } ReservedWord;
 
 
-void parse_reserved_words();
+node parse_reserved_words();

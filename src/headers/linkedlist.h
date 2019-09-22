@@ -1,9 +1,12 @@
-struct StrLinkedList{
+struct LinkedList{
   char *str;
-  struct StrLinkedList *next;
-} StrLinkedList;
+  char *type;
+  int attr;
+  struct LinkedList *next;
+} LinkedList;
 
-typedef struct StrLinkedList *strnode;
+typedef struct LinkedList *node;
 
-strnode createStrNode(char * str);
-strnode addNode(strnode head, char * str);
+node createNode();
+node insertNode(node head, node n);
+node addNode(node head, char * str);

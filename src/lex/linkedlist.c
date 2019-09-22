@@ -1,18 +1,31 @@
 #include <stdlib.h>
 #include "../headers/linkedlist.h"
 
-strnode createStrNode(char * str) {
-  strnode tmp;
-  tmp = (strnode)malloc(sizeof(struct StrLinkedList));
-  tmp->str = str;
+node createNode() {
+  node tmp;
+  tmp = (node)malloc(sizeof(struct LinkedList));
   tmp->next = NULL;
   return tmp;
 }
 
-strnode addNode(strnode head, char * str) {
-  strnode tmp, p;
-  tmp = createStrNode(str);
+node insertNode(node head, node n) {
+  node p;
+  if(head == NULL) {
+    head = n;
+  } else {
+    p = head;
+    while(p->next != NULL) {
+      p = p->next;
+    }
+    p->next = n;
+  }
+  return head;
+}
 
+node addNode(node head, char * str) {
+  node tmp, p;
+  tmp = createNode();
+  tmp->str = str;
   if(head == NULL) {
     head = tmp;
   } else {
