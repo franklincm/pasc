@@ -142,3 +142,25 @@ Makefile
       rm bin/*
       rm obj/*
 ```
+
+# 10/15/2019
+
+I have not worked any further on this as of today. I expect to have time in the
+next couple of days to continue.
+
+# 10/22/2019
+
+I've begun project 2. All I have for now is the new productions resulting from
+removing the 4 epsilon productions:
+
+    1. <declarations> -> <declarations> var id: <type>; 
+                         | ε
+                         
+    2. <subprogram_declarations> -> <subprogram_declarations> <subprogram_declaration>;
+                                    | ε
+                                    
+    3. <arguments> -> (<parameter_list>)
+                      | ε
+                      
+    4. <optional_statements> -> <statement_list>
+                                | ε
