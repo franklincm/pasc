@@ -63,17 +63,19 @@ Token machine(char *f, node ReservedWords, node *SymbolTable) {
       break;
     }
 
+    t = m_whitespace(f);
+    f = t.f;
+    if (strcmp(t.str, "UNDEF") != 0) {
+      break;
+    }
+    
     t = m_catchall(f);
     f = t.f;
     if (strcmp(t.str, "UNDEF") != 0) {
       break;
     }
     
-    /* t = m_whitespace(f); */
-    /* f = t.f; */
-    /* if (strcmp(t.str, "UNDEF") != 0) { */
-    /*   break; */
-    /* } */
+
     
     //fputs(f, stdout);
     //printf("%d\n", strlen(f));  

@@ -179,4 +179,4 @@ Added INTTOOLONG and LEADINGZERO errors to Int machine. No for LONGREAL
 and REAL.
 
 # 11/4/2019
-Add LONGREAL and REAL machines without error checking.
+Added LONGREAL and REAL machines without error checking.
