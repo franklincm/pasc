@@ -180,3 +180,6 @@ and REAL.
 
 # 11/4/2019
 Added LONGREAL and REAL machines without error checking.
+Without it, right now, valid programs will will parse
+correctly but int/real/longreal errors get skipped
+depending on the order of the machines.
