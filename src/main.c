@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#ifndef TOKEN
+#define TOKEN
 #include "headers/token.h"
+#endif
 
 void read_print_line(FILE *fp);
 
@@ -37,19 +41,36 @@ void read_print_line(FILE *fp) {
   while(fgets(line_buffer, sizeof line_buffer, fp) != NULL) {
 
     snprintf(line_num_str, sizeof line_num_str, "%-2d ", line_num);
-    //fputs(line_num_str, stdout);
-    //fputs(line_buffer, stdout);
+    fputs(line_num_str, stdout);
+    fputs(line_buffer, stdout);
     line_num++;
 
     //get_token(line_buffer, reserved_words, symbol_table);
-  }
 
-  fputs(line_buffer, stdout);
-  get_token(line_buffer, reserved_words, &symbol_table);
-  
-  node p = symbol_table;
-  while (p != NULL) {
-    printf("symbol table: %s\n", p->str);
-    p = p->next;
+    Token t;
+    t.str = "";
+    t.type = TOKEN_LEXERR;
+    //t = get_token(line_buffer, reserved_words, &symbol_table);
+    //printf("%s %d %d\n", t.str, t.type, t.attr);
+    while(strcmp(t.str, "UNDEF") != 0) {
+      t = get_token(line_buffer, reserved_words, &symbol_table);
+      //printf("%s %d %d\n", t.str, t.type, t.attr);
+      char * type = type_to_str(t);
+      if( strcmp(type, "TOKEN_WS") != 0 && strcmp(t.str, "UNDEF") != 0) {
+        printf("%s %s %d\n", t.str, type, t.attr);        
+      }
+
+    }
+
   }
+  
+  //fputs(line_buffer, stdout);
+
+
+  // print symbol table
+  /* node p = symbol_table; */
+  /* while (p != NULL) { */
+  /*   printf("symbol table: %s\n", p->str); */
+  /*   p = p->next; */
+  /* } */
 }
