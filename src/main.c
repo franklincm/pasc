@@ -57,20 +57,23 @@ void read_print_line(FILE *fp) {
       //printf("%s %d %d\n", t.str, t.type, t.attr);
       char * type = type_to_str(t);
       if( strcmp(type, "TOKEN_WS") != 0 && strcmp(t.str, "UNDEF") != 0) {
-        printf("%s %s %d\n", t.str, type, t.attr);        
+        printf("%s %d\n", type, t.attr);
       }
-
     }
-
   }
   
   //fputs(line_buffer, stdout);
 
 
   // print symbol table
-  /* node p = symbol_table; */
-  /* while (p != NULL) { */
-  /*   printf("symbol table: %s\n", p->str); */
-  /*   p = p->next; */
-  /* } */
+  printf("\nSymbol Table\n");
+  for(int i = 0; i < 21; i++) {
+    putc('=', stdout);
+  }
+  printf("\n");
+  node p = symbol_table;
+  while (p != NULL) {
+    printf("symbol table: %s\n", p->str);
+    p = p->next;
+  }
 }

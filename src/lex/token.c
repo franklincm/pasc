@@ -39,6 +39,18 @@ Token machine(char *f, node ReservedWords, node *SymbolTable) {
       break;
     }
 
+    t = m_longreal(f);
+    f = t.f;
+    if (strcmp(t.str, "UNDEF") != 0) {
+      break;
+    }
+
+    t = m_real(f);
+    f = t.f;
+    if (strcmp(t.str, "UNDEF") != 0) {
+      break;
+    }
+    
     t = m_int(f);
     f = t.f;
     if (strcmp(t.str, "UNDEF") != 0) {
@@ -100,19 +112,19 @@ Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
     if (strcmp(t.str, p->str) == 0) {
       t.type = p->type;
       t.attr = p->attr;
-      printf("%d %d\n", p->type, p->attr);
-      printf("reserved word: %s %d %d\n", t.str, t.type, t.attr);
+      //printf("%d %d\n", p->type, p->attr);
+      //printf("reserved word: %s %d %d\n", t.str, t.type, t.attr);
       break;
     }
     p = p->next;
   }
 
   // if not reserved word...
-  if (t.type < 0) {
+  if (t.type < 0 && strcmp(t.str, "UNDEF") != 0) {
     
     // check IDTOOLONG
     if (strlen(t.str) > 10) {
-      printf("IDTOOLONG");
+      //printf("IDTOOLONG");
       t.type = LEXERR_IDTOOLONG;
       t.attr = 0;
     }
@@ -123,32 +135,135 @@ Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
       symbol = (node)malloc(sizeof(struct LinkedList));
       symbol->str = t.str;
       symbol->type = TOKEN_ID;
-      symbol->attr = 1;
+      //symbol->attr = 1;
       *SymbolTable = insertNode(*SymbolTable, symbol);
       //printf("INSERT ID: %s\n", t.str);
     }
+
+    int loc = 0;
+    node p = *SymbolTable;
+    while(p != NULL) {
+      if(strcmp(p->str, t.str) == 0) {
+        break;
+      }
+      p = p->next;
+      loc++;
+    }
+
     t.type = symbol->type;
-    t.attr = symbol->attr;
+    t.attr = loc;
   }
   
   t.f = f;
   return t;  
 }
 
-Token m_int(char *f) {
+Token m_longreal(char *f) {
+  Token t;
+  t.str = "UNDEF";
+  t.type = TOKEN_LEXERR;
+  t.attr = 0;
+  char *b = f;
+  if(isdigit(*f)) {
+    for(int i = 0; i < 5; i++) {
+      if (isdigit(*f)) {
+        f++;          
+      } 
+    }
+    if(*f == '.') {
+      f++;
+      for(int i = 0; i < 5; i++) {
+        if (isdigit(*f)) {
+          f++;
+        }
+      }
+      if(*f == 'E') {
+        f++;
+        if(isdigit(*f)) {
+          int exp_len = 0;
+          while(isdigit(*f)) {
+            f++;
+            exp_len++;
+          }
+          if (exp_len <= 2) {
+            t.str = "LONGREAL";
+            t.type = TOKEN_LONGREAL;
+            t.attr = 0;
+            t.f = f;
+            return t;
+          }
+        }
+      } else {
+        t.f = b;
+        return t;
+      }
+    }
+    
+  }
+  t.f = f;
+  return t;
+}
+
+Token m_real(char *f) {
   Token t;
   t.str = "UNDEF";
   t.type = TOKEN_LEXERR;
   t.attr = 0;
 
   if(isdigit(*f)) {
-    f++;
-    t.str = "INT";
-    t.type = TOKEN_INT;
-    t.attr = 0;
-
+    char *x = f;
     while(isdigit(*f)) {
       f++;
+    }
+    
+    if(!(*f == '.')) {
+
+    } else {
+      if((f - x) > 5) {
+        t.str = "XXTOOLONG";
+      }
+      
+      f++;
+      char *y = f;
+      while(isdigit(*f)) {
+        f++;
+      }
+      if((f - y) > 5) {
+        t.str = "YYTOOLONG";
+      }
+      t.str = "REAL";
+      t.type = TOKEN_REAL;
+    }
+  }
+  
+  t.f = f;
+  return t;
+}
+
+Token m_int(char *f) {
+  Token t;
+  char *b = f;
+  t.str = "UNDEF";
+  t.type = TOKEN_LEXERR;
+  t.attr = 0;
+
+  if (isdigit(*f)) {
+    while(isdigit(*f)) {
+      f++;
+    }
+
+    if ((f - b) > 1 && *b == '0') {
+      t.str = "LEADINGZERO";
+      t.type = TOKEN_LEXERR;
+      t.attr = 0;
+    } else if ((f - b) > 10) {
+      t.str = "INTTOOLONG";
+      t.type = TOKEN_LEXERR;
+      t.attr = 0;    
+    } else {
+      t.str = "INT";
+      t.type = TOKEN_INT;
+      t.attr = 0;
     }
   }
   t.f = f;
@@ -356,6 +471,12 @@ char *type_to_str(Token t) {
     break;
   case TOKEN_INT:
     type = "TOKEN_INT";
+    break;
+  case TOKEN_LONGREAL:
+    type = "TOKEN_LONGREAL";
+    break;
+  case TOKEN_REAL:
+    type = "TOKEN_REAL";
     break;
   case LEXERR_IDTOOLONG:
     type = "LEXERR_IDTOOLONG";

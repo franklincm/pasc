@@ -164,3 +164,19 @@ removing the 4 epsilon productions:
                       
     4. <optional_statements> -> <statement_list>
                                 | ε
+# 11/4/2019
+I've gotten project 1 further along. IDRES, WS, CATCHALL, INT, and RELOPS
+machines are working. Still need to get REAL, LONGREAL written and I need
+to change my Token struct to make use of the UNION construct for storing
+ints OR pointers as attributes.
+
+Also still have a lot of `#define`'s to clean up and organize into some
+kind of system.
+
+
+# 11/4/2019
+Added INTTOOLONG and LEADINGZERO errors to Int machine. No for LONGREAL 
+and REAL.
+
+# 11/4/2019
+Add LONGREAL and REAL machines without error checking.

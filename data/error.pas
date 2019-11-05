@@ -1,7 +1,7 @@
 program example(input, output);
 var
-   x, y: integer
-   r, s: real;
+   x, y, z : integer
+   r     : real;
 function gcd(a, b: integer ): integer;
 begin
    if b = 0 then gcd := a
@@ -15,5 +15,5 @@ end.
 
 begin
    r := 3.14;
-   s := 3.14E2;
+   z := 12345678901;
 end.

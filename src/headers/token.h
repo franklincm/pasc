@@ -28,14 +28,15 @@
 #define TOKEN_LBRACKET 12
 #define TOKEN_RBRACKET 13
 #define TOKEN_INT 14
-
+#define TOKEN_LONGREAL 15
+#define TOKEN_REAL 16
 #define LEXERR_IDTOOLONG 999
 
 typedef struct Token{
   char *str;
   int type;
-  int attr;
   char *f;
+  int attr;
 } Token;
 
 Token get_token(char * line, node ReservedWords, node *SymbolTable);
@@ -45,4 +46,6 @@ Token m_whitespace(char *f);
 Token m_int(char *f);
 Token m_relops(char *f);
 Token m_catchall(char *f);
+Token m_longreal(char *f);
+Token m_real(char *f);
 char *type_to_str(Token t);
