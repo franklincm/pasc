@@ -204,3 +204,8 @@ TOKEN_WS
 ```
 
 So obviously that will be fixed shortly.
+
+# 11/5/2019
+Ok so error checking for REAL is complete except for leading and trailing 0's.
+I'll add that first thing in the morning and start going through the listing
+and token files with a fine tooth comb.
