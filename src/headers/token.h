@@ -30,6 +30,7 @@
 #define TOKEN_INT 14
 #define TOKEN_LONGREAL 15
 #define TOKEN_REAL 16
+#define TOKEN_EOF -1
 
 
 #define TOKEN_UNRECOGNIZED_SYMBOL 999

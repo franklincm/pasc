@@ -40,7 +40,7 @@ Token machine(char *f, node ReservedWords, node *SymbolTable) {
   t = m_idres(f, ReservedWords, SymbolTable);
   if(!is_unrec(t)) return t;
 
-  t = m_real2(f);    
+  t = m_real(f);    
   if(!is_unrec(t)) return t;
 
   t = m_int(f);
@@ -128,7 +128,7 @@ Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
   return t;  
 }
 
-Token m_real2(char *f) {
+Token m_real(char *f) {
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
@@ -175,11 +175,18 @@ Token m_real2(char *f) {
         if(strlen(fracbuffer) > 5) {
           t.type = LEXERR;
           t.attr = FRACTOOLONG;
+        } else if (strlen(fracbuffer) > 1 &&
+                   fracbuffer[strlen(fracbuffer) - 1] == '0') {
+          t.type = LEXERR;
+          t.attr = TRAILINGZERO;
         }
       }
       if(strlen(intbuffer) > 5) {
         t.type = LEXERR;
         t.attr = DIGITTOOLONG;
+      } else if (strlen(intbuffer) > 1 && intbuffer[0] == '0') {
+        t.type = LEXERR;
+        t.attr = LEADINGZERO;
       }
       if(t.type != LEXERR) {
         t.type = TOKEN_REAL;
@@ -191,44 +198,6 @@ Token m_real2(char *f) {
   t.f = f;
   return t;
   
-}
-
-Token m_real(char *f) {
-  Token t;
-  t.str = "UNRECSYM";
-  t.type = TOKEN_UNRECOGNIZED_SYMBOL;
-  t.attr = 0;
-
-  if(isdigit(*f)) {
-    char *x = f;
-    while(isdigit(*f)) {
-      f++;
-    }
-    
-    if(!(*f == '.')) {
-      f = x;
-    } else {
-      if((f - x) > 5) {
-        t.str = "XXTOOLONG";
-      }
-      
-      f++;
-      char *y = f;
-      while(isdigit(*f)) {
-        f++;
-      }
-      if((f - y) > 5) {
-        t.str = "YYTOOLONG";
-      }
-      if(strcmp(t.str, "XXTOOLONG") != 0 && strcmp(t.str, "YYTOOLONG") != 0) {
-        t.str = "REAL";
-        t.type = TOKEN_REAL;
-      }
-    }
-  }
-  
-  t.f = f;
-  return t;
 }
 
 Token m_int(char *f) {
@@ -396,6 +365,9 @@ Token m_catchall(char *f) {
     t.str = "CLOSE_BRACKET";
     t.type = TOKEN_RBRACKET;
     break;
+  case EOF:
+    t.type = TOKEN_EOF;
+    break;
   default:
     t.type = LEXERR;
     t.attr = UNK_SYMBOL;
@@ -469,6 +441,8 @@ char *type_to_str(Token t) {
   case TOKEN_REAL:
     type = "TOKEN_REAL";
     break;
+  case TOKEN_EOF:
+    type = "TOKEN_EOF";
   }
   return type;
 }

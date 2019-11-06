@@ -7,6 +7,7 @@
 #endif
 
 void read_print_line(FILE *fp);
+void print_token(Token t);
 void print_symbol_table(node *SymbolTable);
 
 int main(int argc, char **argv) {
@@ -52,21 +53,33 @@ void read_print_line(FILE *fp) {
 
     while(strcmp(t.str, "EOL") != 0) {
       t = get_token(line_buffer, reserved_words, &symbol_table);
-      //printf("%s %d %d\n", t.str, t.type, t.attr);
-      char * type = type_to_str(t);
-      if(strcmp(type, "TOKEN_WS") != 0) {
-        if(t.type == LEXERR) {
-          char * attr = attr_to_str(t);
-          printf("%s %s\n", type, attr);
-        } else {
-          printf("%s %d\n", type, t.attr);
-        }
-      }
+
+      // replace this with a print_token() fn...
+      print_token(t);
     }
+  }
+
+  if(feof(fp)) {
+    Token t;
+    t.type = TOKEN_EOF;
+    char *type = type_to_str(t);
+    printf("%s %d\n", type, 0);
   }
 
   //print_symbol_table(&symbol_table);
   
+}
+
+void print_token(Token t) {
+  char * type = type_to_str(t);
+  if(t.type != TOKEN_WS) {
+    if(t.type == LEXERR) {
+      char * attr = attr_to_str(t);
+      printf("%s %s\n", type, attr);
+    } else {
+      printf("%s %d\n", type, t.attr);
+    }
+  }
 }
 
 void print_symbol_table(node *SymbolTable) {
