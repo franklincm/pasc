@@ -7,6 +7,7 @@
 #endif
 
 void read_print_line(FILE *fp);
+void print_symbol_table(node *SymbolTable);
 
 int main(int argc, char **argv) {
   char *filename = "data/example.pas";
@@ -45,33 +46,36 @@ void read_print_line(FILE *fp) {
     fputs(line_buffer, stdout);
     line_num++;
 
-    //get_token(line_buffer, reserved_words, symbol_table);
 
     Token t;
     t.str = "";
-    t.type = TOKEN_LEXERR;
-    //t = get_token(line_buffer, reserved_words, &symbol_table);
-    //printf("%s %d %d\n", t.str, t.type, t.attr);
-    while(strcmp(t.str, "UNDEF") != 0) {
+
+    while(strcmp(t.str, "EOL") != 0) {
       t = get_token(line_buffer, reserved_words, &symbol_table);
       //printf("%s %d %d\n", t.str, t.type, t.attr);
       char * type = type_to_str(t);
-      if( strcmp(type, "TOKEN_WS") != 0 && strcmp(t.str, "UNDEF") != 0) {
-        printf("%s %d\n", type, t.attr);
+      if(strcmp(type, "TOKEN_WS") != 0) {
+        if(t.type == LEXERR) {
+          char * attr = attr_to_str(t);
+          printf("%s %s\n", type, attr);
+        } else {
+          printf("%s %d\n", type, t.attr);
+        }
       }
     }
   }
+
+  //print_symbol_table(&symbol_table);
   
-  //fputs(line_buffer, stdout);
+}
 
-
-  // print symbol table
+void print_symbol_table(node *SymbolTable) {
   printf("\nSymbol Table\n");
   for(int i = 0; i < 21; i++) {
     putc('=', stdout);
   }
   printf("\n");
-  node p = symbol_table;
+  node p = *SymbolTable;
   while (p != NULL) {
     printf("symbol table: %s\n", p->str);
     p = p->next;

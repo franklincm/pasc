@@ -166,7 +166,7 @@ removing the 4 epsilon productions:
                                 | ε
 # 11/4/2019
 I've gotten project 1 further along. IDRES, WS, CATCHALL, INT, and RELOPS
-machines are working. Still need to get REAL, LONGREAL written and I need
+machines are working. Still need to get REAL written and I need
 to change my Token struct to make use of the UNION construct for storing
 ints OR pointers as attributes.
 
@@ -175,11 +175,32 @@ kind of system.
 
 
 # 11/4/2019
-Added INTTOOLONG and LEADINGZERO errors to Int machine. No for LONGREAL 
-and REAL.
+Added INTTOOLONG and LEADINGZERO errors to Int machine.
 
 # 11/4/2019
-Added LONGREAL and REAL machines without error checking.
+Added REAL machine without error checking.
 Without it, right now, valid programs will will parse
 correctly but int/real/longreal errors get skipped
 depending on the order of the machines.
+
+# 11/5/2019
+It's working! I still need to add checking for the optional 'E' char in
+the real machine and the exponent part, but the machines are working as
+intended and each line is being tokenized correctly - with the exception
+of the test real assignments I've added of course.
+
+`z := 3.14E2`
+
+is currently being parsed as:
+
+```
+TOKEN_ID
+TOKEN_WS
+TOKEN_ASSIGN
+TOKEN_WS
+TOKEN_REAL
+TOKEN_ID
+TOKEN_WS
+```
+
+So obviously that will be fixed shortly.

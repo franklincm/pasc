@@ -12,7 +12,7 @@
 
 #endif
 
-#define TOKEN_LEXERR -1
+#define LEXERR 99
 #define TOKEN_WS 0
 #define TOKEN_ID 1
 #define TOKEN_RELOP 2
@@ -30,7 +30,18 @@
 #define TOKEN_INT 14
 #define TOKEN_LONGREAL 15
 #define TOKEN_REAL 16
-#define LEXERR_IDTOOLONG 999
+
+
+#define TOKEN_UNRECOGNIZED_SYMBOL 999
+
+/* LEXERR ATTRIBUTES */
+#define UNK_SYMBOL 0
+#define IDTOOLONG 1
+#define INTTOOLONG 2
+#define LEADINGZERO 3
+#define FRACTOOLONG 4
+#define TRAILINGZERO 5
+#define EXPONENTTOOLONG 6
 
 typedef struct Token{
   char *str;
@@ -46,6 +57,7 @@ Token m_whitespace(char *f);
 Token m_int(char *f);
 Token m_relops(char *f);
 Token m_catchall(char *f);
-Token m_longreal(char *f);
 Token m_real(char *f);
+Token m_real2(char *f);
 char *type_to_str(Token t);
+char *attr_to_str(Token t);

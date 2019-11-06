@@ -1,6 +1,6 @@
 program example(input, output);
 var
-   x, y: integer
+   x, y, z: integer
    r, s: real;
 function gcd(a, b: integer ): integer;
 begin
@@ -14,6 +14,7 @@ begin
 end.
 
 begin
+   z := 104;
    r := 3.14;
    s := 3.14E2;
 end.
