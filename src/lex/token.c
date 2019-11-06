@@ -34,27 +34,22 @@ Token machine(char *f, node ReservedWords, node *SymbolTable) {
   t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
 
-  while(1) {
-    t = m_whitespace(f);
-    if(!is_unrec(t)) break;
+  t = m_whitespace(f);
+  if(!is_unrec(t)) return t;
+  
+  t = m_idres(f, ReservedWords, SymbolTable);
+  if(!is_unrec(t)) return t;
 
-    t = m_idres(f, ReservedWords, SymbolTable);
-    if(!is_unrec(t)) break;
+  t = m_real2(f);    
+  if(!is_unrec(t)) return t;
 
-    t = m_real2(f);    
-    if(!is_unrec(t)) break;
+  t = m_int(f);
+  if(!is_unrec(t)) return t;
 
-    t = m_int(f);
-    if(!is_unrec(t)) break;
+  t = m_relops(f);
+  if(!is_unrec(t)) return t;
 
-    t = m_relops(f);
-    if(!is_unrec(t)) break;
-
-    t = m_catchall(f);
-    //if(!is_unrec(t)) break;
-    break;
-  }
-
+  t = m_catchall(f);
   return t;
 }
 
@@ -135,46 +130,64 @@ Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
 
 Token m_real2(char *f) {
   Token t;
-  t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
 
-  char *start = f;
+  char *start, *dec, *exp;
+  start = f;
+
+  char *intbuffer;
+  char *fracbuffer;
+  char *expbuffer;
   
   if(isdigit(*f)) {
     while(isdigit(*f)) f++;
-  } else {
-    f = start;
-    return t;
-  }
+    intbuffer = (char *)malloc(sizeof (f-start));
+    strncpy(intbuffer, start, f-start);
+    intbuffer[(f-start)] = '\0';
 
-  if(*f == '.') {
-    f++;
-    char *dec = f;
-  } else {
-    f = start;
-    return t;
-  }
+    if(*f == '.') {
+      f++;
+      dec = f;
 
-  if(isdigit(*f)) {
-    while(isdigit(*f)) f++;
-  }
+      if(isdigit(*f)) {
+        while(isdigit(*f)) f++;
+        fracbuffer = (char *)malloc(sizeof(f-dec));
+        strncpy(fracbuffer, dec, f-dec);
+        fracbuffer[(f-dec)] = '\0';
 
-  if(*f == 'E') {
-    f++;
-  } else {
-    t.str = "REAL";
-    t.type = TOKEN_REAL;
-    t.f = f;
-    return t;
-  }
+        if(*f == 'E') {
+          f++;
+          exp = f;
 
-  if(isdigit(*f)) {
-    while(isdigit(*f)) f++;
-  }
+          if(isdigit(*f)) {
+            while(isdigit(*f)) f++;
+            expbuffer = (char *)malloc(sizeof(f-exp));
+            strncpy(expbuffer, exp, f-exp);
+            expbuffer[(f-exp)] = '\0';
 
-  t.str = "REAL";
-  t.type = TOKEN_REAL;
+            if(strlen(expbuffer) > 2) {
+              t.type = LEXERR;
+              t.attr = EXPONENTTOOLONG;
+            }
+          }
+        }
+        if(strlen(fracbuffer) > 5) {
+          t.type = LEXERR;
+          t.attr = FRACTOOLONG;
+        }
+      }
+      if(strlen(intbuffer) > 5) {
+        t.type = LEXERR;
+        t.attr = DIGITTOOLONG;
+      }
+      if(t.type != LEXERR) {
+        t.type = TOKEN_REAL;
+        t.attr = 0;
+      }
+    }
+  }
+  
   t.f = f;
   return t;
   
@@ -220,7 +233,6 @@ Token m_real(char *f) {
 
 Token m_int(char *f) {
   Token t;
-  //t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
 
@@ -232,11 +244,9 @@ Token m_int(char *f) {
     }
 
     if ((f - b) > 1 && *b == '0') {
-      //t.str = "LEADINGZERO";
       t.type = LEXERR;
       t.attr = LEADINGZERO;
     } else if ((f - b) > 10) {
-      //t.str = "INTTOOLONG";
       t.type = LEXERR;
       t.attr = INTTOOLONG;
     } else {
@@ -478,6 +488,9 @@ char *attr_to_str(Token t) {
     break;
   case LEADINGZERO:
     type = "Leading Zero";
+    break;
+  case DIGITTOOLONG:
+    type = "Extra Long Int Part";
     break;
   case FRACTOOLONG:
     type = "Extra Long Frac";

@@ -39,9 +39,10 @@
 #define IDTOOLONG 1
 #define INTTOOLONG 2
 #define LEADINGZERO 3
-#define FRACTOOLONG 4
-#define TRAILINGZERO 5
-#define EXPONENTTOOLONG 6
+#define DIGITTOOLONG 4
+#define FRACTOOLONG 5
+#define TRAILINGZERO 6
+#define EXPONENTTOOLONG 7
 
 typedef struct Token{
   char *str;
