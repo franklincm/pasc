@@ -243,11 +243,14 @@ Token m_int(char *f) {
       t.attr = INTTOOLONG;
     } else {
       t.type = TOKEN_INT;
-      t.attr = atoi(strbuffer);
     }
     strncpy(strbuffer, b, f-b);
     strbuffer[(f-b)] = '\0';
     t.str = strbuffer;
+
+    if(t.type == TOKEN_INT) {
+      t.attr = atoi(strbuffer);      
+    }
   }
   t.f = f;
   return t;
