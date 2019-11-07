@@ -209,3 +209,42 @@ So obviously that will be fixed shortly.
 Ok so error checking for REAL is complete except for leading and trailing 0's.
 I'll add that first thing in the morning and start going through the listing
 and token files with a fine tooth comb.
+
+# 11/5/2019
+Writing listing file, token file, and symbol table files complete. Switching to
+work on my grammar for project 2 before tomorrow's lecture about decorations.
+
+Semi-final directory structure:
+
+```
+  .
+  ├── bin
+  │   └── lex
+  ├── data
+  │   ├── error2.pas
+  │   ├── error.pas
+  │   ├── example.pas
+  │   └── reserved
+  ├── obj
+  │   ├── linkedlist.o
+  │   ├── main.o
+  │   ├── reserved.o
+  │   └── token.o
+  ├── src
+  │   ├── headers
+  │   │   ├── linkedlist.h
+  │   │   ├── reserved.h
+  │   │   └── token.h
+  │   ├── lex
+  │   │   ├── linkedlist.c
+  │   │   ├── reserved.c
+  │   │   └── token.c
+  │   └── main.c
+  ├── listingfile
+  ├── Makefile
+  ├── README.md
+  ├── symboltable
+  └── tokenfile
+```
+
+I'll start working on the report in the next couple days.
