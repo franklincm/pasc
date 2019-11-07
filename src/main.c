@@ -57,7 +57,7 @@ void read_print_line(FILE *fp) {
     while(strcmp(t.str, "EOL") != 0) {
       t = get_token(line_buffer, reserved_words, &symbol_table);
       char *line = print_token(t, line_num);
-      printf("%s", line);
+      //printf("%s", line);
       fprintf(token_file, "%s", line);
       if(t.type == LEXERR) {
         fprintf(listing_file, "%s\n", print_error(t));
@@ -68,7 +68,7 @@ void read_print_line(FILE *fp) {
   fclose(listing_file);
   
   if(feof(fp)) {
-    printf("         %-14s%-4d%-20s %6d (%s)\n", "EOF", 40, "(EOF)", 0, "NULL");
+    //printf("         %-14s%-4d%-20s %6d (%s)\n", "EOF", 40, "(EOF)", 0, "NULL");
     fprintf(token_file, "         %-14s%-4d%-20s %6d (%s)\n", "EOF", 40, "(EOF)", 0, "NULL");
   }
   
