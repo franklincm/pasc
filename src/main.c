@@ -7,8 +7,9 @@
 #endif
 
 void read_print_line(FILE *fp);
-void print_token(Token t);
-void print_symbol_table(node *SymbolTable);
+char *print_token(Token t, int line_num);
+char *print_error(Token t);
+void write_symbol_table(node *SymbolTable);
 
 int main(int argc, char **argv) {
   char *filename = "data/example.pas";
@@ -30,7 +31,6 @@ int main(int argc, char **argv) {
 
 }
 
-
 void read_print_line(FILE *fp) {
   node reserved_words = parse_reserved_words();
   
@@ -39,58 +39,89 @@ void read_print_line(FILE *fp) {
   
   char line_buffer[72];
   int line_num = 1;
-  char line_num_str[5];
+  
+  FILE *token_file = fopen("tokenfile", "w");
+  FILE *listing_file = fopen("listingfile", "w");
+  
+  char * heading = (char *)malloc(100 * sizeof(char));
+  sprintf(heading, "%-9s%-14s%-25s%s\n", "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE");
+  fprintf(token_file, "%s", heading);
+
   while(fgets(line_buffer, sizeof line_buffer, fp) != NULL) {
 
-    snprintf(line_num_str, sizeof line_num_str, "%-2d ", line_num);
-    fputs(line_num_str, stdout);
-    fputs(line_buffer, stdout);
-    line_num++;
-
+    //fputs(line_buffer, stdout);
+    fprintf(listing_file, "%-10d%s", line_num, line_buffer);
 
     Token t;
-    t.str = "";
 
     while(strcmp(t.str, "EOL") != 0) {
       t = get_token(line_buffer, reserved_words, &symbol_table);
-
-      // replace this with a print_token() fn...
-      print_token(t);
+      char *line = print_token(t, line_num);
+      printf("%s", line);
+      fprintf(token_file, "%s", line);
+      if(t.type == LEXERR) {
+        fprintf(listing_file, "%s\n", print_error(t));
+      }
     }
+    line_num++;
   }
-
-  if(feof(fp)) {
-    Token t;
-    t.type = TOKEN_EOF;
-    char *type = type_to_str(t);
-    printf("%s %d\n", type, 0);
-  }
-
-  //print_symbol_table(&symbol_table);
+  fclose(listing_file);
   
+  if(feof(fp)) {
+    printf("         %-14s%-4d%-20s %6d (%s)\n", "EOF", 40, "(EOF)", 0, "NULL");
+    fprintf(token_file, "         %-14s%-4d%-20s %6d (%s)\n", "EOF", 40, "(EOF)", 0, "NULL");
+  }
+  
+  fclose(token_file);
+  write_symbol_table(&symbol_table);
 }
 
-void print_token(Token t) {
-  char * type = type_to_str(t);
+char *print_error(Token t) {
+  char *line_buffer = (char *)malloc(150 * sizeof(char));
+  sprintf(line_buffer, "%-10s%-30s%s", type_to_str(t), attr_to_str(t), t.str);
+  return line_buffer;
+}
+
+char *print_token(Token t, int line_num) {
+  char *line_buffer = (char *)malloc(150 * sizeof(char));
+  
+  char * type = (char *)malloc(50 * sizeof(char));
+  sprintf(type, "(%s)", type_to_str(t));
+
   if(t.type != TOKEN_WS) {
-    if(t.type == LEXERR) {
-      char * attr = attr_to_str(t);
-      printf("%s %s\n", type, attr);
+    char *attr_str;
+    char *attr;
+    if (t.type == TOKEN_ID) {
+      attr_str = "ptr to sym tab";
+      attr = (char *)malloc(10 * sizeof(char));
+      sprintf(attr, "loc%d", t.attr);
+      
+    } else if (t.type == TOKEN_INT) {
+      attr_str = "int value";
+      attr = (char *)malloc(10 * sizeof(char));
+      sprintf(attr, "%d", t.attr);
+      
     } else {
-      printf("%s %d\n", type, t.attr);
+      attr_str = (char *)malloc(3 * sizeof(char));
+      sprintf(attr_str, "%s", attr_to_str(t));
+      attr = (char *)malloc(10 * sizeof(char));
+      sprintf(attr, "%d", t.attr);
     }
+    sprintf(line_buffer, "%4d     %-14s%-4d%-20s %6s (%s)\n", line_num, t.str, t.type, type, attr, attr_str);
   }
+  return line_buffer;
 }
 
-void print_symbol_table(node *SymbolTable) {
-  printf("\nSymbol Table\n");
-  for(int i = 0; i < 21; i++) {
-    putc('=', stdout);
-  }
-  printf("\n");
+void write_symbol_table(node *SymbolTable) {
+  FILE *symbol_table_file = fopen("symboltable", "w");
+  fprintf(symbol_table_file, "%-10s%s", "location", "id");
+  fprintf(symbol_table_file, "\n");
   node p = *SymbolTable;
+  int loc = 0;
   while (p != NULL) {
-    printf("symbol table: %s\n", p->str);
+    fprintf(symbol_table_file, "%3s%-5d%2s%s\n", "", loc, "", p->str);
     p = p->next;
+    loc++;
   }
+  fclose(symbol_table_file);
 }

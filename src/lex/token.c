@@ -56,7 +56,6 @@ Token machine(char *f, node ReservedWords, node *SymbolTable) {
 Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
   char *b = f;
   Token t;
-  //t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
 
@@ -139,23 +138,27 @@ Token m_real(char *f) {
   char *intbuffer;
   char *fracbuffer;
   char *expbuffer;
-  
+
+  // digit
   if(isdigit(*f)) {
     while(isdigit(*f)) f++;
     intbuffer = (char *)malloc(sizeof (f-start));
     strncpy(intbuffer, start, f-start);
     intbuffer[(f-start)] = '\0';
 
+    // dot
     if(*f == '.') {
       f++;
       dec = f;
 
+      // digit
       if(isdigit(*f)) {
         while(isdigit(*f)) f++;
         fracbuffer = (char *)malloc(sizeof(f-dec));
         strncpy(fracbuffer, dec, f-dec);
         fracbuffer[(f-dec)] = '\0';
 
+        // optional 'E'
         if(*f == 'E') {
           f++;
           exp = f;
@@ -170,24 +173,43 @@ Token m_real(char *f) {
               t.type = LEXERR;
               t.attr = EXPONENTTOOLONG;
             }
+          } else {
+            // if 'E', exponent required!
+            t.type = LEXERR;
+            t.attr = MISSINGEXPONENT;
           }
         }
+
+        // update t.str with lexeme
+        char *strbuffer = (char *)malloc(sizeof(f-start));
+        strncpy(strbuffer, start, f-start);
+        t.str = strbuffer;
+
+        // check for extra long frac
         if(strlen(fracbuffer) > 5) {
           t.type = LEXERR;
           t.attr = FRACTOOLONG;
+
+          // check trailing zero
         } else if (strlen(fracbuffer) > 1 &&
                    fracbuffer[strlen(fracbuffer) - 1] == '0') {
           t.type = LEXERR;
           t.attr = TRAILINGZERO;
         }
       }
+
+      // check extra long int part...
       if(strlen(intbuffer) > 5) {
         t.type = LEXERR;
         t.attr = DIGITTOOLONG;
+
+        // check leading zero...
       } else if (strlen(intbuffer) > 1 && intbuffer[0] == '0') {
         t.type = LEXERR;
         t.attr = LEADINGZERO;
       }
+
+      // if no errors, then assign to real
       if(t.type != LEXERR) {
         t.type = TOKEN_REAL;
         t.attr = 0;
@@ -206,7 +228,8 @@ Token m_int(char *f) {
   t.attr = 0;
 
   char *b = f;
-
+  char *strbuffer = (char *)malloc(100 * sizeof(char));
+  
   if (isdigit(*f)) {
     while(isdigit(*f)) {
       f++;
@@ -219,15 +242,12 @@ Token m_int(char *f) {
       t.type = LEXERR;
       t.attr = INTTOOLONG;
     } else {
-      // parse str to int
-      char *strbuffer = (char *)malloc(sizeof (f-b));
-      strncpy(strbuffer, b, f-b);
-      strbuffer[(f-b)] = '\0';
-      
-      t.str = "INT";
       t.type = TOKEN_INT;
       t.attr = atoi(strbuffer);
     }
+    strncpy(strbuffer, b, f-b);
+    strbuffer[(f-b)] = '\0';
+    t.str = strbuffer;
   }
   t.f = f;
   return t;
@@ -239,15 +259,17 @@ Token m_whitespace(char *f) {
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
 
-  if(*f == '\n') {
-    f++;
-    t.str = "EOL";
-    t.type = TOKEN_WS;
-  } else if(isspace(*f)) {
+  if(isspace(*f)) {
     while(isspace(*f)) {
-      f++;
+      if(*f == '\n') {
+        t.str = "EOL";
+        t.type = TOKEN_WS;
+        t.f = f;
+        return t;
+      } else {
+        f++;
+      }
     }
-    
     t.str = "WS";
     t.type = TOKEN_WS;
   }
@@ -298,71 +320,70 @@ Token m_relops(char *f) {
 
 Token m_catchall(char *f) {
   Token t;
-  //t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
   
   switch(*f) {
   case '+':
-    t.str = "ADD_OP";
+    t.str = "+";
     t.type = TOKEN_OP;
     break;
   case '-':
-    t.str = "ADD_OP";
+    t.str = "-";
     t.type = TOKEN_OP;
     break;
   case '*':
-    t.str = "MULT_OP";
+    t.str = "*";
     t.type = TOKEN_OP;
     break;
   case '/':
-    t.str = "MULT_OP";
+    t.str = "/";
     t.type = TOKEN_OP;
     break;
   case '.':
     f++;
     if (*f == '.') {
-      t.str = "ELIPSIS";
+      t.str = "..";
       t.type = TOKEN_ELIPSIS;
     } else {
       f--;
-      t.str = "DOT";
+      t.str = ".";
       t.type = TOKEN_DOT;
     }
     break;
   case ',':
-    t.str = "COMMA";
+    t.str = ",";
     t.type = TOKEN_COMMA;
     break;
   case ':':
     f++;
     if (*f == '=') {
-      t.str = "ASSIGN_OP";
+      t.str = ":=";
       t.type = TOKEN_ASSIGN;
     } else {
       f--;
-      t.str = "COLON";
+      t.str = ":";
       t.type = TOKEN_COLON;
     }
     break;
   case ';':
-    t.str = "SEMI_COLON";
+    t.str = ";";
     t.type = TOKEN_SEMICOLON;
     break;
   case '(':
-    t.str = "OPEN_PAREN";
+    t.str = "(";
     t.type = TOKEN_LPAREN;
     break;
   case ')':
-    t.str = "CLOSE_PAREN";
+    t.str = ")";
     t.type = TOKEN_RPAREN;
     break;
   case '[':
-    t.str = "OPEN_BRACKET";
+    t.str = "[";
     t.type = TOKEN_LBRACKET;
     break;
   case ']':
-    t.str = "CLOSE_BRACKET";
+    t.str = "]";
     t.type = TOKEN_RBRACKET;
     break;
   case EOF:
@@ -381,12 +402,69 @@ Token m_catchall(char *f) {
 char *type_to_str(Token t) {
   char * type;
 
-  if (t.type >= 100) {
-    type = "TOKEN_RES";
-    return type;
-  }
-  
   switch(t.type) {
+
+  case 100:
+    type = "PROG";
+    break;
+  case 101:
+    type = "VAR";
+    break;
+  case 102:
+    type = "ARR";
+    break;
+  case 103:
+    type = "OF";
+    break;
+  case 104:
+    type = "INT";
+    break;
+  case 105:
+    type = "REAL";
+    break;
+  case 106:
+    type = "FUNC";
+    break;
+  case 107:
+    type = "PROC";
+    break;
+  case 108:
+    type = "BEGN";
+    break;
+  case 109:
+    type = "END";
+    break;
+  case 110:
+    type = "IF";
+    break;
+  case 111:
+    type = "THEN";
+    break;
+  case 112:
+    type = "ELSE";
+    break;
+  case 113:
+    type = "WHLE";
+    break;
+  case 114:
+    type = "DO";
+    break;
+  case 115:
+    type = "NOT";
+    break;
+  case 116:
+    type = "OR";
+    break;
+  case 117:
+    type = "DIV";
+    break;
+  case 118:
+    type = "MOD";
+    break;
+  case 119:
+    type = "AND";
+    break;
+    
   case LEXERR:
     type = "LEXERR";
     break;
@@ -394,55 +472,52 @@ char *type_to_str(Token t) {
     type = "TOKEN_WS";
     break;
   case TOKEN_ID:
-    type = "TOKEN_ID";
+    type = "ID";
     break;
   case TOKEN_RELOP:
-    type = "TOKEN_RELOP";
+    type = "RELOP";
     break;
   case TOKEN_OP:
-    type = "TOKEN_OP";
+    type = "OP";
     break;
   case TOKEN_COMMA:
-    type = "TOKEN_COMMA";
+    type = "COMMA";
     break;
   case TOKEN_LPAREN:
-    type = "TOKEN_LPAREN";
+    type = "LPAREN";
     break;
   case TOKEN_RPAREN:
-    type = "TOKEN_RPAREN";
+    type = "RPAREN";
     break;
   case TOKEN_ELIPSIS:
-    type = "TOKEN_ELIPSIS";
+    type = "ELIPSIS";
     break;
   case TOKEN_DOT:
-    type = "TOKEN_DOT";
+    type = "DOT";
     break;
   case TOKEN_ASSIGN:
-    type = "TOKEN_ASSIGN";
+    type = "ASSIGN";
     break;
   case TOKEN_COLON:
-    type = "TOKEN_COLON";
+    type = "COLON";
     break;
   case TOKEN_SEMICOLON:
-    type = "TOKEN_SEMICOLON";
+    type = "SEMICOLON";
     break;
   case TOKEN_LBRACKET:
-    type = "TOKEN_LBRACKET";
+    type = "LBRACKET";
     break;
   case TOKEN_RBRACKET:
-    type = "TOKEN_RBRACKET";
+    type = "RBRACKET";
     break;
   case TOKEN_INT:
-    type = "TOKEN_INT";
-    break;
-  case TOKEN_LONGREAL:
-    type = "TOKEN_LONGREAL";
+    type = "INT";
     break;
   case TOKEN_REAL:
-    type = "TOKEN_REAL";
+    type = "REAL";
     break;
   case TOKEN_EOF:
-    type = "TOKEN_EOF";
+    type = "EOF";
   }
   return type;
 }
@@ -453,6 +528,9 @@ char *attr_to_str(Token t) {
   switch(t.attr) {
   case UNK_SYMBOL:
     type = "Unrecognized Symbol";
+    break;
+  case 0:
+    type = "NULL";
     break;
   case IDTOOLONG:
     type = "ID Too Long";
@@ -474,6 +552,9 @@ char *attr_to_str(Token t) {
     break;
   case EXPONENTTOOLONG:
     type = "Extra Long Exp";
+    break;
+  case MISSINGEXPONENT:
+    type = "Missing Exponent";
   }
   return type;
 }
