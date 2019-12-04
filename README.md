@@ -248,3 +248,10 @@ Semi-final directory structure:
 ```
 
 I'll start working on the report in the next couple days.
+
+# 12/4/2019
+I haven't managed to spend any time with the projects yet. The good news
+is that I finished up with senior projects and now have nothing scheduled
+for the next two weeks except compilers projects and studying for the exam.
+I realize this isn't great time management on my part, but it is what it 
+is. Just bought 2 weeks of coffee and food. Here goes nothing.
