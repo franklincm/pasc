@@ -17,18 +17,20 @@
 #define TOKEN_ID 1
 #define TOKEN_RELOP 2
 #define TOKEN_OP 3
-#define TOKEN_COMMA 4
-#define TOKEN_LPAREN 5
-#define TOKEN_RPAREN 6
-#define TOKEN_ELIPSIS 7
-#define TOKEN_DOT 8
-#define TOKEN_ASSIGN 9
-#define TOKEN_COLON 10
-#define TOKEN_SEMICOLON 11
-#define TOKEN_LBRACKET 12
-#define TOKEN_RBRACKET 13
-#define TOKEN_INT 14
-#define TOKEN_REAL 15
+#define TOKEN_ADDOP 4
+#define TOKEN_MULOP 5
+#define TOKEN_COMMA 6
+#define TOKEN_LPAREN 7
+#define TOKEN_RPAREN 8
+#define TOKEN_ELIPSIS 9
+#define TOKEN_DOT 10
+#define TOKEN_ASSIGN 11
+#define TOKEN_COLON 12
+#define TOKEN_SEMICOLON 13
+#define TOKEN_LBRACKET 14
+#define TOKEN_RBRACKET 15
+#define TOKEN_INT 16
+#define TOKEN_REAL 17
 #define TOKEN_EOF -1
 
 

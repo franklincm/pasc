@@ -329,19 +329,19 @@ Token m_catchall(char *f) {
   switch(*f) {
   case '+':
     t.str = "+";
-    t.type = TOKEN_OP;
+    t.type = TOKEN_ADDOP;
     break;
   case '-':
     t.str = "-";
-    t.type = TOKEN_OP;
+    t.type = TOKEN_ADDOP;
     break;
   case '*':
     t.str = "*";
-    t.type = TOKEN_OP;
+    t.type = TOKEN_MULOP;
     break;
   case '/':
     t.str = "/";
-    t.type = TOKEN_OP;
+    t.type = TOKEN_MULOP;
     break;
   case '.':
     f++;
@@ -456,16 +456,20 @@ char *type_to_str(Token t) {
     type = "NOT";
     break;
   case 116:
-    type = "OR";
+    //type = "OR";
+    type = "ADDOP";    
     break;
   case 117:
-    type = "DIV";
+    //type = "DIV";
+    type = "MULOP";    
     break;
   case 118:
-    type = "MOD";
+    //type = "MOD";
+    type = "MULOP";
     break;
   case 119:
-    type = "AND";
+    //type = "AND";
+    type = "MULOP";
     break;
     
   case LEXERR:
@@ -476,6 +480,12 @@ char *type_to_str(Token t) {
     break;
   case TOKEN_ID:
     type = "ID";
+    break;
+  case TOKEN_ADDOP:
+    type = "ADDOP";
+    break;
+  case TOKEN_MULOP:
+    type = "MULOP";
     break;
   case TOKEN_RELOP:
     type = "RELOP";
@@ -521,6 +531,7 @@ char *type_to_str(Token t) {
     break;
   case TOKEN_EOF:
     type = "EOF";
+
   }
   return type;
 }
