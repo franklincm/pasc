@@ -5,6 +5,49 @@
 #include "../headers/token.h"
 
 
+int get_line(FILE *input, node ReservedWords, node *SymbolTable) {
+
+  // static vars to keep state
+  static FILE *fp;
+  static char *pos;
+  static char line_buffer[72];
+  static int lineno = 1;
+  
+  // if file isn't saved, or position reaches EOL
+  if (fp != input || *pos == '\n') {
+    fp = input;
+    // get next line
+    char *read = fgets(line_buffer, sizeof line_buffer, fp);
+    printf("%3d. ", lineno);
+    lineno++;
+    // if no next line, return
+    if (read == NULL) {
+      return 0;
+    }
+
+  }
+
+  // print line to listing file
+
+  // get next token
+  Token t = get_token(line_buffer, ReservedWords, SymbolTable);
+  // update position
+  pos = t.f;
+
+  // print each token except whitespace
+  if (t.type != TOKEN_WS) {
+    //printf("%s ", t.str);    
+    //printf("%s ", type_to_str(t));
+    printf("%s <%s> ", t.str, type_to_str(t));
+  }
+
+  if (*pos == '\n') {
+    printf("\n");
+  }
+  
+  return 1;
+}
+
 Token get_token(char *line, node ReservedWords, node *SymbolTable) {
 
   static char *f;

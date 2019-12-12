@@ -54,8 +54,9 @@ typedef struct Token{
   int attr;
 } Token;
 
-Token get_token(char * line, node ReservedWords, node *SymbolTable);
-Token machine(char * f, node ReservedWords, node *SymbolTable);
+int get_line(FILE *input, node ReservedWords, node *SymbolTable);
+Token get_token(char *line, node ReservedWords, node *SymbolTable);
+Token machine(char *f, node ReservedWords, node *SymbolTable);
 Token m_idres(char *f, node ReservedWords, node *SymbolTable);
 Token m_whitespace(char *f);
 Token m_int(char *f);
