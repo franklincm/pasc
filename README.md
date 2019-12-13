@@ -255,3 +255,20 @@ is that I finished up with senior projects and now have nothing scheduled
 for the next two weeks except compilers projects and studying for the exam.
 I realize this isn't great time management on my part, but it is what it 
 is. Just bought 2 weeks of coffee and food. Here goes nothing.
+
+# 12/8-13/2019
+The syntax analyzer is working on correct input. It does some simple error
+messages by way of the match function, but I have yet to verify that. It
+does not yet utilize synch sets to recover so incorrect tokens propagate,
+BUT it is working for correct programs. 
+
+Massaging the grammar took a full day but implementing it actually took the most
+time. I had to refactor how my get_token() function worked in order to be able
+to call it from my new parse() method while at the same time writing to the
+listing file.  Writing the parsing functions was tedious, but trivial. However
+I did have a few follow sets incorrect which took a while to locate and resolve.
+
+Basically I wrote a python script to print the call stack and result of each
+function call, and from there was able to see certain functions were not 
+correctly evaluating to episilon. I recomputed the follow sets and updated the
+production methods and it started working. Next is synch sets.
