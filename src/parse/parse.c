@@ -48,7 +48,7 @@ void parse(FILE *source,
 }
 
 Token match(int token_type, Token t, struct state s) {
-  printf("match: %s\n", type_to_str(t.type));
+  printf("match: %s    %s\n", type_to_str(t.type), t.str);
   if (t.type == token_type) {
     t = get_tok(s);
     if (token_type == TOKEN_EOF) {
@@ -57,7 +57,7 @@ Token match(int token_type, Token t, struct state s) {
       return t;
     }
   } else {
-    printf("Expecting: %s, Got: %s\n", type_to_str(token_type), type_to_str(t.type));
+    printf("Expecting: %s, Got: %s    %s\n", type_to_str(token_type), type_to_str(t.type), t.str);
     printf("SYNTAX ERROR\n");
   }
 }
@@ -89,6 +89,7 @@ Token parse_program(Token t, struct state s) {
 }
 
 Token parse_program_start(Token t, struct state s) {
+  printf("%s\n", "start");
   switch(t.type) {
   case TOKEN_PROGRAM:
     t = match(TOKEN_PROGRAM, t, s);
@@ -102,6 +103,7 @@ Token parse_program_start(Token t, struct state s) {
 }
 
 Token parse_program_declarations(Token t, struct state s) {
+  printf("%s\n", "program_declarations");
   switch(t.type) {
   case TOKEN_VAR:
     t = parse_declarations(t, s);
@@ -111,6 +113,7 @@ Token parse_program_declarations(Token t, struct state s) {
 }
 
 Token parse_program_subprogram_declarations(Token t, struct state s) {
+  printf("%s\n", "program_subprogram_declarations");
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = parse_subprogram_declarations(t, s);
@@ -122,6 +125,7 @@ Token parse_program_subprogram_declarations(Token t, struct state s) {
 }
 
 Token parse_identifier_list(Token t, struct state s) {
+  printf("%s\n", "identifier_list");
   switch(t.type) {
   case TOKEN_ID:
     t = match(TOKEN_ID, t, s);
@@ -131,6 +135,7 @@ Token parse_identifier_list(Token t, struct state s) {
 }
 
 Token parse_identifier_list_t(Token t, struct state s) {
+  printf("%s\n", "identifier_list_t");
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
@@ -145,6 +150,7 @@ Token parse_identifier_list_t(Token t, struct state s) {
 }
 
 Token parse_declarations(Token t, struct state s) {
+  printf("%s\n", "declarations");
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
@@ -159,6 +165,7 @@ Token parse_declarations(Token t, struct state s) {
 }
 
 Token parse_declarations_t(Token t, struct state s) {
+  printf("%s\n", "declarations_t");
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
@@ -177,6 +184,7 @@ Token parse_declarations_t(Token t, struct state s) {
 }
 
 Token parse_type(Token t, struct state s) {
+  printf("%s\n", "type");
   switch(t.type) {
   case TOKEN_ARRAY:
     t = match(TOKEN_ARRAY, t, s);
@@ -199,6 +207,7 @@ Token parse_type(Token t, struct state s) {
 }
 
 Token parse_standard_type(Token t, struct state s) {
+  printf("%s\n", "standard_type");  
   switch(t.type) {
   case TOKEN_INTEGER:
     t = match(TOKEN_INTEGER, t, s);
@@ -211,6 +220,7 @@ Token parse_standard_type(Token t, struct state s) {
 }
 
 Token parse_subprogram_declarations(Token t, struct state s) {
+  printf("%s\n", "subprogram_declarations");  
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = parse_subprogram_declaration(t, s);
@@ -224,6 +234,7 @@ Token parse_subprogram_declarations(Token t, struct state s) {
 }
 
 Token parse_subprogram_declarations_t(Token t, struct state s) {
+  printf("%s\n", "subprogram_declarations_t");  
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = parse_subprogram_declaration(t, s);
@@ -237,6 +248,7 @@ Token parse_subprogram_declarations_t(Token t, struct state s) {
 }
 
 Token parse_subprogram_declaration(Token t, struct state s) {
+  printf("%s\n", "subprogram_declaration");  
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = parse_subprogram_head(t, s);
@@ -251,6 +263,7 @@ Token parse_subprogram_declaration(Token t, struct state s) {
 }
 
 Token parse_subprogram_head(Token t, struct state s) {
+  printf("%s\n", "subprogram_head");  
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = match(TOKEN_FUNCTION, t, s);
@@ -262,6 +275,7 @@ Token parse_subprogram_head(Token t, struct state s) {
 }
 
 Token parse_subprogram_head_t(Token t, struct state s) {
+  printf("%s\n", "subprogram_head_t");  
   switch(t.type) {
   case TOKEN_COLON:
     t = match(TOKEN_COLON, t, s);
@@ -279,6 +293,7 @@ Token parse_subprogram_head_t(Token t, struct state s) {
 }
 
 Token parse_arguments(Token t, struct state s) {
+  printf("%s\n", "arguments");  
   switch(t.type) {
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
@@ -290,10 +305,12 @@ Token parse_arguments(Token t, struct state s) {
 }
 
 Token parse_parameter_list(Token t, struct state s) {
+  printf("%s\n", "parameter_list");  
   switch(t.type) {
   case TOKEN_ID:
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
+    t = parse_type(t, s);
     t = parse_parameter_list_t(t, s);
     break;
   }
@@ -301,11 +318,13 @@ Token parse_parameter_list(Token t, struct state s) {
 }
 
 Token parse_parameter_list_t(Token t, struct state s) {
+  printf("%s\n", "parameter_list_t");  
   switch(t.type) {
   case TOKEN_SEMICOLON:
     t = match(TOKEN_SEMICOLON, t, s);
     t = match(TOKEN_ID, t, s);
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_COLON, t, s);
+    t = parse_type(t, s);
     t = parse_parameter_list_t(t, s);
     break;
   case TOKEN_LPAREN:
@@ -315,16 +334,18 @@ Token parse_parameter_list_t(Token t, struct state s) {
 }
 
 Token parse_compound_statement(Token t, struct state s) {
+  printf("%s\n", "compound_statement");  
   switch(t.type) {
   case TOKEN_BEGIN:
     t = match(TOKEN_BEGIN, t, s);
-    t = parse_compound_statement(t, s);
+    t = parse_compound_statement_t(t, s);
     break;
   }
   return t;
 }
 
 Token parse_compound_statement_t(Token t, struct state s) {
+  printf("%s\n", "compound_statement_t");  
   switch(t.type) {
   case TOKEN_BEGIN:
   case TOKEN_ID:
@@ -341,6 +362,7 @@ Token parse_compound_statement_t(Token t, struct state s) {
 }
 
 Token parse_optional_statements(Token t, struct state s) {
+  printf("%s\n", "optional_statements");    
   switch(t.type) {
   case TOKEN_BEGIN:
   case TOKEN_ID:
@@ -353,6 +375,7 @@ Token parse_optional_statements(Token t, struct state s) {
 }
 
 Token parse_statement_list(Token t, struct state s) {
+  printf("%s\n", "statement_list");    
   switch(t.type) {
   case TOKEN_BEGIN:
   case TOKEN_ID:
@@ -366,6 +389,7 @@ Token parse_statement_list(Token t, struct state s) {
 }
 
 Token parse_statement_list_t(Token t, struct state s) {
+  printf("%s\n", "statement_list_t");      
   switch(t.type) {
   case TOKEN_SEMICOLON:
     t = match(TOKEN_SEMICOLON, t, s);
@@ -379,6 +403,7 @@ Token parse_statement_list_t(Token t, struct state s) {
 }
 
 Token parse_statement(Token t, struct state s) {
+  printf("%s\n", "statement");      
   switch(t.type) {
   case TOKEN_BEGIN:
     t = parse_compound_statement(t, s);
@@ -406,6 +431,7 @@ Token parse_statement(Token t, struct state s) {
 }
 
 Token parse_ifexp(Token t, struct state s) {
+  printf("%s\n", "ifexp");
   switch(t.type) {
   case TOKEN_SEMICOLON:
   case TOKEN_END:
@@ -419,6 +445,7 @@ Token parse_ifexp(Token t, struct state s) {
 }
 
 Token parse_variable(Token t, struct state s) {
+  printf("%s\n", "variable");  
   switch(t.type) {
   case TOKEN_ID:
     t = match(TOKEN_ID, t, s);
@@ -429,6 +456,7 @@ Token parse_variable(Token t, struct state s) {
 }
 
 Token parse_variable_t(Token t, struct state s) {
+  printf("%s\n", "variable_t");  
   switch(t.type) {
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
@@ -442,6 +470,7 @@ Token parse_variable_t(Token t, struct state s) {
 }
 
 Token parse_expression_list(Token t, struct state s) {
+  printf("%s\n", "expression_list");
   switch(t.type) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
@@ -456,9 +485,12 @@ Token parse_expression_list(Token t, struct state s) {
 }
 
 Token parse_expression_list_t(Token t, struct state s) {
+  printf("%s\n", "expression_list_t");
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
+    t = parse_expression(t, s);
+    t = parse_expression_list_t(t, s);
     break;
   case TOKEN_RPAREN:
     break;
@@ -467,6 +499,7 @@ Token parse_expression_list_t(Token t, struct state s) {
 }
 
 Token parse_expression(Token t, struct state s) {
+  printf("%s\n", "expression");
   switch(t.type) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
@@ -474,13 +507,14 @@ Token parse_expression(Token t, struct state s) {
   case TOKEN_NOT:
   case TOKEN_ADDOP:
     t = parse_simple_expression(t, s);
-    t = parse_expression(t, s);
+    t = parse_expression_t(t, s);
     break;
   }
   return t;
 }
 
 Token parse_expression_t(Token t, struct state s) {
+  printf("%s\n", "expression_t");
   switch(t.type) {
   case TOKEN_RELOP:
     t = match(TOKEN_RELOP, t, s);
@@ -494,6 +528,7 @@ Token parse_expression_t(Token t, struct state s) {
 }
 
 Token parse_simple_expression(Token t, struct state s) {
+  printf("%s\n", "simple_expression");
   switch(t.type) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
@@ -508,6 +543,7 @@ Token parse_simple_expression(Token t, struct state s) {
 }
 
 Token parse_sexp(Token t, struct state s) {
+  printf("%s\n", "sexp");
   switch(t.type) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
@@ -523,6 +559,7 @@ Token parse_sexp(Token t, struct state s) {
 }
 
 Token parse_sexp_t(Token t, struct state s) {
+  printf("%s\n", "sexp_t");
   switch(t.type) {
   case TOKEN_COMMA:
   case TOKEN_RPAREN:
@@ -538,6 +575,7 @@ Token parse_sexp_t(Token t, struct state s) {
 }
 
 Token parse_term(Token t, struct state s) {
+  printf("%s\n", "term");
   switch(t.type) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
@@ -551,6 +589,7 @@ Token parse_term(Token t, struct state s) {
 }
 
 Token parse_term_t(Token t, struct state s) {
+  printf("%s\n", "term_t");
   switch(t.type) {
   case TOKEN_COMMA:
   case TOKEN_RPAREN:
@@ -567,6 +606,7 @@ Token parse_term_t(Token t, struct state s) {
 }
 
 Token parse_factor(Token t, struct state s) {
+  printf("%s\n", "factor");
   switch(t.type) {
   case TOKEN_ID:
     t = match(TOKEN_ID, t, s);
@@ -589,6 +629,7 @@ Token parse_factor(Token t, struct state s) {
 }
 
 Token parse_fexp_list(Token t, struct state s) {
+  printf("%s\n", "fexp_list");
   switch(t.type) {
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
@@ -606,6 +647,7 @@ Token parse_fexp_list(Token t, struct state s) {
 }
 
 Token parse_sign(Token t, struct state s) {
+  printf("%s\n", "sign");
   switch(t.type) {
   case TOKEN_ADDOP:
     t = match(TOKEN_ADDOP, t, s);
