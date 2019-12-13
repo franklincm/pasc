@@ -533,6 +533,7 @@ Token parse_expression_list(Token t, struct state s) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
   case TOKEN_INT:
+  case TOKEN_REAL:
   case TOKEN_NOT:
   case TOKEN_ADDOP:    
     t = parse_expression(t, s);
@@ -566,6 +567,7 @@ Token parse_expression(Token t, struct state s) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
   case TOKEN_INT:
+  case TOKEN_REAL:
   case TOKEN_NOT:
   case TOKEN_ADDOP:
     t = parse_simple_expression(t, s);
@@ -605,6 +607,7 @@ Token parse_simple_expression(Token t, struct state s) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
   case TOKEN_INT:
+  case TOKEN_REAL:
   case TOKEN_NOT:
   case TOKEN_ADDOP:
     t = parse_sexp(t, s);
@@ -621,6 +624,7 @@ Token parse_sexp(Token t, struct state s) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
   case TOKEN_INT:
+  case TOKEN_REAL:
   case TOKEN_NOT:
     t = parse_term(t, s);
     break;
@@ -664,6 +668,7 @@ Token parse_term(Token t, struct state s) {
   case TOKEN_ID:
   case TOKEN_LPAREN:
   case TOKEN_INT:
+  case TOKEN_REAL:
   case TOKEN_NOT:
     t = parse_factor(t, s);
     t = parse_term_t(t, s);
@@ -719,6 +724,8 @@ Token parse_factor(Token t, struct state s) {
   case TOKEN_INT:
     t = match(TOKEN_INT, t, s);
     break;
+  case TOKEN_REAL:
+    t = match(TOKEN_REAL, t, s);
   case TOKEN_NOT:
     t = match(TOKEN_NOT, t, s);
     t = parse_factor(t, s);
