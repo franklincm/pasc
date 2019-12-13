@@ -117,6 +117,11 @@ Token parse_program_declarations(Token t, struct state s) {
   case TOKEN_VAR:
     t = parse_declarations(t, s);
     break;
+  case TOKEN_FUNCTION:
+  case TOKEN_BEGIN:
+    printf("%s\n", "program_declarations ⟶ ε");
+    fflush(stdout);
+    break;
   }
   return t;
 }
@@ -217,10 +222,8 @@ Token parse_type(Token t, struct state s) {
     t = parse_standard_type(t, s);
     break;
   case TOKEN_INTEGER:
-    t = match(TOKEN_INTEGER, t, s);
-    break;
   case TOKEN_RREAL:
-    t = match(TOKEN_RREAL, t, s);
+    t = parse_standard_type(t, s);
     break;
   }
   return t;
@@ -410,6 +413,8 @@ Token parse_optional_statements(Token t, struct state s) {
   case TOKEN_WHILE:
     t = parse_statement_list(t, s);
     break;
+  case TOKEN_END:
+    break;
   }
   return t;
 }
@@ -480,7 +485,9 @@ Token parse_ifexp(Token t, struct state s) {
   fflush(stdout);
   switch(t.type) {
   case TOKEN_SEMICOLON:
+    //case TOKEN_ELSE:
   case TOKEN_END:
+    printf("%s\n", "ifexp_t ⟶ ε");
     break;
   case TOKEN_ELSE:
     t = match(TOKEN_ELSE, t, s);
@@ -577,7 +584,13 @@ Token parse_expression_t(Token t, struct state s) {
     t = parse_simple_expression(t, s);
     break;
   case TOKEN_RPAREN:
+  case TOKEN_RBRACKET:
+  case TOKEN_DO:
+  case TOKEN_THEN:
   case TOKEN_COMMA:
+  case TOKEN_SEMICOLON:
+  case TOKEN_END:
+  case TOKEN_ELSE:
     printf("%s\n", "expression_t ⟶ ε");
     fflush(stdout);
     break;
@@ -623,9 +636,15 @@ Token parse_sexp_t(Token t, struct state s) {
   printf("%s\n", "sexp_t");
   fflush(stdout);
   switch(t.type) {
-  case TOKEN_COMMA:
-  case TOKEN_RPAREN:
   case TOKEN_RELOP:
+  case TOKEN_RPAREN:
+  case TOKEN_RBRACKET:
+  case TOKEN_DO:
+  case TOKEN_THEN:
+  case TOKEN_COMMA:
+  case TOKEN_SEMICOLON:
+  case TOKEN_END:
+  case TOKEN_ELSE:
     printf("%s\n", "sexp_t ⟶ ε");
     fflush(stdout);
     break;
@@ -657,10 +676,16 @@ Token parse_term_t(Token t, struct state s) {
   printf("%s\n", "term_t");
   fflush(stdout);
   switch(t.type) {
-  case TOKEN_COMMA:
-  case TOKEN_RPAREN:
-  case TOKEN_RELOP:
   case TOKEN_ADDOP:
+  case TOKEN_RELOP:
+  case TOKEN_RBRACKET:
+  case TOKEN_RPAREN:
+  case TOKEN_DO:
+  case TOKEN_THEN:
+  case TOKEN_COMMA:
+  case TOKEN_SEMICOLON:
+  case TOKEN_END:
+  case TOKEN_ELSE:
     printf("%s\n", "term_t ⟶ ε");
     fflush(stdout);
     break;
@@ -706,11 +731,17 @@ Token parse_fexp_list(Token t, struct state s) {
     t = parse_expression_list(t, s);
     t = match(TOKEN_RPAREN, t, s);
     break;
-  case TOKEN_COMMA:
-  case TOKEN_RPAREN:
-  case TOKEN_RELOP:
-  case TOKEN_ADDOP:
   case TOKEN_MULOP:
+  case TOKEN_ADDOP:
+  case TOKEN_RELOP:
+  case TOKEN_RBRACKET:
+  case TOKEN_RPAREN:
+  case TOKEN_DO:
+  case TOKEN_THEN:
+  case TOKEN_COMMA:
+  case TOKEN_SEMICOLON:
+  case TOKEN_END:
+  case TOKEN_ELSE:
     printf("%s\n", "fexp_list ⟶ ε");
     fflush(stdout);
     break;
