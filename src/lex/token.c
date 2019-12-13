@@ -539,7 +539,7 @@ char *type_to_str(int t) {
     break;
   case 116:
     //type = "OR";
-    type = "ADDOP";    
+    type = "ADDOP";
     break;
   case 117:
     //type = "DIV";

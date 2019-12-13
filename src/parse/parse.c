@@ -80,8 +80,12 @@ Token parse_program(Token t, struct state s) {
   case TOKEN_PROGRAM:
     t = parse_program_start(t, s);
     t = parse_program_declarations(t, s);
-    //match(TOKEN_EOF, t, s);
+    t = parse_program_subprogram_declarations(t, s);
+    t = parse_compound_statement(t, s);
+    t = match(TOKEN_DOT, t, s);
+    t = match(TOKEN_EOF, t, s);
   }
+  return t;
 }
 
 Token parse_program_start(Token t, struct state s) {
@@ -106,9 +110,16 @@ Token parse_program_declarations(Token t, struct state s) {
   return t;
 }
 
-Token parse_program_subprogram_declarations(Token t, struct state s) {}
-
-Token parse_compound_statement(Token t, struct state s) {}
+Token parse_program_subprogram_declarations(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_FUNCTION:
+    t = parse_subprogram_declarations(t, s);
+    break;
+  case TOKEN_BEGIN:
+    break;
+  }
+  return t;
+}
 
 Token parse_identifier_list(Token t, struct state s) {
   switch(t.type) {
@@ -194,6 +205,410 @@ Token parse_standard_type(Token t, struct state s) {
     break;
   case TOKEN_RREAL:
     t = match(TOKEN_RREAL, t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_subprogram_declarations(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_FUNCTION:
+    t = parse_subprogram_declaration(t, s);
+    t = match(TOKEN_SEMICOLON, t, s);
+    t = parse_subprogram_declarations_t(t, s);
+    break;
+  case TOKEN_BEGIN:
+    break;
+  }
+  return t;
+}
+
+Token parse_subprogram_declarations_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_FUNCTION:
+    t = parse_subprogram_declaration(t, s);
+    t = match(TOKEN_SEMICOLON, t, s);
+    t = parse_subprogram_declarations_t(t, s);
+    break;
+  case TOKEN_BEGIN:
+      break;
+  }
+  return t;
+}
+
+Token parse_subprogram_declaration(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_FUNCTION:
+    t = parse_subprogram_head(t, s);
+    t = parse_program_declarations(t, s);
+    t = parse_program_subprogram_declarations(t, s);
+    t = parse_compound_statement(t, s);
+    break;
+  case TOKEN_SEMICOLON:
+    break;
+  }
+  return t;
+}
+
+Token parse_subprogram_head(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_FUNCTION:
+    t = match(TOKEN_FUNCTION, t, s);
+    t = match(TOKEN_ID, t, s);
+    t = parse_subprogram_head_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_subprogram_head_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_COLON:
+    t = match(TOKEN_COLON, t, s);
+    t = parse_standard_type(t, s);
+    t = match(TOKEN_SEMICOLON, t, s);
+    break;
+  case TOKEN_LPAREN:
+    t = parse_arguments(t, s);
+    t = match(TOKEN_COLON, t, s);
+    t = parse_standard_type(t, s);
+    t = match(TOKEN_SEMICOLON, t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_arguments(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_LPAREN:
+    t = match(TOKEN_LPAREN, t, s);
+    t = parse_parameter_list(t, s);
+    t = match(TOKEN_RPAREN, t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_parameter_list(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ID:
+    t = match(TOKEN_ID, t, s);
+    t = match(TOKEN_COLON, t, s);
+    t = parse_parameter_list_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_parameter_list_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_SEMICOLON:
+    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_ID, t, s);
+    t = match(TOKEN_SEMICOLON, t, s);
+    t = parse_parameter_list_t(t, s);
+    break;
+  case TOKEN_LPAREN:
+    break;
+  }
+  return t;
+}
+
+Token parse_compound_statement(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_BEGIN:
+    t = match(TOKEN_BEGIN, t, s);
+    t = parse_compound_statement(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_compound_statement_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_BEGIN:
+  case TOKEN_ID:
+  case TOKEN_IF:
+  case TOKEN_WHILE:
+    t = parse_optional_statements(t, s);
+    t = match(TOKEN_END, t, s);
+    break;
+  case TOKEN_END:
+    t = match(TOKEN_END, t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_optional_statements(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_BEGIN:
+  case TOKEN_ID:
+  case TOKEN_IF:
+  case TOKEN_WHILE:
+    t = parse_statement_list(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_statement_list(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_BEGIN:
+  case TOKEN_ID:
+  case TOKEN_IF:
+  case TOKEN_WHILE:
+    t = parse_statement(t, s);
+    t = parse_statement_list_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_statement_list_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_SEMICOLON:
+    t = match(TOKEN_SEMICOLON, t, s);
+    t = parse_statement(t, s);
+    t = parse_statement_list_t(t, s);
+    break;
+  case TOKEN_END:
+    break;
+  }
+  return t;
+}
+
+Token parse_statement(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_BEGIN:
+    t = parse_compound_statement(t, s);
+    break;
+  case TOKEN_ID:
+    t = parse_variable(t, s);
+    t = match(TOKEN_ASSIGN, t, s);
+    t = parse_expression(t, s);
+    break;
+  case TOKEN_IF:
+    t = match(TOKEN_IF, t, s);
+    t = parse_expression(t, s);
+    t = match(TOKEN_THEN, t, s);
+    t = parse_statement(t, s);
+    t = parse_ifexp(t, s);
+    break;
+  case TOKEN_WHILE:
+    t = match(TOKEN_WHILE, t, s);
+    t = parse_expression(t, s);
+    t = match(TOKEN_DO, t, s);
+    t = parse_statement(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_ifexp(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_SEMICOLON:
+  case TOKEN_END:
+    break;
+  case TOKEN_ELSE:
+    t = match(TOKEN_ELSE, t, s);
+    t = parse_statement(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_variable(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ID:
+    t = match(TOKEN_ID, t, s);
+    t = parse_variable_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_variable_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_LPAREN:
+    t = match(TOKEN_LPAREN, t, s);
+    t = parse_expression(t, s);
+    t = match(TOKEN_RPAREN, t, s);
+    break;
+  case TOKEN_ASSIGN:
+    break;
+  }
+  return t;
+}
+
+Token parse_expression_list(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ID:
+  case TOKEN_LPAREN:
+  case TOKEN_INT:
+  case TOKEN_NOT:
+  case TOKEN_ADDOP:    
+    t = parse_expression(t, s);
+    t = parse_expression_list_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_expression_list_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_COMMA:
+    t = match(TOKEN_COMMA, t, s);
+    break;
+  case TOKEN_RPAREN:
+    break;
+  }
+  return t;
+}
+
+Token parse_expression(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ID:
+  case TOKEN_LPAREN:
+  case TOKEN_INT:
+  case TOKEN_NOT:
+  case TOKEN_ADDOP:
+    t = parse_simple_expression(t, s);
+    t = parse_expression(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_expression_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_RELOP:
+    t = match(TOKEN_RELOP, t, s);
+    t = parse_simple_expression(t, s);
+    break;
+  case TOKEN_LPAREN:
+  case TOKEN_COMMA:
+    break;
+  }
+  return t;
+}
+
+Token parse_simple_expression(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ID:
+  case TOKEN_LPAREN:
+  case TOKEN_INT:
+  case TOKEN_NOT:
+  case TOKEN_ADDOP:
+    t = parse_sexp(t, s);
+    t = parse_sexp_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_sexp(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ID:
+  case TOKEN_LPAREN:
+  case TOKEN_INT:
+  case TOKEN_NOT:
+    t = parse_term(t, s);
+    break;
+  case TOKEN_ADDOP:
+    t = parse_sign(t, s);
+    t = parse_term(t, s);
+  }
+  return t;
+}
+
+Token parse_sexp_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_COMMA:
+  case TOKEN_RPAREN:
+  case TOKEN_RELOP:
+    break;
+  case TOKEN_ADDOP:
+    t = match(TOKEN_ADDOP, t, s);
+    t = parse_term(t, s);
+    t = parse_sexp_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_term(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ID:
+  case TOKEN_LPAREN:
+  case TOKEN_INT:
+  case TOKEN_NOT:
+    t = parse_factor(t, s);
+    t = parse_term_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_term_t(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_COMMA:
+  case TOKEN_RPAREN:
+  case TOKEN_RELOP:
+  case TOKEN_ADDOP:
+    break;
+  case TOKEN_MULOP:
+    t = match(TOKEN_MULOP, t, s);
+    t = parse_factor(t, s);
+    t = parse_term_t(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_factor(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ID:
+    t = match(TOKEN_ID, t, s);
+    t = parse_fexp_list(t, s);
+    break;
+  case TOKEN_LPAREN:
+    t = match(TOKEN_LPAREN, t, s);
+    t = parse_expression(t, s);
+    t = match(TOKEN_RPAREN, t, s);
+    break;
+  case TOKEN_INT:
+    t = match(TOKEN_INT, t, s);
+    break;
+  case TOKEN_NOT:
+    t = match(TOKEN_NOT, t, s);
+    t = parse_factor(t, s);
+    break;
+  }
+  return t;
+}
+
+Token parse_fexp_list(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_LPAREN:
+    t = match(TOKEN_LPAREN, t, s);
+    t = parse_expression_list(t, s);
+    t = match(TOKEN_RPAREN, t, s);
+    break;
+  case TOKEN_COMMA:
+  case TOKEN_RPAREN:
+  case TOKEN_RELOP:
+  case TOKEN_ADDOP:
+  case TOKEN_MULOP:
+    break;
+  }
+  return t;
+}
+
+Token parse_sign(Token t, struct state s) {
+  switch(t.type) {
+  case TOKEN_ADDOP:
+    t = match(TOKEN_ADDOP, t, s);
     break;
   }
   return t;
