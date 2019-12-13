@@ -689,6 +689,11 @@ Token parse_term_t(Token t, struct state s) {
     printf("%s\n", "term_t ⟶ ε");
     fflush(stdout);
     break;
+  case TOKEN_MOD:
+    t = match(TOKEN_MOD, t, s);
+    t = parse_factor(t, s);
+    t = parse_term_t(t, s);
+    break;
   case TOKEN_MULOP:
     t = match(TOKEN_MULOP, t, s);
     t = parse_factor(t, s);
@@ -732,6 +737,7 @@ Token parse_fexp_list(Token t, struct state s) {
     t = match(TOKEN_RPAREN, t, s);
     break;
   case TOKEN_MULOP:
+  case TOKEN_MOD:
   case TOKEN_ADDOP:
   case TOKEN_RELOP:
   case TOKEN_RBRACKET:
