@@ -1,6 +1,7 @@
 program example(input, output);
-var x : integer; var y: integer; var z: integer;
-var r : real; var s : real;
+var
+   x, y, z: integer
+   r, s: real;
 function gcd(a, b: integer ): integer;
 begin
    if b = 0 then gcd := a

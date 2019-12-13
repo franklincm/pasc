@@ -1,15 +1,13 @@
+#include <stdio.h>
+
 #ifndef RESERVED
 #define RESERVED
-
 #include "./reserved.h"
-
 #endif
 
 #ifndef LINKED_LIST
 #define LINKED_LIST
-
 #include "./linkedlist.h"
-
 #endif
 
 #define LEXERR 99
@@ -33,6 +31,26 @@
 #define TOKEN_REAL 17
 #define TOKEN_EOF -1
 
+#define TOKEN_PROGRAM 100
+#define TOKEN_VAR 101
+#define TOKEN_ARRAY 102
+#define TOKEN_OF 103
+#define TOKEN_INTEGER 104
+#define TOKEN_RREAL 105
+#define TOKEN_FUNCTION 106
+#define TOKEN_PROCEDURE 107
+#define TOKEN_BEGIN 108
+#define TOKEN_END 109
+#define TOKEN_IF 110
+#define TOKEN_THEN 111
+#define TOKEN_ELSE 112
+#define TOKEN_WHILE 113
+#define TOKEN_DO 114
+#define TOKEN_NOT 115
+#define TOKEN_OR 116
+#define TOKEN_DIV 117
+#define TOKEN_MOD 118
+#define TOKEN_AND 119
 
 #define TOKEN_UNRECOGNIZED_SYMBOL 999
 
@@ -54,8 +72,8 @@ typedef struct Token{
   int attr;
 } Token;
 
-int get_line(FILE *input, node ReservedWords, node *SymbolTable);
-Token get_token(char *line, node ReservedWords, node *SymbolTable);
+Token get_token(FILE *input, FILE *listing, FILE *tokenfile, node ReservedWords, node *SymbolTable);
+Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable);
 Token machine(char *f, node ReservedWords, node *SymbolTable);
 Token m_idres(char *f, node ReservedWords, node *SymbolTable);
 Token m_whitespace(char *f);
@@ -64,5 +82,5 @@ Token m_relops(char *f);
 Token m_catchall(char *f);
 Token m_real(char *f);
 Token m_real2(char *f);
-char *type_to_str(Token t);
+char *type_to_str(int type);
 char *attr_to_str(Token t);

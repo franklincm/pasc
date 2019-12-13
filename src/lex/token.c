@@ -2,53 +2,92 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+
+#ifndef TOKEN
+#define TOKEN
 #include "../headers/token.h"
+#endif
 
+#ifndef OUTPUT
+#define OUTPUT
+#include "../headers/output.h"
+#endif
 
-int get_line(FILE *input, node ReservedWords, node *SymbolTable) {
+char *print_error(Token t) {
+  char *line_buffer = (char *)malloc(150 * sizeof(char));
+  sprintf(line_buffer, "%-10s%-30s%s", type_to_str(t.type), attr_to_str(t), t.str);
+  return line_buffer;
+}
+
+Token get_token(FILE *input,
+                FILE *listing,
+                FILE *tokenfile,
+                node ReservedWords,
+                node *SymbolTable) {
 
   // static vars to keep state
-  static FILE *fp;
+  static FILE *source;
+  static FILE *listing_file;
+  static FILE *token_file;
   static char *pos;
   static char line_buffer[72];
-  static int lineno = 1;
+  static int lineno = 0;
+
+  Token t;
   
   // if file isn't saved, or position reaches EOL
-  if (fp != input || *pos == '\n') {
-    fp = input;
-    // get next line
-    char *read = fgets(line_buffer, sizeof line_buffer, fp);
-    printf("%3d. ", lineno);
+  if (source != input || *pos == '\n') {
     lineno++;
-    // if no next line, return
-    if (read == NULL) {
-      return 0;
+    source = input;
+    listing_file = listing;
+    token_file = tokenfile;
+    // get next line
+    fgets(line_buffer, sizeof line_buffer, source);
+
+    if (feof(source)) {
+      t.str = "EOF";
+      t.type = TOKEN_EOF;
+      write_line_to_file(token_str(t, lineno), token_file);      
+      return t;
     }
 
+    // write token file heading
+    if (lineno < 2) {
+      write_line_to_file(token_heading(), token_file);      
+    }
+    // write line to listing
+    write_line_to_file(listing_str(lineno, line_buffer), listing_file);
   }
 
-  // print line to listing file
-
   // get next token
-  Token t = get_token(line_buffer, ReservedWords, SymbolTable);
+  t = get_token_from_line(line_buffer, ReservedWords, SymbolTable);
+
+  // if LEXERR, write to listing
+  if (t.type == LEXERR) {
+    write_line_to_file(lexerr_str(t), listing_file);
+  }
+
+  // write token to tokenfile
+  write_line_to_file(token_str(t, lineno), token_file);
+  
   // update position
   pos = t.f;
 
   // print each token except whitespace
   if (t.type != TOKEN_WS) {
     //printf("%s ", t.str);    
-    //printf("%s ", type_to_str(t));
-    printf("%s <%s> ", t.str, type_to_str(t));
+    //printf("%s ", type_to_str(t.type));
+    //printf("%s <%s> ", t.str, type_to_str(t.type));
   }
 
   if (*pos == '\n') {
-    printf("\n");
+    //printf("\n");
   }
   
-  return 1;
+  return t;
 }
 
-Token get_token(char *line, node ReservedWords, node *SymbolTable) {
+Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable) {
 
   static char *f;
   static char line_remaining[72];
@@ -445,10 +484,10 @@ Token m_catchall(char *f) {
   return t;
 }
 
-char *type_to_str(Token t) {
+char *type_to_str(int t) {
   char * type;
 
-  switch(t.type) {
+  switch(t) {
 
   case 100:
     type = "PROG";
@@ -463,10 +502,10 @@ char *type_to_str(Token t) {
     type = "OF";
     break;
   case 104:
-    type = "INT";
+    type = "INTEGER";
     break;
   case 105:
-    type = "REAL";
+    type = "RREAL";
     break;
   case 106:
     type = "FUNC";
