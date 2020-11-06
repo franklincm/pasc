@@ -80,7 +80,7 @@ Token m_whitespace(char *f);
 Token m_int(char *f);
 Token m_relops(char *f);
 Token m_catchall(char *f);
+Token m_long_real(char *f);
 Token m_real(char *f);
-Token m_real2(char *f);
 char *type_to_str(int type);
 char *attr_to_str(Token t);

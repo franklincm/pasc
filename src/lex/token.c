@@ -122,6 +122,9 @@ Token machine(char *f, node ReservedWords, node *SymbolTable) {
   t = m_idres(f, ReservedWords, SymbolTable);
   if(!is_unrec(t)) return t;
 
+  t = m_long_real(f);    
+  if(!is_unrec(t)) return t;
+  
   t = m_real(f);    
   if(!is_unrec(t)) return t;
 
@@ -209,7 +212,7 @@ Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
   return t;  
 }
 
-Token m_real(char *f) {
+Token m_long_real(char *f) {
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
@@ -245,6 +248,10 @@ Token m_real(char *f) {
           f++;
           exp = f;
 
+          if((*f == '+') || (*f == '-')) {
+            f++;
+          }
+
           if(isdigit(*f)) {
             while(isdigit(*f)) f++;
             expbuffer = (char *)malloc(sizeof(f-exp));
@@ -255,17 +262,17 @@ Token m_real(char *f) {
               t.type = LEXERR;
               t.attr = EXPONENTTOOLONG;
             }
-          } else {
-            // if 'E', exponent required!
-            t.type = LEXERR;
-            t.attr = MISSINGEXPONENT;
+          }
+          /* else { */
+          /*   // if 'E', exponent required! */
+          /*   t.type = LEXERR; */
+          /*   t.attr = MISSINGEXPONENT; */
+          /* } */
+          else {
+            // E present but no digit follows? not a real
+            return t;
           }
         }
-
-        // update t.str with lexeme
-        char *strbuffer = (char *)malloc(sizeof(f-start));
-        strncpy(strbuffer, start, f-start);
-        t.str = strbuffer;
 
         // check for extra long frac
         if(strlen(fracbuffer) > 5) {
@@ -278,7 +285,15 @@ Token m_real(char *f) {
           t.type = LEXERR;
           t.attr = TRAILINGZERO;
         }
+      } else {
+        // if no digit after decimal, not a long real
+        return t;
       }
+
+      // update t.str with lexeme
+      char *strbuffer = (char *)malloc(sizeof(f-start));
+      strncpy(strbuffer, start, f-start);
+      t.str = strbuffer;
 
       // check extra long int part...
       if(strlen(intbuffer) > 5) {
@@ -302,6 +317,72 @@ Token m_real(char *f) {
   t.f = f;
   return t;
   
+}
+
+Token m_real(char *f) {
+  Token t;
+  t.type = TOKEN_UNRECOGNIZED_SYMBOL;
+  t.attr = 0;
+  
+  char *intbuffer;
+  char *fracbuffer;
+  
+  char *start, *dec;
+  start = f;
+
+  if (isdigit(*f)) {
+    while(isdigit(*f)) f++;
+    intbuffer = (char *)malloc(sizeof (f-start));
+    strncpy(intbuffer, start, f-start);
+    intbuffer[(f-start)] = '\0';
+
+    if(*f == '.') {
+      f++;
+      dec = f;
+
+      if(isdigit(*f)) {
+        while(isdigit(*f)) f++;
+        fracbuffer = (char *) malloc(sizeof(f-dec));
+        strncpy(fracbuffer, dec, f-dec);
+        fracbuffer[(f-dec)] = '\0';
+
+        if(strlen(fracbuffer) > 5) {
+          t.type = LEXERR;
+          t.attr = FRACTOOLONG;
+        } else if (strlen(fracbuffer) > 1 && fracbuffer[strlen(fracbuffer) - 1] == '0') {
+          t.type = LEXERR;
+          t.attr = TRAILINGZERO;
+        }
+      } else {
+        // if not digit after decimal, not a real
+        return t;
+      }
+
+      // update t.str with lexeme
+      char *strbuffer = (char *)malloc(sizeof(f-start));
+      strncpy(strbuffer, start, f-start);
+      t.str = strbuffer;
+      
+      // check extra long int part...
+      if(strlen(intbuffer) > 5) {
+        t.type = LEXERR;
+        t.attr = DIGITTOOLONG;
+
+        // check leading zero...
+      } else if (strlen(intbuffer) > 1 && intbuffer[0] == '0') {
+        t.type = LEXERR;
+        t.attr = LEADINGZERO;
+      }
+
+      // if no errors, then assign to real
+      if(t.type != LEXERR) {
+        t.type = TOKEN_REAL;
+        t.attr = 0;
+      }
+    }
+  }
+  t.f = f;
+  return t;
 }
 
 Token m_int(char *f) {
