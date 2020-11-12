@@ -16,3 +16,6 @@ lex: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o obj/output.o obj/par
 clean:
 	$(RM) bin/*
 	$(RM) obj/*
+	$(RM) listingfile
+	$(RM) tokenfile
+	$(RM) symboltable
