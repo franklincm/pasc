@@ -1,4 +1,4 @@
-struct LinkedList{
+typedef struct LinkedList{
   char *str;
   int type;
   int attr;
