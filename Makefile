@@ -14,5 +14,5 @@ lex: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o obj/output.o obj/par
 
 .PHONY: clean
 clean:
-	rm bin/*
-	rm obj/*
+	$(RM) bin/*
+	$(RM) obj/*
