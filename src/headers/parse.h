@@ -21,12 +21,6 @@ void parse(FILE *source,
            node reserved_words,
            node *symbol_table);
 
-void parse_test(FILE *source,
-           FILE *listing,
-           FILE *tokenfile,
-           node reserved_words,
-           node *symbol_table);
-
 Token parse_program(Token t, struct state s);
 Token parse_program_tail(Token t, struct state s);
 Token parse_program_tail_tail(Token t, struct state s);

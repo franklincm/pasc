@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   static node symbol_table = NULL;
 
   // parse source file
-  parse_test(source, listing, tokenfile, reserved_words, &symbol_table);
+  parse(source, listing, tokenfile, reserved_words, &symbol_table);
 
   // write symbol table
   write_symbol_table(&symbol_table);

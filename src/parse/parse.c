@@ -40,22 +40,6 @@ Token get_tok(struct state s) {
   return t;
 }
 
-void parse(FILE *source,
-           FILE *listing,
-           FILE *tokenfile,
-           node reserved_words,
-           node *symbol_table) {
-
-  struct state s = {source, listing, tokenfile, reserved_words, symbol_table};
-  
-  Token t = get_tok(s);
-  while(t.type != TOKEN_EOF) {
-    printf("%s\n", type_to_str(t.type));
-    fflush(stdout);
-    t = get_tok(s);
-  }
-}
-
 Token match(int token_type, Token t, struct state s) {
   for(int i = 0; i < level+1; i++) {
     printf(" ");
@@ -79,7 +63,7 @@ Token match(int token_type, Token t, struct state s) {
   return t;
 }
 
-void parse_test(FILE *source,
+void parse(FILE *source,
            FILE *listing,
            FILE *tokenfile,
            node reserved_words,
