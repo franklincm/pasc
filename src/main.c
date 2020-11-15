@@ -20,8 +20,8 @@ void write_symbol_table(node *SymbolTable);
 
 int main(int argc, char **argv) {
   char *filename = "data/example.pas";
-  char *listingfilename = "listingfiletest";
-  char *tokenfilename = "tokenfiletest";
+  char *listingfilename = "listingfile";
+  char *tokenfilename = "tokenfile";
 
   if (argc == 2) {
     filename = argv[1];
