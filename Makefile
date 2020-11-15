@@ -12,6 +12,11 @@ obj/%.o: %.c $(DEPS)
 lex: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o obj/output.o obj/parse.o
 	$(CC) $(CFLAGS) -o bin/lex $^
 
+test:
+	make clean && make && \
+	./bin/lex > output.txt && \
+	cat output.txt|grep -i error || echo -e '\n0 syntax errors'
+
 .PHONY: clean
 clean:
 	$(RM) bin/*
@@ -19,3 +24,5 @@ clean:
 	$(RM) listingfile
 	$(RM) tokenfile
 	$(RM) symboltable
+
+
