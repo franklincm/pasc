@@ -595,7 +595,7 @@ char *type_to_str(int t) {
     type = "PROC";
     break;
   case 108:
-    type = "BEGN";
+    type = "BEGIN";
     break;
   case 109:
     type = "END";
