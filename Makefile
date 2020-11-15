@@ -24,5 +24,5 @@ clean:
 	$(RM) listingfile
 	$(RM) tokenfile
 	$(RM) symboltable
-
+	$(RM) output.txt
 
