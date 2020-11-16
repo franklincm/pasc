@@ -40,7 +40,7 @@ Token get_tok(struct state s) {
   return t;
 }
 
-Token match(int token_type, Token t, struct state s) {
+Token match(int token_type, Token t, struct state s, int *synch, int synch_size) {
   for(int i = 0; i < level+1; i++) {
     printf(" ");
   }
@@ -59,6 +59,16 @@ Token match(int token_type, Token t, struct state s) {
     fflush(stdout);
     printf("SYNTAX ERROR\n");
     fflush(stdout);
+
+    while(t.type != token_type) {
+      for (int token = 0; token < synch_size; token++) {
+        if (synch[token] == t.type) {
+          printf("RESUME HERE\n");
+          return t;
+        }
+      }
+      t = get_tok(s);
+    }
   }
   return t;
 }
@@ -77,20 +87,21 @@ void parse(FILE *source,
 }
 
 Token parse_program(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse program\n");
   switch(t.type) {
   case TOKEN_PROGRAM:
-    t = match(TOKEN_PROGRAM, t, s);
-    t = match(TOKEN_ID, t, s);
-    t = match(TOKEN_LPAREN, t, s);
+    t = match(TOKEN_PROGRAM, t, s, synch, ssize);
+    t = match(TOKEN_ID, t, s, synch, ssize);
+    t = match(TOKEN_LPAREN, t, s, synch, ssize);
     t = parse_identifier_list(t, s);
     level--;
     print_level();
     printf("*RETURN* to program\n");
-    t = match(TOKEN_RPAREN, t, s);
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_RPAREN, t, s, synch, ssize);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
     t = parse_program_tail(t, s);
     level--;
     print_level();
@@ -99,13 +110,14 @@ Token parse_program(Token t, struct state s) {
     level--;
     print_level();
     printf("*RETURN* to program\n");
-    t = match(TOKEN_EOF, t, s);
+    t = match(TOKEN_EOF, t, s, synch, ssize);
     break;
   }
   return t;
 }
 
 Token parse_program_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse program_tail\n");
@@ -121,6 +133,7 @@ Token parse_program_tail(Token t, struct state s) {
 }
 
 Token parse_program_tail_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse program_tail_tail\n");
@@ -134,7 +147,7 @@ Token parse_program_tail_tail(Token t, struct state s) {
     level--;
     print_level();
     printf("*RETURN* to program_tail_tail\n");
-    t = match(TOKEN_DOT, t, s);
+    t = match(TOKEN_DOT, t, s, synch, ssize);
     break;
 
   case TOKEN_BEGIN:
@@ -142,7 +155,7 @@ Token parse_program_tail_tail(Token t, struct state s) {
     level--;
     print_level();
     printf("*RETURN* to program_tail_tail\n");
-    t = match(TOKEN_DOT, t, s);
+    t = match(TOKEN_DOT, t, s, synch, ssize);
     break;
 
   
@@ -151,12 +164,13 @@ Token parse_program_tail_tail(Token t, struct state s) {
 }
 
 Token parse_identifier_list(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse identifier_list\n");
   switch(t.type) {
   case TOKEN_ID:
-    t = match(TOKEN_ID, t, s);
+    t = match(TOKEN_ID, t, s, synch, ssize);
     t = parse_identifier_list_tail(t, s);
     level--;
     print_level();
@@ -167,13 +181,14 @@ Token parse_identifier_list(Token t, struct state s) {
 }
 
 Token parse_identifier_list_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse identifier_list_tail\n");
   switch(t.type) {
   case TOKEN_COMMA:
-    t = match(TOKEN_COMMA, t, s);
-    t = match(TOKEN_ID, t, s);
+    t = match(TOKEN_COMMA, t, s, synch, ssize);
+    t = match(TOKEN_ID, t, s, synch, ssize);
     t = parse_identifier_list_tail(t, s);
     level--;
     print_level();
@@ -184,19 +199,27 @@ Token parse_identifier_list_tail(Token t, struct state s) {
 }
 
 Token parse_declarations(Token t, struct state s) {
+  int synch[] = {
+    TOKEN_EOF,
+    TOKEN_FUNCTION,
+    TOKEN_BEGIN,
+    TOKEN_VAR,
+    TOKEN_BEGIN
+  };
+  int ssize = 5;
   level++;
   print_level();
   printf("parse declarations\n");
   switch(t.type) {
   case TOKEN_VAR:
-    t = match(TOKEN_VAR, t, s);
-    t = match(TOKEN_ID, t, s);
-    t = match(TOKEN_COLON, t, s);
+    t = match(TOKEN_VAR, t, s, synch, ssize);
+    t = match(TOKEN_ID, t, s, synch, ssize);
+    t = match(TOKEN_COLON, t, s, synch, ssize);
     t = parse_type(t, s);
     level--;
     print_level();
     printf("*RETURN* to declarations\n");
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
     t = parse_declarations_tail(t, s);
     level--;
     print_level();
@@ -207,19 +230,20 @@ Token parse_declarations(Token t, struct state s) {
 }
 
 Token parse_declarations_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse declarations_tail\n");
   switch(t.type) {
   case TOKEN_VAR:
-    t = match(TOKEN_VAR, t, s);
-    t = match(TOKEN_ID, t, s);
-    t = match(TOKEN_COLON, t, s);
+    t = match(TOKEN_VAR, t, s, synch, ssize);
+    t = match(TOKEN_ID, t, s, synch, ssize);
+    t = match(TOKEN_COLON, t, s, synch, ssize);
     t = parse_type(t, s);
     level--;
     print_level();
     printf("*RETURN* to declarations_tail\n");
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
     t = parse_declarations_tail(t, s);
     level--;
     print_level();
@@ -230,6 +254,7 @@ Token parse_declarations_tail(Token t, struct state s) {
 }
 
 Token parse_type(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse type\n");
@@ -243,13 +268,13 @@ Token parse_type(Token t, struct state s) {
     break;
 
   case TOKEN_ARRAY:
-    t = match(TOKEN_ARRAY, t, s);
-    t = match(TOKEN_LBRACKET, t, s);
-    t = match(TOKEN_INT, t, s);
-    t = match(TOKEN_ELIPSIS, t, s);
-    t = match(TOKEN_INT, t, s);
-    t = match(TOKEN_RBRACKET, t, s);
-    t = match(TOKEN_OF, t, s);
+    t = match(TOKEN_ARRAY, t, s, synch, ssize);
+    t = match(TOKEN_LBRACKET, t, s, synch, ssize);
+    t = match(TOKEN_INT, t, s, synch, ssize);
+    t = match(TOKEN_ELIPSIS, t, s, synch, ssize);
+    t = match(TOKEN_INT, t, s, synch, ssize);
+    t = match(TOKEN_RBRACKET, t, s, synch, ssize);
+    t = match(TOKEN_OF, t, s, synch, ssize);
     t = parse_standard_type(t, s);
     level--;
     print_level();
@@ -260,22 +285,24 @@ Token parse_type(Token t, struct state s) {
 }
 
 Token parse_standard_type(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse standard_type\n");
   switch(t.type) {
   case TOKEN_INTEGER:
-    t = match(TOKEN_INTEGER, t, s);
+    t = match(TOKEN_INTEGER, t, s, synch, ssize);
     break;
 
   case TOKEN_RREAL:
-    t = match(TOKEN_RREAL, t, s);
+    t = match(TOKEN_RREAL, t, s, synch, ssize);
     break;
   }
   return t;
 }
 
 Token parse_subprogram_declarations(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse subprogram_declarations\n");
@@ -285,7 +312,7 @@ Token parse_subprogram_declarations(Token t, struct state s) {
     level--;
     print_level();
     printf("*RETURN* to subprogram_declarations\n");
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
     t = parse_subprogram_declarations_tail(t, s);
     level--;
     print_level();
@@ -296,6 +323,7 @@ Token parse_subprogram_declarations(Token t, struct state s) {
 }
 
 Token parse_subprogram_declarations_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse subprogram_declarations_tail\n");
@@ -305,7 +333,7 @@ Token parse_subprogram_declarations_tail(Token t, struct state s) {
     level--;
     print_level();
     printf("*RETURN* to subprogram_declarations_tail\n");
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
     t = parse_subprogram_declarations_tail(t, s);
     level--;
     print_level();
@@ -316,6 +344,7 @@ Token parse_subprogram_declarations_tail(Token t, struct state s) {
 }
 
 Token parse_subprogram_declaration(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse subprogram_declaration\n");
@@ -339,6 +368,7 @@ Token parse_subprogram_declaration(Token t, struct state s) {
 }
 
 Token parse_subprogram_declaration_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse subprogram_declaration_tail\n");
@@ -354,6 +384,7 @@ Token parse_subprogram_declaration_tail(Token t, struct state s) {
 }
 
 Token parse_subprogram_declaration_tail_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse subprogram_declaration_tail_tail\n");
@@ -380,13 +411,14 @@ Token parse_subprogram_declaration_tail_tail(Token t, struct state s) {
 }
 
 Token parse_subprogram_head(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse subprogram_head\n");
   switch(t.type) {
   case TOKEN_FUNCTION:
-    t = match(TOKEN_FUNCTION, t, s);
-    t = match(TOKEN_ID, t, s);
+    t = match(TOKEN_FUNCTION, t, s, synch, ssize);
+    t = match(TOKEN_ID, t, s, synch, ssize);
     t = parse_subprogram_head_tail(t, s);
     level--;
     print_level();
@@ -397,6 +429,7 @@ Token parse_subprogram_head(Token t, struct state s) {
 }
 
 Token parse_subprogram_head_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse subprogram_head_tail\n");
@@ -406,51 +439,53 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     level--;
     print_level();
     printf("*RETURN* to subprogram_head_tail\n");
-    t = match(TOKEN_COLON, t, s);
+    t = match(TOKEN_COLON, t, s, synch, ssize);
     t = parse_standard_type(t, s);
     level--;
     print_level();
     printf("*RETURN* to subprogram_head_tail\n");
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
     break;
 
   case TOKEN_COLON:
-    t = match(TOKEN_COLON, t, s);
+    t = match(TOKEN_COLON, t, s, synch, ssize);
     t = parse_standard_type(t, s);
     level--;
     print_level();
     printf("*RETURN* to subprogram_head_tail\n");
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
     break;
   }
   return t;
 }
 
 Token parse_arguments(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse argument\n");
   switch(t.type) {
   case TOKEN_LPAREN:
-    t = match(TOKEN_LPAREN, t, s);
+    t = match(TOKEN_LPAREN, t, s, synch, ssize);
     t = parse_parameter_list(t, s);
     level--;
     print_level();
     printf("*RETURN* to arguments\n");
-    t = match(TOKEN_RPAREN, t, s);
+    t = match(TOKEN_RPAREN, t, s, synch, ssize);
     break;
   }
   return t;
 }
 
 Token parse_parameter_list(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse parameter_list\n");
   switch(t.type) {
   case TOKEN_ID:
-    t = match(TOKEN_ID, t, s);
-    t = match(TOKEN_COLON, t, s);
+    t = match(TOKEN_ID, t, s, synch, ssize);
+    t = match(TOKEN_COLON, t, s, synch, ssize);
     t = parse_type(t, s);
     level--;
     print_level();
@@ -465,14 +500,15 @@ Token parse_parameter_list(Token t, struct state s) {
 }
 
 Token parse_parameter_list_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse parameter_list_tail\n");
   switch(t.type) {
   case TOKEN_SEMICOLON:
-    t = match(TOKEN_SEMICOLON, t, s);
-    t = match(TOKEN_ID, t, s);
-    t = match(TOKEN_COLON, t, s);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
+    t = match(TOKEN_ID, t, s, synch, ssize);
+    t = match(TOKEN_COLON, t, s, synch, ssize);
     t = parse_type(t, s);
     level--;
     print_level();
@@ -487,12 +523,13 @@ Token parse_parameter_list_tail(Token t, struct state s) {
 }
 
 Token parse_compound_statement(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse compound_statement\n");
   switch(t.type) {
   case TOKEN_BEGIN:
-    t = match(TOKEN_BEGIN, t, s);
+    t = match(TOKEN_BEGIN, t, s, synch, ssize);
     t = parse_compound_statement_tail(t, s);
     level--;
     print_level();
@@ -503,6 +540,7 @@ Token parse_compound_statement(Token t, struct state s) {
 }
 
 Token parse_compound_statement_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse compound_statement_tail\n");
@@ -515,17 +553,18 @@ Token parse_compound_statement_tail(Token t, struct state s) {
     level--;
     print_level();
     printf("*RETURN* to compound_statement_tail\n");
-    t = match(TOKEN_END, t, s);
+    t = match(TOKEN_END, t, s, synch, ssize);
     break;
 
   case TOKEN_END:
-    t = match(TOKEN_END, t, s);
+    t = match(TOKEN_END, t, s, synch, ssize);
     break;
   }
   return t;
 }
 
 Token parse_optional_statements(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse optional_statements\n");
@@ -544,6 +583,7 @@ Token parse_optional_statements(Token t, struct state s) {
 }
 
 Token parse_statement_list(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse statement_list\n");
@@ -566,12 +606,13 @@ Token parse_statement_list(Token t, struct state s) {
 }
 
 Token parse_statement_list_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse statement_list_tail\n");
   switch(t.type) {
   case TOKEN_SEMICOLON:
-    t = match(TOKEN_SEMICOLON, t, s);
+    t = match(TOKEN_SEMICOLON, t, s, synch, ssize);
     t = parse_statement(t, s);
     level--;
     print_level();
@@ -586,6 +627,7 @@ Token parse_statement_list_tail(Token t, struct state s) {
 }
 
 Token parse_statement(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse statement\n");
@@ -595,7 +637,7 @@ Token parse_statement(Token t, struct state s) {
     level--;
     print_level();
     printf("*RETURN* to statement\n");
-    t = match(TOKEN_ASSIGN, t, s);
+    t = match(TOKEN_ASSIGN, t, s, synch, ssize);
     t = parse_expression(t, s);
     level--;
     print_level();
@@ -617,12 +659,12 @@ Token parse_statement(Token t, struct state s) {
     break;
     
   case TOKEN_WHILE:
-    t = match(TOKEN_WHILE, t, s);
+    t = match(TOKEN_WHILE, t, s, synch, ssize);
     t = parse_expression(t, s);
     level--;
     print_level();
     printf("*RETURN* to statement\n");
-    t = match(TOKEN_DO, t, s);
+    t = match(TOKEN_DO, t, s, synch, ssize);
     t = parse_statement(t, s);
     level--;
     print_level();
@@ -633,17 +675,18 @@ Token parse_statement(Token t, struct state s) {
 }
 
 Token parse_ifexp(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse ifexp\n");
   switch(t.type) {
   case TOKEN_IF:
-    t = match(TOKEN_IF, t, s);
+    t = match(TOKEN_IF, t, s, synch, ssize);
     t = parse_expression(t, s);
     level--;
     print_level();
     printf("*RETURN* to ifexp\n");
-    t = match(TOKEN_THEN, t, s);
+    t = match(TOKEN_THEN, t, s, synch, ssize);
     t = parse_statement(t, s);
     level--;
     print_level();
@@ -658,12 +701,13 @@ Token parse_ifexp(Token t, struct state s) {
 }
 
 Token parse_ifexp_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse ifexp_tail\n");
   switch(t.type) {
   case TOKEN_ELSE:
-    t = match(TOKEN_ELSE, t, s);
+    t = match(TOKEN_ELSE, t, s, synch, ssize);
     t = parse_statement(t, s);
     level--;
     print_level();
@@ -674,12 +718,13 @@ Token parse_ifexp_tail(Token t, struct state s) {
 }
 
 Token parse_variable(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse variable\n");
   switch(t.type) {
   case TOKEN_ID:
-    t = match(TOKEN_ID, t, s);
+    t = match(TOKEN_ID, t, s, synch, ssize);
     t = parse_variable_tail(t, s);
     level--;
     print_level();
@@ -690,23 +735,25 @@ Token parse_variable(Token t, struct state s) {
 }
 
 Token parse_variable_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse variable_tail\n");
   switch(t.type) {
   case TOKEN_LBRACKET:
-    t = match(TOKEN_LBRACKET, t, s);
+    t = match(TOKEN_LBRACKET, t, s, synch, ssize);
     t = parse_expression(t, s);
     level--;
     print_level();
     printf("*RETURN* to variable_tail\n");
-    t = match(TOKEN_RBRACKET, t, s);
+    t = match(TOKEN_RBRACKET, t, s, synch, ssize);
     break;
   }
   return t;
 }
 
 Token parse_expression_list(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse expression_list\n");
@@ -731,12 +778,13 @@ Token parse_expression_list(Token t, struct state s) {
 }
 
 Token parse_expression_list_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse expression_list_tail\n");
   switch(t.type) {
   case TOKEN_COMMA:
-    t = match(TOKEN_COMMA, t, s);
+    t = match(TOKEN_COMMA, t, s, synch, ssize);
     t = parse_expression(t, s);
     level--;
     print_level();
@@ -751,6 +799,7 @@ Token parse_expression_list_tail(Token t, struct state s) {
 }
 
 Token parse_expression(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse expression\n");
@@ -775,12 +824,13 @@ Token parse_expression(Token t, struct state s) {
 }
 
 Token parse_expression_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse expression_tail\n");
   switch(t.type) {
   case TOKEN_RELOP:
-    t = match(TOKEN_RELOP, t, s);
+    t = match(TOKEN_RELOP, t, s, synch, ssize);
     t = parse_simple_expression(t, s);
     level--;
     print_level();
@@ -795,6 +845,7 @@ Token parse_expression_tail(Token t, struct state s) {
 }
 
 Token parse_simple_expression(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse simple_expression\n");
@@ -833,12 +884,13 @@ Token parse_simple_expression(Token t, struct state s) {
 }
 
 Token parse_simple_expression_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse simple_expression_tail\n");
   switch(t.type) {
   case TOKEN_ADDOP:
-    t = match(TOKEN_ADDOP, t, s);
+    t = match(TOKEN_ADDOP, t, s, synch, ssize);
     t = parse_term(t, s);
     level--;
     print_level();
@@ -853,6 +905,7 @@ Token parse_simple_expression_tail(Token t, struct state s) {
 }
 
 Token parse_term(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse term\n");
@@ -876,12 +929,13 @@ Token parse_term(Token t, struct state s) {
 }
 
 Token parse_term_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse term_tail\n");
   switch(t.type) {
   case TOKEN_MULOP:
-    t = match(TOKEN_MULOP, t, s);
+    t = match(TOKEN_MULOP, t, s, synch, ssize);
     t = parse_factor(t, s);
     level--;
     print_level();
@@ -893,7 +947,7 @@ Token parse_term_tail(Token t, struct state s) {
     break;
 
   case TOKEN_MOD:
-    t = match(TOKEN_MOD, t, s);
+    t = match(TOKEN_MOD, t, s, synch, ssize);
     t = parse_factor(t, s);
     level--;
     print_level();
@@ -905,7 +959,7 @@ Token parse_term_tail(Token t, struct state s) {
     break;
 
   case TOKEN_DIV:
-    t = match(TOKEN_DIV, t, s);
+    t = match(TOKEN_DIV, t, s, synch, ssize);
     t = parse_factor(t, s);
     level--;
     print_level();
@@ -917,7 +971,7 @@ Token parse_term_tail(Token t, struct state s) {
     break;
 
   case TOKEN_AND:
-    t = match(TOKEN_AND, t, s);
+    t = match(TOKEN_AND, t, s, synch, ssize);
     t = parse_factor(t, s);
     level--;
     print_level();
@@ -932,12 +986,13 @@ Token parse_term_tail(Token t, struct state s) {
 }
 
 Token parse_factor(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse factor\n");
   switch(t.type) {
   case TOKEN_ID:
-    t = match(TOKEN_ID, t, s);
+    t = match(TOKEN_ID, t, s, synch, ssize);
     t = parse_factor_tail(t, s);
     level--;
     print_level();
@@ -945,24 +1000,24 @@ Token parse_factor(Token t, struct state s) {
     break;
     
   case TOKEN_INT:
-    t = match(TOKEN_INT, t, s);
+    t = match(TOKEN_INT, t, s, synch, ssize);
     break;
     
   case TOKEN_REAL:
-    t = match(TOKEN_REAL, t, s);
+    t = match(TOKEN_REAL, t, s, synch, ssize);
     break;
     
   case TOKEN_LPAREN:
-    t = match(TOKEN_LPAREN, t, s);
+    t = match(TOKEN_LPAREN, t, s, synch, ssize);
     t = parse_expression(t, s);
     level--;
     print_level();
     printf("*RETURN* to factor\n");
-    t = match(TOKEN_RPAREN, t, s);
+    t = match(TOKEN_RPAREN, t, s, synch, ssize);
     break;
     
   case TOKEN_NOT:
-    t = match(TOKEN_NOT, t, s);
+    t = match(TOKEN_NOT, t, s, synch, ssize);
     t = parse_factor(t, s);
     level--;
     print_level();
@@ -973,38 +1028,40 @@ Token parse_factor(Token t, struct state s) {
 }
 
 Token parse_factor_tail(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse factor_tail\n");
   switch(t.type) {
   case TOKEN_LBRACKET:
-    t = match(TOKEN_LBRACKET, t, s);
+    t = match(TOKEN_LBRACKET, t, s, synch, ssize);
     t = parse_expression(t, s);
     level--;
     print_level();
     printf("*RETURN* to factor_tail\n");
-    t = match(TOKEN_RBRACKET, t, s);
+    t = match(TOKEN_RBRACKET, t, s, synch, ssize);
     break;
 
   case TOKEN_LPAREN:
-    t = match(TOKEN_LPAREN, t, s);
+    t = match(TOKEN_LPAREN, t, s, synch, ssize);
     t = parse_expression_list(t, s);
     level--;
     print_level();
     printf("*RETURN* to factor_tail\n");
-    t = match(TOKEN_RPAREN, t, s);
+    t = match(TOKEN_RPAREN, t, s, synch, ssize);
     break;
   }
   return t;
 }
 
 Token parse_sign(Token t, struct state s) {
+  int synch[2]; int ssize = 2;
   level++;
   print_level();
   printf("parse sign\n");
   switch(t.type) {
   case TOKEN_ADDOP:
-    t = match(TOKEN_ADDOP, t, s);
+    t = match(TOKEN_ADDOP, t, s, synch, ssize);
     break;
   }
   return t;

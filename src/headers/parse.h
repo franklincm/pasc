@@ -13,7 +13,11 @@ struct state
 };
 
 Token get_tok(struct state s);
-Token match(int token_type, Token t, struct state s);
+Token match(int token_type,
+            Token t,
+            struct state s,
+            int *synch,
+            int synch_size);
 
 void parse(FILE *source,
            FILE *listing,
