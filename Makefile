@@ -12,6 +12,11 @@ obj/%.o: %.c $(DEPS)
 lex: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o obj/output.o obj/parse.o
 	$(CC) $(CFLAGS) -o bin/lex $^
 
+v:
+	make clean && make && \
+	./bin/lex > output.txt && \
+	bat output.txt
+
 test:
 	make clean && make && \
 	./bin/lex > output.txt && \
