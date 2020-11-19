@@ -55,16 +55,16 @@ Token match(int token_type, Token t, struct state s, int *synch, int synch_size)
       return t;
     }
   } else {
-    printf("Expecting: %s, Got: %s    %s\n", type_to_str(token_type), type_to_str(t.type), t.str);
-    fflush(stdout);
     printf("SYNTAX ERROR\n");
+    fflush(stdout);
+    printf("Expecting: %s, Got: %s    %s\n", type_to_str(token_type), type_to_str(t.type), t.str);
     fflush(stdout);
 
     // while not a synchronizing token, skip tokens
     while(t.type != token_type) {
       for (int token = 0; token < synch_size; token++) {
         if (synch[token] == t.type) {
-          printf("RESUME HERE\n");
+          //printf("RESUME HERE\n");
           return t;
         }
       }
