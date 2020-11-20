@@ -2,6 +2,7 @@
 #include "../headers/token.h"
 
 char * listing_format = "%-10d%s";
+char * listing_synerr_format = "          %s\n";
 char * lexerr_format = "%-10s%-30s%s\n";
 char * token_head_format = "%-9s%-14s%-25s%s\n";
 
@@ -55,6 +56,12 @@ char *lexerr_str(Token t) {
 char *listing_str(int lineno, char *line) {
   char *buffer = (char *)malloc(150 * sizeof(char));
   sprintf(buffer, listing_format, lineno, line);
+  return buffer;
+}
+
+char *listing_err(char *line) {
+  char *buffer = (char *)malloc(150 * sizeof(char));
+  sprintf(buffer, listing_synerr_format, line);
   return buffer;
 }
 

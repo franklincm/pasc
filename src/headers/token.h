@@ -11,6 +11,7 @@
 #endif
 
 #define LEXERR 99
+#define SYNERR 98
 #define TOKEN_WS 0
 #define TOKEN_ID 1
 #define TOKEN_RELOP 2

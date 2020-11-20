@@ -34,7 +34,7 @@ Token get_token(FILE *input,
   static int lineno = 0;
 
   Token t;
-  
+
   // if file isn't saved, or position reaches EOL
   if (source != input || *pos == '\n') {
     lineno++;
@@ -637,6 +637,9 @@ char *type_to_str(int t) {
     
   case LEXERR:
     type = "LEXERR";
+    break;
+  case SYNERR:
+    type = "SYNERR";
     break;
   case TOKEN_WS:
     type = "TOKEN_WS";
