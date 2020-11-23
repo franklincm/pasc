@@ -14,7 +14,7 @@ struct state
 
 Token get_tok(struct state s);
 Token match(int token_type, Token t, struct state s);
-Token synchronize(Token t, struct state s, int *synch, int size);
+Token synchronize(Token t, struct state s, int *synch, int size, char *production);
 void parse(FILE *source,
            FILE *listing,
            FILE *tokenfile,

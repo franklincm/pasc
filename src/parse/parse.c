@@ -18,6 +18,7 @@
 
 static int level = 0;
 static int print = 1;
+static int EOP = 0;
 
 void print_level(char * msg) {
 
@@ -31,22 +32,37 @@ void print_level(char * msg) {
 }
 
 Token get_tok(struct state s) {
-  Token t = get_token(s.source,
-                      s.listing,
-                      s.tokenfile,
-                      s.reserved_words,
-                      s.symbol_table);
-  while(t.type == TOKEN_WS) {
+  Token t;
+  if (!EOP) {
     t = get_token(s.source,
                   s.listing,
                   s.tokenfile,
                   s.reserved_words,
                   s.symbol_table);
+    while(t.type == TOKEN_WS) {
+      t = get_token(s.source,
+                    s.listing,
+                    s.tokenfile,
+                    s.reserved_words,
+                    s.symbol_table);
+    }
+    if (t.type == TOKEN_EOF) {
+      EOP = 1;
+    }
+    return t;
   }
+  t.str = "UNRECSYM";
+  t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   return t;
+
 }
 
 Token match(int token_type, Token t, struct state s) {
+  if(t.type == TOKEN_EOF) {
+    write_line_to_file("End of Parse\n", s.listing);
+    exit(0);
+    return t;
+  }
   if(print) {
     for(int i = 0; i < level+1; i++) {
       printf(" ");
@@ -59,20 +75,21 @@ Token match(int token_type, Token t, struct state s) {
     if (token_type == TOKEN_EOF) {
       printf("END OF PARSE\n");
       fflush(stdout);
+      return t;
     } else {
       return t;
     }
   } else {
-    printf("SYNTAX ERROR\n");
+    printf("SYNERR\n");
     fflush(stdout);
     printf("Expecting: %s, Got: %s    %s\n", type_to_str(token_type), type_to_str(t.type), t.str);
     fflush(stdout);
-    write_line_to_file(listing_err("**SYNTAX ERROR**"), s.listing);
+    write_line_to_file("SYNERR\n", s.listing);
 
     char * buffer = (char *)malloc(150 * sizeof(char));
     //sprintf(buffer, "Missing: '%s'\n", type_to_str(token_type));
     sprintf(buffer, "Expecting: %s, Got: '%s'\n", type_to_str(token_type), t.str);
-    write_line_to_file(listing_err(buffer), s.listing);
+    write_line_to_file(buffer, s.listing);
 
     // syntax error, skip token
     t = get_tok(s);    
@@ -80,10 +97,26 @@ Token match(int token_type, Token t, struct state s) {
   return t;
 }
 
-Token synchronize(Token t, struct state s, int *synch, int size) {
-  printf("SYNCH CALLED: %s\n", t.str);
+Token synchronize(Token t, struct state s, int *synch, int size, char *production) {
+  char * buffer = (char *)malloc(150 * sizeof(char));
+  sprintf(buffer, "SYNERR\nExpecting %s, Got: '%s'\n", production, t.str);
+  //write_line_to_file(buffer, s.listing);
+  //write_line_to_file("synching...\n\n", s.listing);
+
+  /* sprintf(buffer, "Expecting %s, Got: %s", production, t.str); */
+  /* write_line_to_file(listing_err(buffer), s.listing); */
+
+  if(t.type == TOKEN_EOF) {
+    write_line_to_file("End of Parse\n", s.listing);
+    exit(0);
+  }
+  
+  printf("SYNCH CALLED (%s): %s\n", production, t.str);
+
   for(int token = 0; token < size; token++) {
     if (t.type == synch[token]) {
+      sprintf(buffer, "skipping...\n\n");
+      //write_line_to_file(buffer, s.listing);
       printf("SYNCH FOUND: %s\n\n", t.str);
       return t;
     }
@@ -92,10 +125,14 @@ Token synchronize(Token t, struct state s, int *synch, int size) {
   int synch_found = 0;
 
   while (!synch_found) {
+
     for(int token = 0; token < size; token++) {
+
       if (t.type == synch[token]) {
         synch_found = 1;
-        printf("LOOP SYNCH FOUND: %s\n\n", t.str);
+        sprintf(buffer, "skipping...\n\n");
+        //write_line_to_file(buffer, s.listing);
+        printf("SYNCH FOUND: %s\n\n", t.str);
         return t;
       }
     }
@@ -147,7 +184,7 @@ Token parse_program(Token t, struct state s) {
     t = match(TOKEN_EOF, t, s);
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "program");
   }
   return t;
 }
@@ -175,7 +212,7 @@ Token parse_program_tail(Token t, struct state s) {
   case TOKEN_BEGIN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "program_tail");
   }
   return t;
 }
@@ -212,7 +249,7 @@ Token parse_program_tail_tail(Token t, struct state s) {
     t = match(TOKEN_DOT, t, s);
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "program_tail_tail");
   }
   return t;
 }
@@ -237,7 +274,7 @@ Token parse_identifier_list(Token t, struct state s) {
     print_level("*RETURN* to identifier_list\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "identifier list"); 
   }
   return t;
 }
@@ -265,7 +302,7 @@ Token parse_identifier_list_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "identifier list tail");
   }
   return t;
 }
@@ -297,7 +334,7 @@ Token parse_declarations(Token t, struct state s) {
     print_level("*RETURN* to declrations\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "declarations");
   }
   return t;
 }
@@ -332,7 +369,8 @@ Token parse_declarations_tail(Token t, struct state s) {
   case TOKEN_BEGIN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    printf("dec_tail calling synch...\n");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "declarations tail");
   }
   return t;
 }
@@ -341,6 +379,8 @@ Token parse_type(Token t, struct state s) {
   int synch[] = {
     TOKEN_EOF,
     TOKEN_SEMICOLON,
+    TOKEN_FUNCTION,
+    TOKEN_BEGIN,
     TOKEN_INTEGER,
     TOKEN_RREAL,
     TOKEN_ARRAY,
@@ -373,7 +413,7 @@ Token parse_type(Token t, struct state s) {
     print_level("*RETURN* to type\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "type");
   }
   return t;
 }
@@ -400,7 +440,7 @@ Token parse_standard_type(Token t, struct state s) {
     t = match(TOKEN_RREAL, t, s);
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "standard type");
   }
   return t;
 }
@@ -428,7 +468,7 @@ Token parse_subprogram_declarations(Token t, struct state s) {
     print_level("*RETURN* to subprogram_declarations\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram declarations");
   }
   return t;
 }
@@ -436,8 +476,8 @@ Token parse_subprogram_declarations(Token t, struct state s) {
 Token parse_subprogram_declarations_tail(Token t, struct state s) {
   int synch[] = {
     TOKEN_EOF,
-    TOKEN_BEGIN,
-    TOKEN_FUNCTION
+    TOKEN_FUNCTION,
+    TOKEN_BEGIN
   };
   
   level++;
@@ -458,7 +498,7 @@ Token parse_subprogram_declarations_tail(Token t, struct state s) {
   case TOKEN_BEGIN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram declarations tail");
   }
   return t;
 }
@@ -489,7 +529,7 @@ Token parse_subprogram_declaration(Token t, struct state s) {
     print_level("*RETURN* to subprogram_declaration_tail\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram declaration");
   }
   return t;
 }
@@ -516,7 +556,7 @@ Token parse_subprogram_declaration_tail(Token t, struct state s) {
   case TOKEN_BEGIN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram_declaration_tail");
   }
   return t;
 }
@@ -551,7 +591,7 @@ Token parse_subprogram_declaration_tail_tail(Token t, struct state s) {
     print_level("*RETURN* to subprogram_declaration_tail_tail\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram declaration tail tail");
   }
   return t;
 }
@@ -576,7 +616,7 @@ Token parse_subprogram_head(Token t, struct state s) {
     print_level("*RETURN* to subprogram_head\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram head");
   }
   return t;
 }
@@ -616,7 +656,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     t = match(TOKEN_SEMICOLON, t, s);
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram head tail");
   }
   return t;
 }
@@ -641,7 +681,7 @@ Token parse_arguments(Token t, struct state s) {
     t = match(TOKEN_RPAREN, t, s);
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "arguments");
   }
   return t;
 }
@@ -671,7 +711,7 @@ Token parse_parameter_list(Token t, struct state s) {
     print_level("*RETURN* to parameter_list\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "parameter list");
   }
   return t;
 }
@@ -704,7 +744,7 @@ Token parse_parameter_list_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "parameter list tail");
   }
   return t;
 }
@@ -735,7 +775,7 @@ Token parse_compound_statement(Token t, struct state s) {
     print_level("*RETURN* to compound_statement\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement");
   }
   return t;
 }
@@ -772,7 +812,7 @@ Token parse_compound_statement_tail(Token t, struct state s) {
     t = match(TOKEN_END, t, s);
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement tail");
   }
   return t;
 }
@@ -801,7 +841,7 @@ Token parse_optional_statements(Token t, struct state s) {
     print_level("*RETURN* to optional_statements\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "optional statements");
   }
   return t;
 }
@@ -834,7 +874,7 @@ Token parse_statement_list(Token t, struct state s) {
     print_level("*RETURN* to statement_list\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "statement list");
   }
   return t;
 }
@@ -868,7 +908,7 @@ Token parse_statement_list_tail(Token t, struct state s) {
   case TOKEN_END:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "statement list tail");
   }
   return t;
 }
@@ -928,7 +968,7 @@ Token parse_statement(Token t, struct state s) {
     print_level("*RETURN* to statement\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "statement");
   }
   return t;
 }
@@ -966,7 +1006,7 @@ Token parse_ifexp(Token t, struct state s) {
     print_level("*RETURN* to ifexp\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "if expression");
   }
   return t;
 }
@@ -996,7 +1036,7 @@ Token parse_ifexp_tail(Token t, struct state s) {
   case TOKEN_IF:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "if expression tail");
   }
   return t;
 }
@@ -1023,7 +1063,7 @@ Token parse_variable(Token t, struct state s) {
     print_level("*RETURN* to variable\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable");
   }
   return t;
 }
@@ -1051,7 +1091,7 @@ Token parse_variable_tail(Token t, struct state s) {
   case TOKEN_ASSIGN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable tail");
   }
   return t;
 }
@@ -1089,7 +1129,7 @@ Token parse_expression_list(Token t, struct state s) {
     print_level("*RETURN* to expression\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list");
   }
   return t;
 }
@@ -1125,7 +1165,7 @@ Token parse_expression_list_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list tail");
   }
   return t;
 }
@@ -1170,7 +1210,7 @@ Token parse_expression(Token t, struct state s) {
     print_level("*RETURN* to expression\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression");
   }
   return t;
 }
@@ -1222,7 +1262,7 @@ Token parse_expression_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression tail");
   }
   return t;
 }
@@ -1282,7 +1322,7 @@ Token parse_simple_expression(Token t, struct state s) {
     print_level("*RETURN* to simple_expression\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression");
   }
   return t;
 }
@@ -1335,7 +1375,7 @@ Token parse_simple_expression_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression tail");
   }
   return t;
 }
@@ -1370,7 +1410,7 @@ Token parse_term(Token t, struct state s) {
     print_level("*RETURN* to term\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "term");
   }
   return t;
 }
@@ -1449,7 +1489,7 @@ Token parse_term_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "term tail");
   }
   return t;
 }
@@ -1502,7 +1542,7 @@ Token parse_factor(Token t, struct state s) {
     print_level("*RETURN* to factor\n");
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "factor");
   }
   return t;
 }
@@ -1557,7 +1597,7 @@ Token parse_factor_tail(Token t, struct state s) {
   case TOKEN_RBRACKET:
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "factor tail");
   }
   return t;
 }
@@ -1581,7 +1621,7 @@ Token parse_sign(Token t, struct state s) {
     t = match(TOKEN_ADDOP, t, s);
     break;
   default:
-    synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]));    
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "sign");
   }
   return t;
 }

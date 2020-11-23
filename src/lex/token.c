@@ -47,6 +47,7 @@ Token get_token(FILE *input,
     if (feof(source)) {
       t.str = "EOF";
       t.type = TOKEN_EOF;
+      t.attr = 0;
       write_line_to_file(token_str(t, lineno), token_file);      
       return t;
     }
