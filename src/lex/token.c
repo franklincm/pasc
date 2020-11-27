@@ -74,17 +74,6 @@ Token get_token(FILE *input,
   // update position
   pos = t.f;
 
-  // print each token except whitespace
-  if (t.type != TOKEN_WS) {
-    //printf("%s ", t.str);    
-    //printf("%s ", type_to_str(t.type));
-    //printf("%s <%s> ", t.str, type_to_str(t.type));
-  }
-
-  if (*pos == '\n') {
-    //printf("\n");
-  }
-  
   return t;
 }
 
@@ -99,7 +88,7 @@ Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable) {
   }
   
   Token t;
-  t = machine(f, ReservedWords, SymbolTable);
+  t = nfa(f, ReservedWords, SymbolTable);
   f = t.f;
 
   return t;
@@ -112,34 +101,34 @@ int is_unrec(Token t) {
   return 0;
 }
 
-Token machine(char *f, node ReservedWords, node *SymbolTable) {
+Token nfa(char *f, node ReservedWords, node *SymbolTable) {
   Token t;
   t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
 
-  t = m_whitespace(f);
+  t = dfa_whitespace(f);
   if(!is_unrec(t)) return t;
   
-  t = m_idres(f, ReservedWords, SymbolTable);
+  t = dfa_idres(f, ReservedWords, SymbolTable);
   if(!is_unrec(t)) return t;
 
-  t = m_long_real(f);    
+  t = dfa_long_real(f);    
   if(!is_unrec(t)) return t;
   
-  t = m_real(f);    
+  t = dfa_real(f);    
   if(!is_unrec(t)) return t;
 
-  t = m_int(f);
+  t = dfa_int(f);
   if(!is_unrec(t)) return t;
 
-  t = m_relops(f);
+  t = dfa_relops(f);
   if(!is_unrec(t)) return t;
 
-  t = m_catchall(f);
+  t = dfa_catchall(f);
   return t;
 }
 
-Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
+Token dfa_idres(char *f, node ReservedWords, node *SymbolTable) {
   char *b = f;
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
@@ -213,7 +202,7 @@ Token m_idres(char *f, node ReservedWords, node *SymbolTable) {
   return t;  
 }
 
-Token m_long_real(char *f) {
+Token dfa_long_real(char *f) {
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
@@ -264,11 +253,7 @@ Token m_long_real(char *f) {
               t.attr = EXPONENTTOOLONG;
             }
           }
-          /* else { */
-          /*   // if 'E', exponent required! */
-          /*   t.type = LEXERR; */
-          /*   t.attr = MISSINGEXPONENT; */
-          /* } */
+
           else {
             // E present but no digit follows? not a real
             return t;
@@ -320,7 +305,7 @@ Token m_long_real(char *f) {
   
 }
 
-Token m_real(char *f) {
+Token dfa_real(char *f) {
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
@@ -386,7 +371,7 @@ Token m_real(char *f) {
   return t;
 }
 
-Token m_int(char *f) {
+Token dfa_int(char *f) {
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;
@@ -420,7 +405,7 @@ Token m_int(char *f) {
   return t;
 }
 
-Token m_whitespace(char *f) {
+Token dfa_whitespace(char *f) {
   Token t;
   t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
@@ -446,7 +431,7 @@ Token m_whitespace(char *f) {
 
 }
 
-Token m_relops(char *f) {
+Token dfa_relops(char *f) {
   Token t;
   t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
@@ -485,7 +470,7 @@ Token m_relops(char *f) {
   return t;
 }
 
-Token m_catchall(char *f) {
+Token dfa_catchall(char *f) {
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
   t.attr = 0;

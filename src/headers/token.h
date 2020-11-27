@@ -75,13 +75,13 @@ typedef struct Token{
 
 Token get_token(FILE *input, FILE *listing, FILE *tokenfile, node ReservedWords, node *SymbolTable);
 Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable);
-Token machine(char *f, node ReservedWords, node *SymbolTable);
-Token m_idres(char *f, node ReservedWords, node *SymbolTable);
-Token m_whitespace(char *f);
-Token m_int(char *f);
-Token m_relops(char *f);
-Token m_catchall(char *f);
-Token m_long_real(char *f);
-Token m_real(char *f);
+Token nfa(char *f, node ReservedWords, node *SymbolTable);
+Token dfa_idres(char *f, node ReservedWords, node *SymbolTable);
+Token dfa_whitespace(char *f);
+Token dfa_int(char *f);
+Token dfa_relops(char *f);
+Token dfa_catchall(char *f);
+Token dfa_long_real(char *f);
+Token dfa_real(char *f);
 char *type_to_str(int type);
 char *attr_to_str(Token t);
