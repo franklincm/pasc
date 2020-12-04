@@ -1,19 +1,33 @@
 CC = clang
 CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic
-DEPS = relops.h
+DEPS = reserved.h linkedlist.h output.h parse.h token.h
 
-VPATH = src:src/lex/:obj
+VPATH = src:src/lex/:src/parse/:src/util/:obj
 vpath %.h src/headers/
 vpath %.o obj
 
 obj/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
+lex: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o obj/output.o obj/parse.o
+	$(CC) $(CFLAGS) -o bin/lex $^
 
-readline: obj/readline.o obj/relops.o
-	$(CC) $(CFLAGS) -o bin/readline $^
+v:
+	make clean && make && \
+	./bin/lex > output.txt && \
+	bat output.txt
 
-.PHONE: clean
+test:
+	make clean && make && \
+	./bin/lex > output.txt && \
+	cat output.txt|grep -i error || echo -e '\n0 syntax errors'
+
+.PHONY: clean
 clean:
-	rm bin/*
-	rm obj/*
+	$(RM) bin/*
+	$(RM) obj/*
+	$(RM) listingfile
+	$(RM) tokenfile
+	$(RM) symboltable
+	$(RM) output.txt
+
