@@ -16,8 +16,13 @@
 #include "../headers/parse.h"
 #endif
 
+#ifndef COLOR
+#define COLOR
+#include "../headers/colornode.h"
+#endif
+
 static int level = 0;
-static int print = 1;
+static int print = 0;
 static int EOP = 0;
 
 void print_level(char * msg) {
@@ -165,12 +170,19 @@ Token parse_program(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_PROGRAM:
     t = match(TOKEN_PROGRAM, t, s);
+
+    if (t.type != LEXERR) {
+      check_add_green_node(t);
+    }
+
     t = match(TOKEN_ID, t, s);
+    
     t = match(TOKEN_LPAREN, t, s);
     t = parse_identifier_list(t, s);
     level--;
     // print_level();
     print_level("*RETURN* to program\n");
+    
     t = match(TOKEN_RPAREN, t, s);
     t = match(TOKEN_SEMICOLON, t, s);
     t = parse_program_tail(t, s);
@@ -609,6 +621,11 @@ Token parse_subprogram_head(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = match(TOKEN_FUNCTION, t, s);
+    
+    if (t.type != LEXERR) {
+      check_add_green_node(t);
+    }
+    
     t = match(TOKEN_ID, t, s);
     t = parse_subprogram_head_tail(t, s);
     level--;
@@ -806,10 +823,12 @@ Token parse_compound_statement_tail(Token t, struct state s) {
     // print_level();
     print_level("*RETURN* to compound_statement_tail\n");
     t = match(TOKEN_END, t, s);
+    pop_green();
     break;
 
   case TOKEN_END:
     t = match(TOKEN_END, t, s);
+    pop_green();
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement tail");
