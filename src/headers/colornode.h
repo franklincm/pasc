@@ -23,4 +23,5 @@ void prune_list();
 int search_green_nodes(char *lex);
 void push_green(struct ColorNode *GreenNode);
 void pop_green();
+uintptr_t get_tail_address();
 void check_add_green_node(Token t);

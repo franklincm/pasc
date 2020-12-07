@@ -42,6 +42,14 @@ void pop_green() {
     printf("pop: 0x%" PRIXPTR "\n", tmp->addr);
     eye_stack = NULL;
   }
+
+  if (eye_stack) {
+    while(get_tail_address() != eye_stack->addr) {
+      printf("pruning...\n");
+      prune_list();
+    }
+  }
+  
 }
 
 /*
@@ -74,14 +82,23 @@ void insert_green(char *lex, int type, char *profile) {
   printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
 }
 
+uintptr_t get_tail_address() {
+  struct ColorNode *tmp;
+  tmp = dllist;
+
+  while (tmp->down) {
+    tmp = tmp->down;
+  }
+  return (uintptr_t)tmp;
+}
+
 void prune_list() {
-  pop_green();
 
   if (dllist == NULL) {
     return;
   } else if (!dllist->down) {
     printf("POP Green : %s\n", dllist->lex);
-    printf("address of %s: 0x%" PRIXPTR "\n", dllist->lex, (uintptr_t)dllist);
+    //printf("address of %s: 0x%" PRIXPTR "\n", dllist->lex, (uintptr_t)dllist);
     dllist = NULL;
     return;
   }
@@ -93,7 +110,7 @@ void prune_list() {
     tmp = tmp->down;
   }
   printf("POP Green : %s\n", tmp->down->lex);
-  printf("address of %s: 0x%" PRIXPTR "\n", tmp->down->lex, (uintptr_t)tmp->down);
+  //printf("address of %s: 0x%" PRIXPTR "\n", tmp->down->lex, (uintptr_t)tmp->down);
   tmp->down = NULL;
 }
 
