@@ -12,6 +12,6 @@ struct ColorNode{
 };
 
 void insert_green();
-void pop_green();
+void prune_list();
 int search_green_nodes(char *lex);
 void check_add_green_node(Token t);

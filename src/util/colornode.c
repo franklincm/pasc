@@ -39,7 +39,7 @@ void insert_green(char *lex, int type, char *profile) {
   printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
 }
 
-void pop_green() {
+void prune_list() {
   if (dllist == NULL) {
     return;
   } else if (!dllist->down) {

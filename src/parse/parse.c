@@ -823,12 +823,12 @@ Token parse_compound_statement_tail(Token t, struct state s) {
     // print_level();
     print_level("*RETURN* to compound_statement_tail\n");
     t = match(TOKEN_END, t, s);
-    pop_green();
+    prune_list();
     break;
 
   case TOKEN_END:
     t = match(TOKEN_END, t, s);
-    pop_green();
+    prune_list();
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement tail");
