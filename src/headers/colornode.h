@@ -6,6 +6,7 @@
 #endif
 
 struct ColorNode {
+  char color;
   char *lex;
   int type;
   char *profile;
@@ -17,8 +18,7 @@ struct StackNode {
   uintptr_t addr;
   struct StackNode *next;
 };
-
-void insert_green();
+void insert_node(char color, char *lex, int type, char *profile);
 void prune_list();
 int search_green_nodes(char *lex);
 void push_green(struct ColorNode *GreenNode);

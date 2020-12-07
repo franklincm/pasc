@@ -57,8 +57,9 @@ void pop_green() {
   will keep both green and blue nodes, while eye will keep only green
   nodes.
  */
-void insert_green(char *lex, int type, char *profile) {
+void insert_node(char color, char *lex, int type, char *profile) {
   struct ColorNode *node = malloc(sizeof(struct ColorNode));
+  node->color = color;
   node->lex = lex;
   node->type = type;
   node->profile = profile;
@@ -153,10 +154,32 @@ void check_add_green_node(Token t) {
   /* TODO: check parent green nodes first */
   if(search_green_nodes(str)) {
     printf("SEMERR: Attempt to redefine `%s`\n", str);
-    insert_green("SEMERR", type, profile);
+    insert_node('G', "SEMERR", type, profile);
     printf("PUSH SEMERR Green : %s\n", str);    
   }
 
-  insert_green(str, type, profile);
+  insert_node('G', str, type, profile);
   printf("PUSH Green : %s\n", str);
+}
+
+void get_parent_green() {
+  return;
+}
+
+void update_profile() {
+  return;
+}
+
+void search_blue() {
+  if (!dllist) {
+    return;
+  }
+  struct ColorNode *tmp;
+  tmp = dllist;
+  
+  return;
+}
+
+void check_add_blue() {
+  return;
 }
