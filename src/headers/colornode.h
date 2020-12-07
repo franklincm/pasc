@@ -31,3 +31,5 @@ void pop_green();
 void check_add_green_node(Token t);
 void check_add_blue(char *lex, int type);
 uintptr_t get_tail_address();
+char *profile_type_to_str(int type);
+uintptr_t get_node_addr(struct ColorNode *n);

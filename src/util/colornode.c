@@ -56,6 +56,7 @@ void pop_green() {
     test = test->down;
   }
   printf("pruned to: %s\n", test->lex);
+  printf("%s profile: %s\n", test->lex, test->profile);
   
 }
 
@@ -158,7 +159,7 @@ int search_green_nodes(char *lex) {
 void check_add_green_node(Token t) {
   char *str = t.str;
   int type = t.type;
-  char *profile = "test";
+  char *profile = "";
 
   /* TODO: check parent green nodes first */
   if(search_green_nodes(str)) {
@@ -175,6 +176,10 @@ void update_profile() {
   return;
 }
 
+uintptr_t get_node_addr(struct ColorNode *n) {
+  return (uintptr_t) n;
+}
+
 int search_blue(char *lex) {
   if (!dllist) {
     return 0;
@@ -187,8 +192,10 @@ int search_blue(char *lex) {
   }
 
   uintptr_t parent_green_addr = eye_stack->addr;
-  while(get_tail_address() != parent_green_addr) {
+  while(get_node_addr(tmp) != parent_green_addr) {
+    printf("searching for %s...\n", tmp->lex);
     if (tmp->lex == lex) {
+      printf("search_blue: found: %s\n", tmp->lex);
       return 1;
     }
     if (tmp->up) {
@@ -196,10 +203,23 @@ int search_blue(char *lex) {
     } else {
       break;
     }
-
   }
   
   return 0;
+}
+
+struct ColorNode *get_parent_green() {
+  struct ColorNode *tmp;
+  tmp = dllist;
+  while(tmp->down)
+    tmp = tmp->down;
+
+  uintptr_t parent_addr = eye_stack->addr;
+  while(get_node_addr(tmp) != parent_addr) {
+    if (tmp->up)
+      tmp = tmp->up;
+  }
+  return tmp;
 }
 
 void check_add_blue(char *lex, int type) {
@@ -208,6 +228,51 @@ void check_add_blue(char *lex, int type) {
     return;
   }
   printf("check_add_blue: %s\n", lex);
+  if(type >= 5 && type <= 9) {
+    printf("PARAM TYPE\n");
+    struct ColorNode *tmp = get_parent_green();
+    char buffer [3];
+    sprintf(buffer, "%d", type);
+    char *old_profile = tmp->profile;
+    tmp->profile = malloc((strlen(tmp->profile) + 2) * sizeof(char));
+    strcat(tmp->profile, old_profile);
+    strcat(tmp->profile, buffer);
+    printf("UPDATE PROFILE: %s -> %s\n", tmp->lex, tmp->profile);
+  }
   insert_node('B', lex, type, "");
   return;
+}
+
+char *profile_type_to_str(int type) {
+  char *str;
+  switch(type) {
+  case 1:
+    str = "INT";
+    break;
+  case 2:
+    str = "REAL";
+    break;
+  case 3:
+    str = "AINT";
+    break;
+  case 4:
+    str = "AREAL";
+    break;
+  case 5:
+    str = "PPINT";
+    break;
+  case 6:
+    str = "PPREAL";
+    break;
+  case 7:
+    str = "PPAINT";
+    break;
+  case 8:
+    str = "PPAREAL";
+    break;
+  case 9:
+    str = "PGPARAM";
+    break;
+  }
+  return str;
 }
