@@ -162,24 +162,41 @@ void check_add_green_node(Token t) {
   printf("PUSH Green : %s\n", str);
 }
 
-void get_parent_green() {
-  return;
-}
-
 void update_profile() {
   return;
 }
 
-void search_blue() {
+int search_blue(char *lex) {
   if (!dllist) {
-    return;
+    return 0;
   }
   struct ColorNode *tmp;
   tmp = dllist;
+
+  while(tmp->down) {
+    tmp = tmp->down;
+  }
+
+  uintptr_t parent_green_addr = eye_stack->addr;
+  while(get_tail_address() != parent_green_addr) {
+    if (tmp->lex == lex) {
+      return 1;
+    }
+    tmp = tmp->up;
+  }
   
-  return;
+  return 0;
 }
 
-void check_add_blue() {
+void check_add_blue(char *lex, int type) {
+
+  if(search_blue(lex)) {
+    printf("SEMERR: (blue): `%s`\n", lex);
+    return;
+  }
+
+  insert_node('B', lex, type, "");
+  printf("check_add_blue: %s\n", lex);
+  
   return;
 }

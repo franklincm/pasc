@@ -279,6 +279,7 @@ Token parse_identifier_list(Token t, struct state s) {
   print_level("parse identifier_list\n");
   switch(t.type) {
   case TOKEN_ID:
+    check_add_blue(t.str, PGPARAM);
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
@@ -305,6 +306,7 @@ Token parse_identifier_list_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
+    check_add_blue(t.str, PGPARAM);
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
@@ -333,8 +335,12 @@ Token parse_declarations(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
+
+    char *lex = t.str;
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
+    int type = t.type;
+    check_add_blue(lex, type);
     t = parse_type(t, s);
     level--;
     // print_level();
