@@ -53,7 +53,17 @@
 #define TOKEN_MOD 118
 #define TOKEN_AND 119
 
-#define PGPARAM 130
+#define PGPARAM 9
+#define p_NULL 0
+#define p_INT 1
+#define p_REAL 2
+#define p_AINT 3
+#define p_AREAL 4
+#define p_PPINT 5
+#define p_PPREAL 6
+#define p_PPAINT 7
+#define p_PPAREAL 8
+
 
 #define TOKEN_UNRECOGNIZED_SYMBOL 999
 
