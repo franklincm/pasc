@@ -10,6 +10,39 @@
 #endif
 
 static struct ColorNode *dllist = NULL;
+static struct StackNode *eye_stack = NULL;
+
+void push_green(struct ColorNode *GreenNode) {
+  struct StackNode *node = malloc(sizeof(struct StackNode));
+  node->addr = (uintptr_t)GreenNode;
+
+  if (eye_stack == NULL){
+    eye_stack = node;
+    printf("push 0x%" PRIXPTR ": %s\n", node->addr, GreenNode->lex);
+    return;
+  }
+
+  node->next = eye_stack;
+  eye_stack = node;
+  printf("push 0x%" PRIXPTR ": %s\n", node->addr, GreenNode->lex);
+}
+
+void pop_green() {
+  if (eye_stack == NULL) {
+    return;
+  }
+
+  struct StackNode *tmp;
+  tmp = eye_stack;
+  
+  if (eye_stack->next) {
+    eye_stack = eye_stack->next;
+    printf("pop: 0x%" PRIXPTR "\n", tmp->addr);
+  } else {
+    printf("pop: 0x%" PRIXPTR "\n", tmp->addr);
+    eye_stack = NULL;
+  }
+}
 
 /*
   This will push onto 2 stacks: dllist, and eye. dllist
@@ -21,6 +54,8 @@ void insert_green(char *lex, int type, char *profile) {
   node->lex = lex;
   node->type = type;
   node->profile = profile;
+
+  push_green(node);
 
   if (dllist == NULL) {
     dllist = node;
@@ -40,6 +75,8 @@ void insert_green(char *lex, int type, char *profile) {
 }
 
 void prune_list() {
+  pop_green();
+
   if (dllist == NULL) {
     return;
   } else if (!dllist->down) {
@@ -57,8 +94,6 @@ void prune_list() {
   }
   printf("POP Green : %s\n", tmp->down->lex);
   printf("address of %s: 0x%" PRIXPTR "\n", tmp->down->lex, (uintptr_t)tmp->down);
-
-
   tmp->down = NULL;
 }
 
@@ -70,7 +105,7 @@ void prune_list() {
   1 = found
  */
 int search_green_nodes(char *lex) {
-  printf("search: %s\n", lex);
+  //printf("search: %s\n", lex);
   if (dllist == NULL) {
     return 0;
   }
@@ -101,6 +136,8 @@ void check_add_green_node(Token t) {
   /* TODO: check parent green nodes first */
   if(search_green_nodes(str)) {
     printf("SEMERR: Attempt to redefine `%s`\n", str);
+    insert_green("SEMERR", type, profile);
+    printf("PUSH SEMERR Green : %s\n", str);    
   }
 
   insert_green(str, type, profile);
