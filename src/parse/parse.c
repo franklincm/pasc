@@ -24,6 +24,7 @@
 static int level = 0;
 static int print = 0;
 static int EOP = 0;
+char *lex;
 
 void print_level(char * msg) {
 
@@ -306,7 +307,6 @@ Token parse_identifier_list_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
-    printf("calling check_add_blue: %s\n", t.str);
     check_add_blue(t.str, PGPARAM);
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
@@ -337,7 +337,7 @@ Token parse_declarations(Token t, struct state s) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
 
-    char *lex = t.str;
+    lex = t.str;
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     check_add_blue(lex, t.type);
@@ -371,7 +371,7 @@ Token parse_declarations_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
-    char *lex = t.str;
+    lex = t.str;
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     check_add_blue(lex, t.type);
@@ -725,8 +725,10 @@ Token parse_parameter_list(Token t, struct state s) {
   print_level("parse parameter_list\n");
   switch(t.type) {
   case TOKEN_ID:
+    lex = t.str;
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
+    check_add_blue(lex, t.type);
     t = parse_type(t, s);
     level--;
     // print_level();
@@ -756,8 +758,10 @@ Token parse_parameter_list_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_SEMICOLON:
     t = match(TOKEN_SEMICOLON, t, s);
+    lex = t.str;
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
+    check_add_blue(lex, t.type);
     t = parse_type(t, s);
     level--;
     // print_level();
