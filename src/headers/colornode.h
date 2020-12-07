@@ -7,10 +7,11 @@ struct ColorNode{
   char *lex;
   int type;
   char *profile;
-  struct ColorNode *next;
+  struct ColorNode *up;
+  struct ColorNode *down;
 };
 
-void push_green();
+void insert_green();
 void pop_green();
 int search_green_nodes(char *lex);
 void check_add_green_node(Token t);

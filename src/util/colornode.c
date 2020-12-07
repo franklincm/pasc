@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include "../headers/colornode.h"
 
 #ifndef TOKEN
@@ -8,27 +9,57 @@
 #include "../headers/token.h"
 #endif
 
-static struct ColorNode *top = NULL;
+static struct ColorNode *dllist = NULL;
 
-void push_green(char *lex, int type, char *profile) {
+/*
+  This will push onto 2 stacks: dllist, and eye. dllist
+  will keep both green and blue nodes, while eye will keep only green
+  nodes.
+ */
+void insert_green(char *lex, int type, char *profile) {
   struct ColorNode *node = malloc(sizeof(struct ColorNode));
   node->lex = lex;
   node->type = type;
   node->profile = profile;
-  
-  node->next = top;
-  top = node;
+
+  if (dllist == NULL) {
+    dllist = node;
+    printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
+    return;
+  }
+
+  struct ColorNode *tmp;
+  tmp = dllist;
+  while(tmp->down) {
+    tmp = tmp->down;
+  }
+  node->up = tmp;
+  tmp->down = node;
+
+  printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
 }
 
 void pop_green() {
-  if (top == NULL) {
+  if (dllist == NULL) {
+    return;
+  } else if (!dllist->down) {
+    printf("POP Green : %s\n", dllist->lex);
+    printf("address of %s: 0x%" PRIXPTR "\n", dllist->lex, (uintptr_t)dllist);
+    dllist = NULL;
     return;
   }
+  
   struct ColorNode *tmp;
-  tmp = top;
-  top = top->next;
-  printf("POP Green : %s\n", tmp->lex);
-  free(tmp);
+  tmp = dllist;
+  // go to end of list
+  while(tmp->down->down) {
+    tmp = tmp->down;
+  }
+  printf("POP Green : %s\n", tmp->down->lex);
+  printf("address of %s: 0x%" PRIXPTR "\n", tmp->down->lex, (uintptr_t)tmp->down);
+
+
+  tmp->down = NULL;
 }
 
 /*
@@ -39,21 +70,22 @@ void pop_green() {
   1 = found
  */
 int search_green_nodes(char *lex) {
-  if (top == NULL) {
+  printf("search: %s\n", lex);
+  if (dllist == NULL) {
     return 0;
   }
   struct ColorNode *tmp;
-  tmp = top;
-  if (strcmp(tmp->lex, lex) == 0) {
-    printf("search: %s\n", tmp->lex);
+  tmp = dllist;
+  // strcmp() == 0 when identical
+  if (!strcmp(tmp->lex, lex)) {
     printf("found: %s\n", tmp->lex);
     return 1;
   }
 
-  while(tmp->next != NULL) {
-    tmp = tmp->next;
-    printf("search: %s\n", tmp->lex);
-    if (strcmp(tmp->lex, lex) == 0) {
+  // while list has more children...
+  while(tmp->down) {
+    tmp = tmp->down;
+    if (!strcmp(tmp->lex, lex)) {
       printf("found: %s\n", tmp->lex);
       return 1;
     }
@@ -71,6 +103,6 @@ void check_add_green_node(Token t) {
     printf("SEMERR: Attempt to redefine `%s`\n", str);
   }
 
-  push_green(str, type, profile);
+  insert_green(str, type, profile);
   printf("PUSH Green : %s\n", str);
 }
