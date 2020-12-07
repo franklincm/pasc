@@ -22,14 +22,16 @@ struct StackNode {
 static struct ColorNode *dllist;
 static struct StackNode *eye_stack;
 
-void insert_node(char color, char *lex, int type, char *profile);
+void push_eye(struct ColorNode *GreenNode);
+void pop_eye();
 void prune_list();
-int search_green_nodes(char *lex);
+void insert_node(char color, char *lex, int type, char *profile);
+int search_green(char *lex);
 int search_blue(char *lex);
-void push_green(struct ColorNode *GreenNode);
-void pop_green();
-void check_add_green_node(Token t);
+void check_add_green(Token t);
 void check_add_blue(char *lex, int type);
 uintptr_t get_tail_address();
-char *profile_type_to_str(int type);
 uintptr_t get_node_addr(struct ColorNode *n);
+struct ColorNode *get_parent_green();
+char *profile_type_to_str(int type);
+

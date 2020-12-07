@@ -174,7 +174,7 @@ Token parse_program(Token t, struct state s) {
     t = match(TOKEN_PROGRAM, t, s);
 
     if (t.type != LEXERR) {
-      check_add_green_node(t);
+      check_add_green(t);
     }
 
     t = match(TOKEN_ID, t, s);
@@ -643,7 +643,7 @@ Token parse_subprogram_head(Token t, struct state s) {
     t = match(TOKEN_FUNCTION, t, s);
     
     if (t.type != LEXERR) {
-      check_add_green_node(t);
+      check_add_green(t);
     }
     
     t = match(TOKEN_ID, t, s);
@@ -851,12 +851,12 @@ Token parse_compound_statement_tail(Token t, struct state s) {
     
     print_level("*RETURN* to compound_statement_tail\n");
     t = match(TOKEN_END, t, s);
-    pop_green();
+    pop_eye();
     break;
 
   case TOKEN_END:
     t = match(TOKEN_END, t, s);
-    pop_green();
+    pop_eye();
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement tail");
