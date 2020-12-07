@@ -12,19 +12,19 @@
 static struct ColorNode *dllist = NULL;
 static struct StackNode *eye_stack = NULL;
 
-void push_green(struct ColorNode *GreenNode) {
+void push_green(struct ColorNode *greenNode) {
   struct StackNode *node = malloc(sizeof(struct StackNode));
-  node->addr = (uintptr_t)GreenNode;
+  node->addr = (uintptr_t)greenNode;
 
   if (eye_stack == NULL){
     eye_stack = node;
-    printf("push 0x%" PRIXPTR ": %s\n", node->addr, GreenNode->lex);
+    printf("push 0x%" PRIXPTR ": %s\n", node->addr, greenNode->lex);
     return;
   }
 
   node->next = eye_stack;
   eye_stack = node;
-  printf("push 0x%" PRIXPTR ": %s\n", node->addr, GreenNode->lex);
+  printf("push 0x%" PRIXPTR ": %s\n", node->addr, greenNode->lex);
 }
 
 void pop_green() {
@@ -49,6 +49,13 @@ void pop_green() {
       prune_list();
     }
   }
+
+  struct ColorNode *test;
+  test = dllist;
+  while(test->down) {
+    test = test->down;
+  }
+  printf("pruned to: %s\n", test->lex);
   
 }
 
@@ -64,11 +71,14 @@ void insert_node(char color, char *lex, int type, char *profile) {
   node->type = type;
   node->profile = profile;
 
-  push_green(node);
+  if (color == 'G') {
+    push_green(node);
+  }
+
 
   if (dllist == NULL) {
     dllist = node;
-    printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
+    //printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
     return;
   }
 
@@ -79,8 +89,7 @@ void insert_node(char color, char *lex, int type, char *profile) {
   }
   node->up = tmp;
   tmp->down = node;
-
-  printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
+  //printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
 }
 
 uintptr_t get_tail_address() {
@@ -98,7 +107,7 @@ void prune_list() {
   if (dllist == NULL) {
     return;
   } else if (!dllist->down) {
-    printf("POP Green : %s\n", dllist->lex);
+    //printf("POP Green : %s\n", dllist->lex);
     //printf("address of %s: 0x%" PRIXPTR "\n", dllist->lex, (uintptr_t)dllist);
     dllist = NULL;
     return;
@@ -110,7 +119,7 @@ void prune_list() {
   while(tmp->down->down) {
     tmp = tmp->down;
   }
-  printf("POP Green : %s\n", tmp->down->lex);
+  //printf("POP Green : %s\n", tmp->down->lex);
   //printf("address of %s: 0x%" PRIXPTR "\n", tmp->down->lex, (uintptr_t)tmp->down);
   tmp->down = NULL;
 }
@@ -159,7 +168,7 @@ void check_add_green_node(Token t) {
   }
 
   insert_node('G', str, type, profile);
-  printf("PUSH Green : %s\n", str);
+  //printf("PUSH Green : %s\n", str);
 }
 
 void update_profile() {
@@ -182,21 +191,23 @@ int search_blue(char *lex) {
     if (tmp->lex == lex) {
       return 1;
     }
-    tmp = tmp->up;
+    if (tmp->up) {
+      tmp = tmp->up;      
+    } else {
+      break;
+    }
+
   }
   
   return 0;
 }
 
 void check_add_blue(char *lex, int type) {
-
   if(search_blue(lex)) {
     printf("SEMERR: (blue): `%s`\n", lex);
     return;
   }
-
-  insert_node('B', lex, type, "");
   printf("check_add_blue: %s\n", lex);
-  
+  insert_node('B', lex, type, "");
   return;
 }
