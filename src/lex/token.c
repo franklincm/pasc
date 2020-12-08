@@ -22,8 +22,7 @@ char *print_error(Token t) {
 Token get_token(FILE *input,
                 FILE *listing,
                 FILE *tokenfile,
-                node ReservedWords,
-                node *SymbolTable) {
+                node ReservedWords) {
 
   // static vars to keep state
   static FILE *source;
@@ -61,7 +60,7 @@ Token get_token(FILE *input,
   }
 
   // get next token
-  t = get_token_from_line(line_buffer, ReservedWords, SymbolTable);
+  t = get_token_from_line(line_buffer, ReservedWords);
 
   // if LEXERR, write to listing
   if (t.type == LEXERR) {
@@ -77,7 +76,7 @@ Token get_token(FILE *input,
   return t;
 }
 
-Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable) {
+Token get_token_from_line(char *line, node ReservedWords) {
 
   static char *f;
   static char line_remaining[72];
@@ -88,7 +87,7 @@ Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable) {
   }
   
   Token t;
-  t = nfa(f, ReservedWords, SymbolTable);
+  t = nfa(f, ReservedWords);
   f = t.f;
 
   return t;
@@ -101,7 +100,7 @@ int is_unrec(Token t) {
   return 0;
 }
 
-Token nfa(char *f, node ReservedWords, node *SymbolTable) {
+Token nfa(char *f, node ReservedWords) {
   Token t;
   t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
@@ -109,7 +108,7 @@ Token nfa(char *f, node ReservedWords, node *SymbolTable) {
   t = dfa_whitespace(f);
   if(!is_unrec(t)) return t;
   
-  t = dfa_idres(f, ReservedWords, SymbolTable);
+  t = dfa_idres(f, ReservedWords);
   if(!is_unrec(t)) return t;
 
   t = dfa_long_real(f);    
@@ -128,7 +127,7 @@ Token nfa(char *f, node ReservedWords, node *SymbolTable) {
   return t;
 }
 
-Token dfa_idres(char *f, node ReservedWords, node *SymbolTable) {
+Token dfa_idres(char *f, node ReservedWords) {
   char *b = f;
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
@@ -176,25 +175,28 @@ Token dfa_idres(char *f, node ReservedWords, node *SymbolTable) {
     }
 
     // else get or insert symbol
-    node symbol = getNode(*SymbolTable, t.str);
-    if(symbol == NULL) {
-      symbol = (node)malloc(sizeof(struct LinkedList));
-      symbol->str = t.str;
-      symbol->type = TOKEN_ID;
-      *SymbolTable = insertNode(*SymbolTable, symbol);
-    }
+    /* node symbol = getNode(*SymbolTable, t.str); */
+    /* if(symbol == NULL) { */
+    /*   symbol = (node)malloc(sizeof(struct LinkedList)); */
+    /*   symbol->str = t.str; */
+    /*   symbol->type = TOKEN_ID; */
+    /*   *SymbolTable = insertNode(*SymbolTable, symbol); */
+    /* } */
 
+    /* int loc = 0; */
+    /* node p = *SymbolTable; */
+    /* while(p != NULL) { */
+    /*   if(strcmp(p->str, t.str) == 0) { */
+    /*     break; */
+    /*   } */
+    /*   p = p->next; */
+    /*   loc++; */
+    /* } */
+
+    /* t.type = symbol->type; */
+    /* t.attr = loc; */
     int loc = 0;
-    node p = *SymbolTable;
-    while(p != NULL) {
-      if(strcmp(p->str, t.str) == 0) {
-        break;
-      }
-      p = p->next;
-      loc++;
-    }
-
-    t.type = symbol->type;
+    t.type = TOKEN_ID;
     t.attr = loc;
   }
   

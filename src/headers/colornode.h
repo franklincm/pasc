@@ -34,6 +34,6 @@ uintptr_t get_tail_address();
 uintptr_t get_node_addr(struct ColorNode *n);
 struct ColorNode *get_parent_green();
 void update_profile(int type);
-void set_return_type(int type);
+void set_return_type(int type, node *symbol_table);
 char *profile_type_to_str(int type);
 

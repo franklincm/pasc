@@ -48,14 +48,13 @@ Token get_tok(struct state s) {
     t = get_token(s.source,
                   s.listing,
                   s.tokenfile,
-                  s.reserved_words,
-                  s.symbol_table);
+                  s.reserved_words);
     while(t.type == TOKEN_WS) {
       t = get_token(s.source,
                     s.listing,
                     s.tokenfile,
-                    s.reserved_words,
-                    s.symbol_table);
+                    s.reserved_words);
+
     }
     if (t.type == TOKEN_EOF) {
       EOP = 1;
@@ -71,7 +70,7 @@ Token get_tok(struct state s) {
 Token match(int token_type, Token t, struct state s) {
   if(t.type == TOKEN_EOF) {
     write_line_to_file("End of Parse\n", s.listing);
-    exit(0);
+    //exit(0);
     return t;
   }
   if(print) {
@@ -119,7 +118,7 @@ Token synchronize(Token t, struct state s, int *synch, int size, char *productio
 
   if(t.type == TOKEN_EOF) {
     write_line_to_file("End of Parse\n", s.listing);
-    exit(0);
+    //exit(0);
   }
   
   printf("SYNCH CALLED (%s): %s\n", production, t.str);
@@ -179,6 +178,16 @@ Token parse_program(Token t, struct state s) {
 
     if (t.type != LEXERR) {
       check_add_green(t);
+      node symbol = getNode(*s.symbol_table, t.str);
+      if (symbol == NULL) {
+        symbol = (node)malloc(sizeof(struct LinkedList));
+        symbol->str = t.str;
+        symbol->type = 0;
+        *s.symbol_table = insertNode(*s.symbol_table, symbol);
+      } else {
+        symbol->str = t.str;
+        symbol->type = 0;
+      }
     }
 
     t = match(TOKEN_ID, t, s);
@@ -287,7 +296,19 @@ Token parse_identifier_list(Token t, struct state s) {
   case TOKEN_ID:
     blue_lex = t.str;
     blue_type = PGPARAM;
+    
     check_add_blue(blue_lex, blue_type);
+    node symbol = getNode(*s.symbol_table, t.str);
+    if (symbol == NULL) {
+      symbol = (node)malloc(sizeof(struct LinkedList));
+      symbol->str = blue_lex;
+      symbol->type = blue_type;
+      *s.symbol_table = insertNode(*s.symbol_table, symbol);
+    } else {
+      symbol->str = blue_lex;
+      symbol->type = blue_type;      
+    }
+    
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
@@ -314,9 +335,21 @@ Token parse_identifier_list_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
+
     blue_lex = t.str;
     blue_type = PGPARAM;
     check_add_blue(blue_lex, blue_type);
+    node symbol = getNode(*s.symbol_table, t.str);
+    if (symbol == NULL) {
+      symbol = (node)malloc(sizeof(struct LinkedList));
+      symbol->str = blue_lex;
+      symbol->type = blue_type;
+      *s.symbol_table = insertNode(*s.symbol_table, symbol);
+    } else {
+      symbol->str = blue_lex;
+      symbol->type = blue_type;      
+    }
+
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
@@ -352,6 +385,16 @@ Token parse_declarations(Token t, struct state s) {
     t = parse_type(t, s);
 
     check_add_blue(blue_lex, blue_type);
+    node symbol = getNode(*s.symbol_table, t.str);
+    if (symbol == NULL) {
+      symbol = (node)malloc(sizeof(struct LinkedList));
+      symbol->str = blue_lex;
+      symbol->type = blue_type;
+      *s.symbol_table = insertNode(*s.symbol_table, symbol);
+    } else {
+      symbol->str = blue_lex;
+      symbol->type = blue_type;      
+    }
     
     level--;
     
@@ -388,6 +431,16 @@ Token parse_declarations_tail(Token t, struct state s) {
     t = parse_type(t, s);
     
     check_add_blue(blue_lex, blue_type);
+    node symbol = getNode(*s.symbol_table, t.str);
+    if (symbol == NULL) {
+      symbol = (node)malloc(sizeof(struct LinkedList));
+      symbol->str = blue_lex;
+      symbol->type = blue_type;
+      *s.symbol_table = insertNode(*s.symbol_table, symbol);
+    } else {
+      symbol->str = blue_lex;
+      symbol->type = blue_type;      
+    }
     
     level--;
     
@@ -648,6 +701,16 @@ Token parse_subprogram_head(Token t, struct state s) {
     
     if (t.type != LEXERR) {
       check_add_green(t);
+      node symbol = getNode(*s.symbol_table, t.str);
+      if (symbol == NULL) {
+        symbol = (node)malloc(sizeof(struct LinkedList));
+        symbol->str = t.str;
+        symbol->type = 0;
+        *s.symbol_table = insertNode(*s.symbol_table, symbol);
+      } else {
+        symbol->str = t.str;
+        symbol->type = 0;      
+      }
     }
     
     t = match(TOKEN_ID, t, s);
@@ -683,8 +746,9 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     t = match(TOKEN_COLON, t, s);
     t = parse_standard_type(t, s);
     level--;
-    
-    set_return_type(blue_type);
+
+    // blue_type hold the result of standard_type
+    set_return_type(blue_type, s.symbol_table);
     
     print_level("*RETURN* to subprogram_head_tail\n");
     t = match(TOKEN_SEMICOLON, t, s);
@@ -698,7 +762,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     t = parse_standard_type(t, s);
     level--;
 
-    set_return_type(blue_type);
+    set_return_type(blue_type, s.symbol_table);
     
     print_level("*RETURN* to subprogram_head_tail\n");
     t = match(TOKEN_SEMICOLON, t, s);
@@ -753,6 +817,16 @@ Token parse_parameter_list(Token t, struct state s) {
     t = parse_type(t, s);
     
     check_add_blue(blue_lex, blue_type + 4);
+    node symbol = getNode(*s.symbol_table, t.str);
+    if (symbol == NULL) {
+      symbol = (node)malloc(sizeof(struct LinkedList));
+      symbol->str = blue_lex;
+      symbol->type = blue_type;
+      *s.symbol_table = insertNode(*s.symbol_table, symbol);
+    } else {
+      symbol->str = blue_lex;
+      symbol->type = blue_type;      
+    }
     
     level--;
     
@@ -788,6 +862,16 @@ Token parse_parameter_list_tail(Token t, struct state s) {
     t = parse_type(t, s);
     
     check_add_blue(blue_lex, blue_type + 4);
+    node symbol = getNode(*s.symbol_table, t.str);
+    if (symbol == NULL) {
+      symbol = (node)malloc(sizeof(struct LinkedList));
+      symbol->str = blue_lex;
+      symbol->type = blue_type;
+      *s.symbol_table = insertNode(*s.symbol_table, symbol);
+    } else {
+      symbol->str = blue_lex;
+      symbol->type = blue_type;      
+    }
 
     level--;
     

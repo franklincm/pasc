@@ -1,3 +1,4 @@
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -242,18 +243,21 @@ void update_profile(int type) {
   return;
 }
 
-void set_return_type(int type) {
+void set_return_type(int type, node *symbol_table) {
+  // update green node profile
   struct ColorNode *tmp = get_parent_green();
   char buffer [3];
   sprintf(buffer, ":%d", type);
-
   char *old_profile = tmp->profile;
   tmp->profile = malloc((strlen(tmp->profile) + 3) * sizeof(char));
   strcat(tmp->profile, old_profile);
   strcat(tmp->profile, buffer);
 
+  // update parent type in symbol table
+  node symbol = getNode(*symbol_table, tmp->lex);
+  symbol->type = type;
+
   printf("UPDATE RETURN TYPE: %s -> %s\n", tmp->lex, tmp->profile);
-  
 }
 
 char *profile_type_to_str(int type) {

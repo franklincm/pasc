@@ -23,22 +23,6 @@ node insertNode(node head, node n) {
   return head;
 }
 
-node addNode(node head, char *str) {
-  node tmp, p;
-  tmp = createNode();
-  tmp->str = str;
-  if(head == NULL) {
-    head = tmp;
-  } else {
-    p = head;
-    while(p->next != NULL) {
-      p = p->next;
-    }
-    p->next = tmp;
-  }
-  return head;
-}
-
 node getNode(node head, char *str) {
   while(head != NULL) {
     if(strcmp(head->str, str) == 0) {

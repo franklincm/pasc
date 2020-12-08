@@ -85,10 +85,10 @@ typedef struct Token{
   int attr;
 } Token;
 
-Token get_token(FILE *input, FILE *listing, FILE *tokenfile, node ReservedWords, node *SymbolTable);
-Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable);
-Token nfa(char *f, node ReservedWords, node *SymbolTable);
-Token dfa_idres(char *f, node ReservedWords, node *SymbolTable);
+Token get_token(FILE *input, FILE *listing, FILE *tokenfile, node ReservedWords);
+Token get_token_from_line(char *line, node ReservedWords);
+Token nfa(char *f, node ReservedWords);
+Token dfa_idres(char *f, node ReservedWords);
 Token dfa_whitespace(char *f);
 Token dfa_int(char *f);
 Token dfa_relops(char *f);
