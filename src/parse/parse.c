@@ -27,6 +27,10 @@ static int EOP = 0;
 char *blue_lex;
 int blue_type;
 
+/* TODO: check for LEXERR before adding blue/green nodes */
+/* TODO: check for mixed mode expressions */
+/* TODO: ^L-Attribute Definition */
+
 void print_level(char * msg) {
 
   if(print) {
@@ -680,14 +684,21 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     t = parse_standard_type(t, s);
     level--;
     
+    set_return_type(blue_type);
+    
     print_level("*RETURN* to subprogram_head_tail\n");
     t = match(TOKEN_SEMICOLON, t, s);
     break;
 
   case TOKEN_COLON:
     t = match(TOKEN_COLON, t, s);
+
+    /* TODO: update return type */
+    
     t = parse_standard_type(t, s);
     level--;
+
+    set_return_type(blue_type);
     
     print_level("*RETURN* to subprogram_head_tail\n");
     t = match(TOKEN_SEMICOLON, t, s);

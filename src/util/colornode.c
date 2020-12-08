@@ -18,13 +18,13 @@ void push_eye(struct ColorNode *greenNode) {
 
   if (eye_stack == NULL){
     eye_stack = node;
-    printf("push 0x%" PRIXPTR ": %s\n", node->addr, greenNode->lex);
+    //printf("push 0x%" PRIXPTR ": %s\n", node->addr, greenNode->lex);
     return;
   }
 
   node->next = eye_stack;
   eye_stack = node;
-  printf("push 0x%" PRIXPTR ": %s\n", node->addr, greenNode->lex);
+  //printf("push 0x%" PRIXPTR ": %s\n", node->addr, greenNode->lex);
 }
 
 void pop_eye() {
@@ -45,7 +45,7 @@ void pop_eye() {
 
   if (eye_stack) {
     while(get_tail_address() != eye_stack->addr) {
-      printf("pruning...\n");
+      //printf("pruning...\n");
       prune_list();
     }
   }
@@ -56,8 +56,6 @@ void pop_eye() {
     test = test->down;
   }
   printf("pruned to: %s\n", test->lex);
-  printf("%s profile: %s\n", test->lex, test->profile);
-  
 }
 
 void prune_list() {
@@ -159,9 +157,9 @@ int search_blue(char *lex) {
 
   uintptr_t parent_green_addr = eye_stack->addr;
   while(get_node_addr(tmp) != parent_green_addr) {
-    printf("searching for %s...\n", tmp->lex);
+    //printf("searching for %s...\n", tmp->lex);
     if (tmp->lex == lex) {
-      printf("search_blue: found: %s\n", tmp->lex);
+      //printf("search_blue: found: %s\n", tmp->lex);
       return 1;
     }
     if (tmp->up) {
@@ -184,7 +182,7 @@ void check_add_green(Token t) {
     insert_node('G', "SEMERR", type, profile);
     printf("PUSH SEMERR Green : %s\n", str);    
   }
-
+  printf("check_add_green: %s\n", str);
   insert_node('G', str, type, profile);
   //printf("PUSH Green : %s\n", str);
 }
@@ -196,15 +194,7 @@ void check_add_blue(char *lex, int type) {
   }
   printf("check_add_blue: %s\n", lex);
   if(type >= 5 && type <= 9) {
-    printf("PARAM TYPE\n");
-    struct ColorNode *tmp = get_parent_green();
-    char buffer [3];
-    sprintf(buffer, "%d", type);
-    char *old_profile = tmp->profile;
-    tmp->profile = malloc((strlen(tmp->profile) + 2) * sizeof(char));
-    strcat(tmp->profile, old_profile);
-    strcat(tmp->profile, buffer);
-    printf("UPDATE PROFILE: %s -> %s\n", tmp->lex, tmp->profile);
+    update_profile(type);
   }
   insert_node('B', lex, type, "");
   return;
@@ -238,8 +228,32 @@ struct ColorNode *get_parent_green() {
   return tmp;
 }
 
-void update_profile() {
+void update_profile(int type) {
+  struct ColorNode *tmp = get_parent_green();
+  char buffer [2];
+  sprintf(buffer, "%d", type);
+  char *old_profile = tmp->profile;
+  tmp->profile = malloc((strlen(tmp->profile) + 2) * sizeof(char));
+  strcat(tmp->profile, old_profile);
+  strcat(tmp->profile, buffer);
+
+  printf("UPDATE PROFILE: %s -> %s\n", tmp->lex, tmp->profile);
+  
   return;
+}
+
+void set_return_type(int type) {
+  struct ColorNode *tmp = get_parent_green();
+  char buffer [3];
+  sprintf(buffer, ":%d", type);
+
+  char *old_profile = tmp->profile;
+  tmp->profile = malloc((strlen(tmp->profile) + 3) * sizeof(char));
+  strcat(tmp->profile, old_profile);
+  strcat(tmp->profile, buffer);
+
+  printf("UPDATE RETURN TYPE: %s -> %s\n", tmp->lex, tmp->profile);
+  
 }
 
 char *profile_type_to_str(int type) {
