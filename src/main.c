@@ -49,10 +49,10 @@ int main(int argc, char **argv) {
 
   // parse source file
   parse(source, listing, tokenfile, reserved_words, &symbol_table);
-
+  
   // write symbol table
   write_symbol_table(&symbol_table);
-
+  
   fclose(source);
   fclose(listing);
   fclose(tokenfile);
@@ -61,12 +61,12 @@ int main(int argc, char **argv) {
 
 void write_symbol_table(node *SymbolTable) {
   FILE *symbol_table_file = fopen("symboltable", "w");
-  fprintf(symbol_table_file, "%-10s%s", "location", "id");
+  fprintf(symbol_table_file, "%-10s%s%13s", "location", "id", "type");
   fprintf(symbol_table_file, "\n");
   node p = *SymbolTable;
   int loc = 0;
   while (p != NULL) {
-    fprintf(symbol_table_file, "%3s%-5d%2s%s\n", "", loc, "", p->str);
+    fprintf(symbol_table_file, "%3s%-5d%2s%-10s%3s%d\n", "", p->attr, "", p->str, "", p->type);
     p = p->next;
     loc++;
   }
