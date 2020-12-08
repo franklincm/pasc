@@ -467,12 +467,12 @@ Token parse_standard_type(Token t, struct state s) {
   print_level("parse standard_type\n");
   switch(t.type) {
   case TOKEN_INTEGER:
-    blue_type = p_INT;
+    blue_type = t_INT;
     t = match(TOKEN_INTEGER, t, s);
     break;
 
   case TOKEN_RREAL:
-    blue_type = p_REAL;
+    blue_type = t_REAL;
     t = match(TOKEN_RREAL, t, s);
     break;
   default:

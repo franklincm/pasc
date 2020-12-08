@@ -54,15 +54,15 @@
 #define TOKEN_AND 119
 
 #define PGPARAM 9
-#define p_NULL 0
-#define p_INT 1
-#define p_REAL 2
-#define p_AINT 3
-#define p_AREAL 4
-#define p_PPINT 5
-#define p_PPREAL 6
-#define p_PPAINT 7
-#define p_PPAREAL 8
+#define t_NULL 0
+#define t_INT 1
+#define t_REAL 2
+#define t_AINT 3
+#define t_AREAL 4
+#define t_PPINT 5
+#define t_PPREAL 6
+#define t_PPAINT 7
+#define t_PPAREAL 8
 
 
 #define TOKEN_UNRECOGNIZED_SYMBOL 999
