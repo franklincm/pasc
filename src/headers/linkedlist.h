@@ -1,5 +1,6 @@
 typedef struct LinkedList{
   char *str;
+  char *profile;
   int type;
   int attr;
   struct LinkedList *next;

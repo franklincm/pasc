@@ -61,12 +61,12 @@ int main(int argc, char **argv) {
 
 void write_symbol_table(node *SymbolTable) {
   FILE *symbol_table_file = fopen("symboltable", "w");
-  fprintf(symbol_table_file, "%-10s%s%13s", "location", "id", "type");
+  fprintf(symbol_table_file, "%-10s%s%18s%13s", "location", "id", "profile", "type");
   fprintf(symbol_table_file, "\n");
   node p = *SymbolTable;
   int loc = 0;
   while (p != NULL) {
-    fprintf(symbol_table_file, "%3s%-5d%2s%-10s%3s%d\n", "", p->attr, "", p->str, "", p->type);
+    fprintf(symbol_table_file, "%3s%-5d%2s%-10s%3s%6s%3s%10d\n", "", p->attr, "", p->str, "", p->profile, "", p->type);
     p = p->next;
     loc++;
   }

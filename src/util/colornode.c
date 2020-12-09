@@ -38,9 +38,7 @@ void pop_eye() {
   
   if (eye_stack->next) {
     eye_stack = eye_stack->next;
-    printf("pop: 0x%" PRIXPTR "\n", tmp->addr);
   } else {
-    printf("pop: 0x%" PRIXPTR "\n", tmp->addr);
     eye_stack = NULL;
   }
 
@@ -56,7 +54,6 @@ void pop_eye() {
   while(test->down) {
     test = test->down;
   }
-  printf("pruned to: %s\n", test->lex);
 }
 
 void prune_list() {
@@ -183,9 +180,7 @@ void check_add_green(Token t) {
     insert_node('G', "SEMERR", type, profile);
     printf("PUSH SEMERR Green : %s\n", str);    
   }
-  printf("check_add_green: %s\n", str);
   insert_node('G', str, type, profile);
-  //printf("PUSH Green : %s\n", str);
 }
 
 void check_add_blue(char *lex, int type) {
@@ -193,7 +188,6 @@ void check_add_blue(char *lex, int type) {
     printf("SEMERR: (blue): `%s`\n", lex);
     return;
   }
-  printf("check_add_blue: %s\n", lex);
   if(type >= 5 && type <= 9) {
     update_profile(type);
   }
@@ -237,27 +231,22 @@ void update_profile(int type) {
   tmp->profile = malloc((strlen(tmp->profile) + 2) * sizeof(char));
   strcat(tmp->profile, old_profile);
   strcat(tmp->profile, buffer);
-
-  printf("UPDATE PROFILE: %s -> %s\n", tmp->lex, tmp->profile);
-  
   return;
 }
 
 void set_return_type(int type, node *symbol_table) {
   // update green node profile
   struct ColorNode *tmp = get_parent_green();
-  char buffer [3];
-  sprintf(buffer, ":%d", type);
-  char *old_profile = tmp->profile;
-  tmp->profile = malloc((strlen(tmp->profile) + 3) * sizeof(char));
-  strcat(tmp->profile, old_profile);
-  strcat(tmp->profile, buffer);
+  /* char buffer [3]; */
+  /* sprintf(buffer, ":%d", type); */
+  /* char *old_profile = tmp->profile; */
+  /* tmp->profile = malloc((strlen(tmp->profile) + 3) * sizeof(char)); */
+  /* strcat(tmp->profile, old_profile); */
+  /* strcat(tmp->profile, buffer); */
 
   // update parent type in symbol table
   node symbol = getNode(*symbol_table, tmp->lex);
   symbol->type = type;
-
-  printf("UPDATE RETURN TYPE: %s -> %s\n", tmp->lex, tmp->profile);
 }
 
 char *profile_type_to_str(int type) {

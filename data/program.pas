@@ -10,11 +10,14 @@ function square(a: integer; b: real): real;
 begin
    square := a * a
 end;
-
+function add1(a : real): integer;
+begin
+   add1 := a + 1
+end;
 function addTwo(a : integer): integer;
 begin
    addTwo := a + 2
 end;
 begin
-   y := addTwo(square(4))
+   y := addTwo(add1(4))
 end.
