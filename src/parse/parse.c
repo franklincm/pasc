@@ -1325,7 +1325,7 @@ Token parse_expression_list(Token t, struct state s) {
     // copy resulting profile
     expression_list_profile = malloc(sizeof(char) * strlen(expression_list_tail_profile));
     sprintf(expression_list_profile, "%s", expression_list_tail_profile);
-    printf("expression_list profile: %s\n", expression_list_profile);
+
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list");
@@ -1982,10 +1982,6 @@ Token parse_factor_tail(Token t, struct state s) {
     
     struct Stack *stack = pop();
     node symbol = getNode(*s.symbol_table, stack->lex);
-
-    printf("call stack lex: %s, profile: %s\n", stack->lex, expression_list_profile);
-    printf("nominal symbol profile: %s\n", symbol->profile);
-
 
     if(!strcmp(expression_list_profile, symbol->profile)) {
       factor_tail_type = symbol->type;
