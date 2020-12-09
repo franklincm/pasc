@@ -19,5 +19,5 @@ begin
    addTwo := a + 2
 end;
 begin
-   y := addTwo(add1(4))
+   y := addTwo(add1(4.0))
 end.
