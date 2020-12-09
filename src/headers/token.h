@@ -63,7 +63,9 @@
 #define t_PPREAL 6
 #define t_PPAINT 7
 #define t_PPAREAL 8
-
+#define t_BOOL 10
+#define t_ERR 50
+#define t_SEMERR 51
 
 #define TOKEN_UNRECOGNIZED_SYMBOL 999
 

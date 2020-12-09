@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef _LINKEDLIST
+#define _LINKEDLIST
 #include "../headers/linkedlist.h"
+#endif
 
 node createNode() {
   node tmp;
@@ -31,4 +35,9 @@ node getNode(node head, char *str) {
     head = head->next;
   }
   return head;
+}
+
+int getType(node head, char *lex) {
+  node p = getNode(head, lex);
+  return p->type;
 }

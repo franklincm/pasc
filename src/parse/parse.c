@@ -21,11 +21,33 @@
 #include "../headers/colornode.h"
 #endif
 
+node *sym_table;
+
 static int level = 0;
 static int print = 0;
 static int EOP = 0;
 char *blue_lex;
 int blue_type;
+
+int id_type;
+int factor_in;
+int factor_type;
+int factor_tail_in;
+int factor_tail_type;
+int expression_list_type;
+int expression_in;
+int expression_type;
+int expression_tail_in;
+int expression_tail_type;
+int simple_expression_in;
+int simple_expression_type;
+int simple_expression_tail_in;
+int simple_expression_tail_type;
+
+int term_type;
+int term_tail_in;
+int term_tail_type;
+
 
 /* TODO: check for LEXERR before adding blue/green nodes */
 /* TODO: check for mixed mode expressions */
@@ -156,6 +178,8 @@ void parse(FILE *source,
            node reserved_words,
            node *symbol_table) {
 
+  sym_table = symbol_table;
+  
   struct state s = {source, listing, tokenfile, reserved_words, symbol_table};
   
   static Token t;
@@ -1344,12 +1368,16 @@ Token parse_expression(Token t, struct state s) {
   case TOKEN_ADDOP:
     t = parse_simple_expression(t, s);
     level--;
-    
     print_level("*RETURN* to expression\n");
+
+    expression_tail_in = simple_expression_type;
+    
     t = parse_expression_tail(t, s);
     level--;
-    
     print_level("*RETURN* to expression\n");
+
+    expression_type = expression_tail_type;
+    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression");
@@ -1384,14 +1412,22 @@ Token parse_expression_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_RELOP:
     t = match(TOKEN_RELOP, t, s);
+
+    simple_expression_in = expression_tail_in;
+    
     t = parse_simple_expression(t, s);
     level--;
-    
     print_level("*RETURN* to expression_tail\n");
+
+    /* TODO: check for SEMERR, remake table */
+    expression_tail_in = simple_expression_type;
+    
     t = parse_expression_tail(t, s);
     level--;
-    
     print_level("*RETURN* to expression_tail\n");
+
+    expression_tail_type = t_BOOL;
+    
     break;
   case TOKEN_SEMICOLON:
   case TOKEN_END:
@@ -1402,6 +1438,7 @@ Token parse_expression_tail(Token t, struct state s) {
   case TOKEN_RBRACKET:
   case TOKEN_COMMA:
   case TOKEN_RPAREN:
+    expression_tail_type = expression_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression tail");
@@ -1441,12 +1478,15 @@ Token parse_simple_expression(Token t, struct state s) {
   case TOKEN_NOT:
     t = parse_term(t, s);
     level--;
-    
     print_level("*RETURN* to simple_expression\n");
+
+    simple_expression_tail_in = term_type;
+    
     t = parse_simple_expression_tail(t, s);
     level--;
-    
     print_level("*RETURN* to simple_expression\n");
+
+    simple_expression_type = simple_expression_tail_type;
     break;
     
   case TOKEN_ADDOP:
@@ -1456,12 +1496,16 @@ Token parse_simple_expression(Token t, struct state s) {
     print_level("*RETURN* to simple_expression\n");
     t = parse_term(t, s);
     level--;
-    
     print_level("*RETURN* to simple_expression\n");
+
+    simple_expression_tail_in = term_type;
+
     t = parse_simple_expression_tail(t, s);
     level--;
-    
     print_level("*RETURN* to simple_expression\n");
+
+    simple_expression_type = simple_expression_tail_type;
+    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression");
@@ -1498,12 +1542,22 @@ Token parse_simple_expression_tail(Token t, struct state s) {
     t = match(TOKEN_ADDOP, t, s);
     t = parse_term(t, s);
     level--;
-    
     print_level("*RETURN* to simple_expression_tail\n");
+
+    if(simple_expression_tail_in == t_INT && term_type == t_INT) {
+      simple_expression_tail_in = t_INT;
+    } else if(simple_expression_tail_in == t_REAL && term_type == t_REAL) {
+      simple_expression_tail_in = t_REAL;
+    } else if(simple_expression_tail_in == t_ERR && term_type == t_ERR) {
+      simple_expression_tail_in = t_ERR;
+    } else {
+      simple_expression_tail_in = t_SEMERR;
+    }
+    
     t = parse_simple_expression_tail(t, s);
     level--;
-    
     print_level("*RETURN* to simple_expression_tail\n");
+    
     break;
   case TOKEN_RELOP:
   case TOKEN_SEMICOLON:
@@ -1515,6 +1569,7 @@ Token parse_simple_expression_tail(Token t, struct state s) {
   case TOKEN_RBRACKET:
   case TOKEN_COMMA:
   case TOKEN_RPAREN:
+    simple_expression_tail_type = simple_expression_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression tail");
@@ -1544,12 +1599,15 @@ Token parse_term(Token t, struct state s) {
   case TOKEN_NOT:
     t = parse_factor(t, s);
     level--;
-    
     print_level("*RETURN* to term\n");
+
+    term_tail_in = factor_type;
+    
     t = parse_term_tail(t, s);
     level--;
-    
     print_level("*RETURN* to term\n");
+
+    term_type = term_tail_type;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "term");
@@ -1573,10 +1631,30 @@ Token parse_term_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_MULOP:
     t = match(TOKEN_MULOP, t, s);
+
+    
+    factor_in = term_tail_in;
+    
     t = parse_factor(t, s);
     level--;
-    
     print_level("*RETURN* to term_tail\n");
+
+    if ((factor_type == factor_in) && (factor_in == t_INT))
+      factor_type = t_INT;
+    if ((factor_type == factor_in) && (factor_in == t_REAL))
+      factor_type = t_REAL;
+    if ((factor_type == factor_in) && (factor_in == t_BOOL))
+      factor_type = t_BOOL;
+    if ((factor_type != t_INT) && (factor_type != t_REAL) && factor_type != t_BOOL)
+      factor_type = t_SEMERR;
+    /* TODO: print SEMERR message */
+
+
+    if (factor_type != t_SEMERR)
+      term_tail_in = factor_type;
+    else
+      printf("term tail SEMERR message\n");
+    
     t = parse_term_tail(t, s);
     level--;
     
@@ -1652,8 +1730,22 @@ Token parse_factor(Token t, struct state s) {
   print_level("parse factor\n");
   switch(t.type) {
   case TOKEN_ID:
+
+    id_type = getType(*sym_table, t.str);
+    /* TODO: check for SEMERR */
+    
+    printf("parse_function.id_type: %d\n", id_type);
+    
     t = match(TOKEN_ID, t, s);
+
+
+    
+    factor_tail_in = id_type;
+    
     t = parse_factor_tail(t, s);
+
+    factor_type = factor_tail_type;
+    
     level--;
     
     print_level("*RETURN* to factor\n");
@@ -1661,15 +1753,23 @@ Token parse_factor(Token t, struct state s) {
     
   case TOKEN_INT:
     t = match(TOKEN_INT, t, s);
+    factor_type = t_INT;
     break;
     
   case TOKEN_REAL:
     t = match(TOKEN_REAL, t, s);
+    factor_type = t_REAL;
     break;
     
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
+    
+    expression_in = factor_in;
+    
     t = parse_expression(t, s);
+    
+    factor_type = expression_type;
+    
     level--;
     
     print_level("*RETURN* to factor\n");
@@ -1678,6 +1778,7 @@ Token parse_factor(Token t, struct state s) {
     
   case TOKEN_NOT:
     t = match(TOKEN_NOT, t, s);
+    factor_in = t_BOOL;
     t = parse_factor(t, s);
     level--;
     
@@ -1705,23 +1806,47 @@ Token parse_factor_tail(Token t, struct state s) {
   
   print_level("parse factor_tail\n");
   switch(t.type) {
+
+    // factor_tail -> [ expression ]
   case TOKEN_LBRACKET:
     t = match(TOKEN_LBRACKET, t, s);
+    
     t = parse_expression(t, s);
+
+    if (expression_type == t_INT) {
+      if (factor_tail_in == t_AINT) {
+        factor_tail_type = t_INT;
+      } else if (factor_tail_in == t_AREAL) {
+        factor_tail_type = t_REAL;
+      } else {
+        factor_tail_type = t_SEMERR;
+      }
+    } else if (expression_type == t_ERR && factor_tail_in == t_ERR) {
+      factor_tail_type = t_ERR;
+    } else {
+      factor_tail_type = t_SEMERR;
+    }
+    
     level--;
     
     print_level("*RETURN* to factor_tail\n");
     t = match(TOKEN_RBRACKET, t, s);
     break;
 
+    // factor_tail -> ( expression_list )
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
     t = parse_expression_list(t, s);
+
+    factor_tail_type = expression_list_type;
+    
     level--;
     
     print_level("*RETURN* to factor_tail\n");
     t = match(TOKEN_RPAREN, t, s);
     break;
+    
+    // factor_tail -> e
   case TOKEN_MULOP:
   case TOKEN_MOD:
   case TOKEN_DIV:
@@ -1737,6 +1862,7 @@ Token parse_factor_tail(Token t, struct state s) {
   case TOKEN_DO:
   case TOKEN_THEN:
   case TOKEN_RBRACKET:
+    factor_tail_type = factor_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "factor tail");
