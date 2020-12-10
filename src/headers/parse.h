@@ -12,6 +12,7 @@ struct state
   node *symbol_table;
 };
 
+void print_semerr(char *msg, FILE *listing);
 Token get_tok(struct state s);
 Token match(int token_type, Token t, struct state s);
 Token synchronize(Token t, struct state s, int *synch, int size, char *production);

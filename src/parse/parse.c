@@ -74,9 +74,18 @@ int term_type;
 int term_tail_in;
 int term_tail_type;
 
+char buffer [200];
 /* TODO: ^L-Attribute Definition */
 
-void print_level(char * msg) {
+void print_semerr(char *msg, FILE *listing) {
+  char *sbuffer;
+  char *prefix = "SEMERR: ";
+  sbuffer = malloc(sizeof(char) * (strlen(msg) + strlen(prefix)));
+  sprintf(sbuffer, "%s%s", prefix, msg);
+  write_line_to_file(sbuffer, listing);
+}
+
+void print_level(char *msg) {
 
   if(print) {
     for (int i = 0; i < level; i++) {
@@ -1162,9 +1171,13 @@ Token parse_statement(Token t, struct state s) {
       // check with expression type
       if(symbol->type == expression_type) {}
       else {
-        printf("SEMERR: wrong type assignment, expecting: '%s', got: '%s'\n",
+        
+        sprintf(buffer, "SEMERR: wrong type assignment, expecting: '%s', got: '%s'\n",
                profile_type_to_str(symbol->type),
                profile_type_to_str(expression_type));
+
+        print_semerr(buffer, s.listing);
+        
       }
     }
     
@@ -1189,7 +1202,8 @@ Token parse_statement(Token t, struct state s) {
     print_level("*RETURN* to statement\n");
 
     if(expression_type != t_BOOL) {
-      printf("SEMERR: 'while' expression must be a condition\n");
+      sprintf(buffer, "SEMERR: 'while' expression must be a condition\n");
+      print_semerr(buffer, s.listing);
     }
     
     statement_compound = 1;
@@ -1228,7 +1242,8 @@ Token parse_ifexp(Token t, struct state s) {
     print_level("*RETURN* to ifexp\n");
 
     if (expression_type != t_BOOL) {
-      printf("SEMERR: Invalid Condition, must evaluate to type 'BOOL'\n");
+      sprintf(buffer, "SEMERR: Invalid Condition, must evaluate to type 'BOOL'\n");
+      print_semerr(buffer, s.listing);
     }
     
     t = match(TOKEN_THEN, t, s);
@@ -1331,7 +1346,8 @@ Token parse_variable_tail(Token t, struct state s) {
       variable_tail_type = t_SEMERR;
     } else if(expression_type != t_INT) {
       variable_tail_type = t_SEMERR;
-      printf("SEMERR: array expression must be of type 'int'\n");
+      sprintf(buffer, "SEMERR: array expression must be of type 'int'\n");
+      print_semerr(buffer, s.listing);
     } else if (expression_type == t_INT && variable_tail_in == t_AINT) {
       variable_tail_type = t_INT;
     } else if (expression_type == t_INT && variable_tail_in == t_AREAL) {
@@ -1545,45 +1561,51 @@ Token parse_expression_tail(Token t, struct state s) {
       expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_INT && simple_expression_type != t_INT) {
 
-      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+      sprintf(buffer, "SEMERR: Illegal Comparison between types '%s' and '%s'\n",
              profile_type_to_str(expression_tail_in),
              profile_type_to_str(simple_expression_type));
+      print_semerr(buffer, s.listing);
       
       expression_tail_in = t_SEMERR;      
 
     } else if (expression_tail_in != t_INT && simple_expression_type == t_INT) {
       
-      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+      sprintf(buffer, "SEMERR: Illegal Comparison between types '%s' and '%s'\n",
              profile_type_to_str(expression_tail_in),
              profile_type_to_str(simple_expression_type));
+      print_semerr(buffer, s.listing);
       expression_tail_in = t_SEMERR;
 
     } else if (expression_tail_in == t_REAL && simple_expression_type != t_REAL) {
 
-      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+      sprintf(buffer, "SEMERR: Illegal Comparison between types '%s' and '%s'\n",
              profile_type_to_str(expression_tail_in),
              profile_type_to_str(simple_expression_type));
+      print_semerr(buffer, s.listing);
       expression_tail_in = t_SEMERR;
       
     } else if (expression_tail_in != t_REAL && simple_expression_type == t_REAL) {
       
-      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+      sprintf(buffer, "SEMERR: Illegal Comparison between types '%s' and '%s'\n",
              profile_type_to_str(expression_tail_in),
              profile_type_to_str(simple_expression_type));
+      print_semerr(buffer, s.listing);
       expression_tail_in = t_SEMERR;
 
     } else if (expression_tail_in == t_BOOL && simple_expression_type != t_BOOL) {
       
-      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+      sprintf(buffer, "SEMERR: Illegal Comparison between types '%s' and '%s'\n",
              profile_type_to_str(expression_tail_in),
              profile_type_to_str(simple_expression_type));
+      print_semerr(buffer, s.listing);
       expression_tail_in = t_SEMERR;
 
     } else if (expression_tail_in != t_BOOL && simple_expression_type == t_BOOL) {
 
-      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+      sprintf(buffer, "SEMERR: Illegal Comparison between types '%s' and '%s'\n",
              profile_type_to_str(expression_tail_in),
              profile_type_to_str(simple_expression_type));
+      print_semerr(buffer, s.listing);
       expression_tail_in = t_SEMERR;
 
     } else if (expression_tail_in == t_SEMERR || simple_expression_type == t_SEMERR) {
@@ -1727,16 +1749,20 @@ Token parse_simple_expression_tail(Token t, struct state s) {
     } else if (simple_expression_tail_in == t_REAL && term_type == t_PPREAL) {
       simple_expression_tail_in = t_REAL;
     } else if (simple_expression_tail_in == t_INT && term_type == t_REAL) {
-      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
+      sprintf(buffer, "SEMERR: Mixed-mode expressions are not allowed.\n");
+      print_semerr(buffer, s.listing);
       simple_expression_tail_in = t_SEMERR;
     } else if (simple_expression_tail_in == t_INT && term_type == t_PPREAL) {
-      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
+      sprintf(buffer, "SEMERR: Mixed-mode expressions are not allowed.\n");
+      print_semerr(buffer, s.listing);
       simple_expression_tail_in = t_SEMERR;
     } else if (simple_expression_tail_in == t_REAL && term_type == t_INT) {
-      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
+      sprintf(buffer, "SEMERR: Mixed-mode expressions are not allowed.\n");
+      print_semerr(buffer, s.listing);
       simple_expression_tail_in = t_SEMERR;
     } else if (simple_expression_tail_in == t_REAL && term_type == t_PPINT) {
-      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
+      sprintf(buffer, "SEMERR: Mixed-mode expressions are not allowed.\n");
+      print_semerr(buffer, s.listing);
       simple_expression_tail_in = t_SEMERR;
     }
 
@@ -1832,9 +1858,8 @@ Token parse_term_tail(Token t, struct state s) {
       term_tail_in = t_SEMERR;
     } else {
       term_tail_in = t_SEMERR;
-      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
-      printf("\t'%s' operands must be of same type (int or real)\n",
-             mulop_str);
+      sprintf(buffer, "SEMERR: Mixed-mode expressions are not allowed.\n\t'%s' operands must be of same type (int or real)\n", mulop_str);
+      print_semerr(buffer, s.listing);
     }
     
     //term_tail_in = factor_type;
@@ -1857,7 +1882,8 @@ Token parse_term_tail(Token t, struct state s) {
       term_tail_in = t_SEMERR;
     } else {
       term_tail_in = t_SEMERR;
-      printf("SEMERR: 'mod' operands must both be of type 'int'\n");
+      sprintf(buffer, "SEMERR: 'mod' operands must both be of type 'int'\n");
+      print_semerr(buffer, s.listing);
     }
 
     t = parse_term_tail(t, s);
@@ -1877,7 +1903,8 @@ Token parse_term_tail(Token t, struct state s) {
       term_tail_in = t_SEMERR;
     } else {
       term_tail_in = t_SEMERR;
-      printf("SEMERR: 'div' operands must both be of type 'int'\n");
+      sprintf(buffer, "SEMERR: 'div' operands must both be of type 'int'\n");
+      print_semerr(buffer, s.listing);
     }
     
     t = parse_term_tail(t, s);
@@ -1897,7 +1924,8 @@ Token parse_term_tail(Token t, struct state s) {
       term_tail_in = t_SEMERR;
     } else {
       term_tail_in = t_SEMERR;
-      printf("SEMERR: 'and' operator requires boolean operands\n");
+      sprintf(buffer, "SEMERR: 'and' operator requires boolean operands\n");
+      print_semerr(buffer, s.listing);
     }
     
     t = parse_term_tail(t, s);
@@ -1917,7 +1945,8 @@ Token parse_term_tail(Token t, struct state s) {
       term_tail_in = t_SEMERR;
     } else {
       term_tail_in = t_SEMERR;
-      printf("SEMERR: 'or' operator requires boolean operands\n");
+      sprintf(buffer, "SEMERR: 'or' operator requires boolean operands\n");
+      print_semerr(buffer, s.listing);
     }
     
     t = parse_term_tail(t, s);
@@ -1969,7 +1998,8 @@ Token parse_factor(Token t, struct state s) {
       //printf("blueNode: %s.%s.type = %s\n", parent, id_str, profile_type_to_str(blueNode->type));
       id_type = blueNode->type;
     } else {
-      printf("SEMERR: '%s' not declared in this scope.\n", id_str);
+      sprintf(buffer, "SEMERR: '%s' not declared in this scope.\n", id_str);
+      print_semerr(buffer, s.listing);
       id_type = -1;
       //printf("blueNode: %s.%s not found\n", parent, id_str);
     }
@@ -2076,10 +2106,12 @@ Token parse_factor_tail(Token t, struct state s) {
       factor_tail_type = t_SEMERR;
     } else if (expression_type != t_INT) {
       factor_tail_type = t_SEMERR;
-      printf("SEMERR: array expressions must be integers\n");
+      sprintf(buffer, "SEMERR: array expressions must be integers\n");
+      print_semerr(buffer, s.listing);
     } else if (factor_tail_in != t_AINT && factor_tail_in != t_AREAL) {
       factor_tail_type = t_SEMERR;
-      printf("SEMERR: not an array type\n");
+      sprintf(buffer, "SEMERR: not an array type\n");
+      print_semerr(buffer, s.listing);
     }
     
     break;
@@ -2102,7 +2134,8 @@ Token parse_factor_tail(Token t, struct state s) {
       t_type = symbol->type;
       tmp_profile = symbol->profile;
     } else {
-      printf("SEMERR: Undefined call to '%s'\n", stack->lex);
+      sprintf(buffer, "SEMERR: Undefined call to '%s'\n", stack->lex);
+      print_semerr(buffer, s.listing);
       //printf("green node %s NOT FOUND\n", stack->lex);
       tmp_profile = "";
       t_type = t_SEMERR;
@@ -2118,7 +2151,8 @@ Token parse_factor_tail(Token t, struct state s) {
 
     else {
       factor_tail_type = t_SEMERR;
-      printf("SEMERR: parameter mismatch in call to '%s'\n", stack->lex);
+      sprintf(buffer, "SEMERR: parameter mismatch in call to '%s'\n", stack->lex);
+      print_semerr(buffer, s.listing);
     }
     
     t = match(TOKEN_RPAREN, t, s);
