@@ -159,9 +159,7 @@ int search_blue(char *lex) {
 
   uintptr_t parent_green_addr = eye_stack->addr;
   while(get_node_addr(tmp) != parent_green_addr) {
-    //printf("searching for %s...\n", tmp->lex);
-    if (tmp->lex == lex) {
-      //printf("search_blue: found: %s\n", tmp->lex);
+    if (!strcmp(tmp->lex, lex)) {
       return 1;
     }
     if (tmp->up) {
@@ -172,6 +170,34 @@ int search_blue(char *lex) {
   }
   
   return 0;
+}
+
+struct ColorNode *scope_search_blue(char *lex) {
+  struct ColorNode *tmp;
+
+  if (!dllist) {
+    return NULL;
+  }
+
+  tmp = dllist;
+
+  while(tmp->down) {
+    tmp = tmp->down;
+  }
+
+  uintptr_t parent_green_addr = eye_stack->addr;
+  while(get_node_addr(tmp) != parent_green_addr) {
+    if (!strcmp(tmp->lex, lex)) {
+      return tmp;
+    }
+    if (tmp->up) {
+      tmp = tmp->up;      
+    } else {
+      break;
+    }
+  }
+  
+  return NULL;
 }
 
 void check_add_green(Token t) {

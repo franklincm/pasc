@@ -29,6 +29,7 @@ void prune_list();
 void insert_node(char color, char *lex, int type, char *profile);
 int search_green(char *lex);
 int search_blue(char *lex);
+struct ColorNode *scope_search_blue(char *lex);
 void check_add_green(Token t);
 void check_add_blue(char *lex, int type);
 uintptr_t get_tail_address();

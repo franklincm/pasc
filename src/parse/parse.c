@@ -169,13 +169,13 @@ Token synchronize(Token t, struct state s, int *synch, int size, char *productio
     //exit(0);
   }
   
-  printf("SYNCH CALLED (%s): %s\n", production, t.str);
+  //printf("SYNCH CALLED (%s): %s\n", production, t.str);
 
   for(int token = 0; token < size; token++) {
     if (t.type == synch[token]) {
-      sprintf(buffer, "skipping...\n\n");
+      //sprintf(buffer, "skipping...\n\n");
       //write_line_to_file(buffer, s.listing);
-      printf("SYNCH FOUND: %s\n\n", t.str);
+      //printf("SYNCH FOUND: %s\n\n", t.str);
       return t;
     }
   }
@@ -1523,6 +1523,14 @@ Token parse_expression_tail(Token t, struct state s) {
 
     if (expression_tail_in == t_INT && simple_expression_type == t_INT) {
       expression_tail_in = t_BOOL;
+    } else if (expression_tail_in == t_INT && simple_expression_type == t_PPINT) {
+      expression_tail_in = t_BOOL;
+    } else if (expression_tail_in == t_PPINT && simple_expression_type == t_INT) {
+      expression_tail_in = t_BOOL;
+    } else if (expression_tail_in == t_REAL && simple_expression_type == t_PPREAL) {
+      expression_tail_in = t_BOOL;
+    } else if (expression_tail_in == t_PPREAL && simple_expression_type == t_REAL) {
+      expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_REAL && simple_expression_type == t_REAL) {
       expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_BOOL && simple_expression_type == t_BOOL) {
@@ -1696,29 +1704,58 @@ Token parse_simple_expression_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to simple_expression_tail\n");
 
-    /* TODO: SYMERR table */
-    if(simple_expression_tail_in == t_INT && term_type == t_INT) {
+    if(simple_expression_tail_in == t_SEMERR || term_type == t_SEMERR) {
+      simple_expression_tail_in = t_SEMERR;
+    } else if (simple_expression_tail_in == t_INT && term_type == t_INT) {
+      simple_expression_tail_in = t_INT;
+    } else if (simple_expression_tail_in == t_PPINT && term_type == t_INT) {
+      simple_expression_tail_in = t_INT;
+    } else if (simple_expression_tail_in == t_INT && term_type == t_PPINT) {
       simple_expression_tail_in = t_INT;
     } else if (simple_expression_tail_in == t_REAL && term_type == t_REAL) {
       simple_expression_tail_in = t_REAL;
-    } else if ((simple_expression_tail_in == t_INT && term_type != t_INT)
-               ||
-               (simple_expression_tail_in == t_REAL && term_type != t_REAL)
-               ||
-               (simple_expression_tail_in != t_INT && term_type == t_INT)
-               ||
-               (simple_expression_tail_in != t_REAL && term_type == t_REAL))
-      {
-        simple_expression_tail_in = t_SEMERR;
-        printf("SEMERR: Mixed-mode expressions are not allowed.\n");
-        printf("\t'%s' operands must be of same type (int or real)\n",
-               addop_str);
-      } else if (simple_expression_tail_in == t_SEMERR || term_type == t_SEMERR) {
+    } else if (simple_expression_tail_in == t_PPREAL && term_type == t_REAL) {
+      simple_expression_tail_in = t_REAL;
+    } else if (simple_expression_tail_in == t_REAL && term_type == t_PPREAL) {
+      simple_expression_tail_in = t_REAL;
+    } else if (simple_expression_tail_in == t_INT && term_type == t_REAL) {
+      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
       simple_expression_tail_in = t_SEMERR;
-    } else {
+    } else if (simple_expression_tail_in == t_INT && term_type == t_PPREAL) {
+      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
       simple_expression_tail_in = t_SEMERR;
-      printf("SEMERR: operands must be type 'real' or 'int'\n");
+    } else if (simple_expression_tail_in == t_REAL && term_type == t_INT) {
+      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
+      simple_expression_tail_in = t_SEMERR;
+    } else if (simple_expression_tail_in == t_REAL && term_type == t_PPINT) {
+      printf("SEMERR: Mixed-mode expressions are not allowed.\n");
+      simple_expression_tail_in = t_SEMERR;
     }
+
+    
+    /* TODO: SYMERR table */
+    /* if(simple_expression_tail_in == t_INT && term_type == t_INT) { */
+    /*   simple_expression_tail_in = t_INT; */
+    /* } else if (simple_expression_tail_in == t_REAL && term_type == t_REAL) { */
+    /*   simple_expression_tail_in = t_REAL; */
+    /* } else if ((simple_expression_tail_in == t_INT && term_type != t_INT) */
+    /*            || */
+    /*            (simple_expression_tail_in == t_REAL && term_type != t_REAL) */
+    /*            || */
+    /*            (simple_expression_tail_in != t_INT && term_type == t_INT) */
+    /*            || */
+    /*            (simple_expression_tail_in != t_REAL && term_type == t_REAL)) */
+    /*   { */
+    /*     simple_expression_tail_in = t_SEMERR; */
+    /*     printf("SEMERR: Mixed-mode expressions are not allowed.\n"); */
+    /*     printf("\t'%s' operands must be of same type (int or real)\n", */
+    /*            addop_str); */
+    /*   } else if (simple_expression_tail_in == t_SEMERR || term_type == t_SEMERR) { */
+    /*   simple_expression_tail_in = t_SEMERR; */
+    /* } else { */
+    /*   simple_expression_tail_in = t_SEMERR; */
+    /*   printf("SEMERR: operands must be type 'real' or 'int'\n"); */
+    /* } */
       
     
     t = parse_simple_expression_tail(t, s);
@@ -1949,6 +1986,29 @@ Token parse_factor(Token t, struct state s) {
     
     id_str = t.str;
     id_type = getType(*sym_table, id_str);
+    
+    //char *parent = get_parent_green()->lex;
+    struct ColorNode *blueNode = scope_search_blue(id_str);
+    if (blueNode != NULL) {
+      //printf("blueNode: %s.%s.type = %s\n", parent, id_str, profile_type_to_str(blueNode->type));
+      id_type = blueNode->type;
+    } else {
+      printf("SEMERR: '%s' not declared in this scope.\n", id_str);
+      id_type = -1;
+      //printf("blueNode: %s.%s not found\n", parent, id_str);
+    }
+
+    
+    /* if(search_blue(id_str)) { */
+    /*   printf("%s.%s found\n", test, id_str); */
+    /*   id_type = getType(*sym_table, id_str); */
+    /*   printf("%s.%s.type = %s\n", test, id_str, profile_type_to_str(id_type)); */
+    /* } else { */
+    /*   printf("%s.%s not found\n", test, id_str); */
+    /* } */
+
+
+    
 
     /* TODO: SEMERR table */
 
