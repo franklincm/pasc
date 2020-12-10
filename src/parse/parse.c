@@ -346,17 +346,19 @@ Token parse_identifier_list(Token t, struct state s) {
   case TOKEN_ID:
     blue_lex = t.str;
     blue_type = PGPARAM;
-    
-    check_add_blue(blue_lex, blue_type);
-    node symbol = getNode(*s.symbol_table, t.str);
-    if (symbol == NULL) {
-      symbol = (node)malloc(sizeof(struct LinkedList));
-      symbol->str = blue_lex;
-      symbol->type = blue_type;
-      *s.symbol_table = insertNode(*s.symbol_table, symbol);
-    } else {
-      symbol->str = blue_lex;
-      symbol->type = blue_type;      
+
+    if (t.type != LEXERR) {
+      check_add_blue(blue_lex, blue_type);
+      node symbol = getNode(*s.symbol_table, t.str);
+      if (symbol == NULL) {
+        symbol = (node)malloc(sizeof(struct LinkedList));
+        symbol->str = blue_lex;
+        symbol->type = blue_type;
+        *s.symbol_table = insertNode(*s.symbol_table, symbol);
+      } else {
+        symbol->str = blue_lex;
+        symbol->type = blue_type;      
+      }
     }
     
     t = match(TOKEN_ID, t, s);
@@ -388,18 +390,21 @@ Token parse_identifier_list_tail(Token t, struct state s) {
 
     blue_lex = t.str;
     blue_type = PGPARAM;
-    check_add_blue(blue_lex, blue_type);
-    node symbol = getNode(*s.symbol_table, t.str);
-    if (symbol == NULL) {
-      symbol = (node)malloc(sizeof(struct LinkedList));
-      symbol->str = blue_lex;
-      symbol->type = blue_type;
-      *s.symbol_table = insertNode(*s.symbol_table, symbol);
-    } else {
-      symbol->str = blue_lex;
-      symbol->type = blue_type;      
-    }
 
+    if (t.type != LEXERR) {
+      check_add_blue(blue_lex, blue_type);
+      node symbol = getNode(*s.symbol_table, t.str);
+      if (symbol == NULL) {
+        symbol = (node)malloc(sizeof(struct LinkedList));
+        symbol->str = blue_lex;
+        symbol->type = blue_type;
+        *s.symbol_table = insertNode(*s.symbol_table, symbol);
+      } else {
+        symbol->str = blue_lex;
+        symbol->type = blue_type;      
+      }
+    }
+    
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
@@ -434,16 +439,18 @@ Token parse_declarations(Token t, struct state s) {
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
 
-    check_add_blue(blue_lex, blue_type);
-    node symbol = getNode(*s.symbol_table, t.str);
-    if (symbol == NULL) {
-      symbol = (node)malloc(sizeof(struct LinkedList));
-      symbol->str = blue_lex;
-      symbol->type = blue_type;
-      *s.symbol_table = insertNode(*s.symbol_table, symbol);
-    } else {
-      symbol->str = blue_lex;
-      symbol->type = blue_type;      
+    if (t.type != LEXERR) {
+      check_add_blue(blue_lex, blue_type);
+      node symbol = getNode(*s.symbol_table, t.str);
+      if (symbol == NULL) {
+        symbol = (node)malloc(sizeof(struct LinkedList));
+        symbol->str = blue_lex;
+        symbol->type = blue_type;
+        *s.symbol_table = insertNode(*s.symbol_table, symbol);
+      } else {
+        symbol->str = blue_lex;
+        symbol->type = blue_type;      
+      }
     }
     
     level--;
@@ -479,17 +486,19 @@ Token parse_declarations_tail(Token t, struct state s) {
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
-    
-    check_add_blue(blue_lex, blue_type);
-    node symbol = getNode(*s.symbol_table, t.str);
-    if (symbol == NULL) {
-      symbol = (node)malloc(sizeof(struct LinkedList));
-      symbol->str = blue_lex;
-      symbol->type = blue_type;
-      *s.symbol_table = insertNode(*s.symbol_table, symbol);
-    } else {
-      symbol->str = blue_lex;
-      symbol->type = blue_type;      
+
+    if (t.type != LEXERR) {
+      check_add_blue(blue_lex, blue_type);
+      node symbol = getNode(*s.symbol_table, t.str);
+      if (symbol == NULL) {
+        symbol = (node)malloc(sizeof(struct LinkedList));
+        symbol->str = blue_lex;
+        symbol->type = blue_type;
+        *s.symbol_table = insertNode(*s.symbol_table, symbol);
+      } else {
+        symbol->str = blue_lex;
+        symbol->type = blue_type;      
+      }
     }
     
     level--;
@@ -876,17 +885,19 @@ Token parse_parameter_list(Token t, struct state s) {
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
-    
-    check_add_blue(blue_lex, blue_type + 4);
-    node symbol = getNode(*s.symbol_table, t.str);
-    if (symbol == NULL) {
-      symbol = (node)malloc(sizeof(struct LinkedList));
-      symbol->str = blue_lex;
-      symbol->type = blue_type;
-      *s.symbol_table = insertNode(*s.symbol_table, symbol);
-    } else {
-      symbol->str = blue_lex;
-      symbol->type = blue_type;      
+
+    if (t.type != LEXERR) {
+      check_add_blue(blue_lex, blue_type + 4);
+      node symbol = getNode(*s.symbol_table, t.str);
+      if (symbol == NULL) {
+        symbol = (node)malloc(sizeof(struct LinkedList));
+        symbol->str = blue_lex;
+        symbol->type = blue_type;
+        *s.symbol_table = insertNode(*s.symbol_table, symbol);
+      } else {
+        symbol->str = blue_lex;
+        symbol->type = blue_type;      
+      }
     }
     
     level--;
@@ -921,17 +932,19 @@ Token parse_parameter_list_tail(Token t, struct state s) {
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
-    
-    check_add_blue(blue_lex, blue_type + 4);
-    node symbol = getNode(*s.symbol_table, t.str);
-    if (symbol == NULL) {
-      symbol = (node)malloc(sizeof(struct LinkedList));
-      symbol->str = blue_lex;
-      symbol->type = blue_type;
-      *s.symbol_table = insertNode(*s.symbol_table, symbol);
-    } else {
-      symbol->str = blue_lex;
-      symbol->type = blue_type;      
+
+    if (t.type != LEXERR) {
+      check_add_blue(blue_lex, blue_type + 4);
+      node symbol = getNode(*s.symbol_table, t.str);
+      if (symbol == NULL) {
+        symbol = (node)malloc(sizeof(struct LinkedList));
+        symbol->str = blue_lex;
+        symbol->type = blue_type;
+        *s.symbol_table = insertNode(*s.symbol_table, symbol);
+      } else {
+        symbol->str = blue_lex;
+        symbol->type = blue_type;      
+      }
     }
 
     level--;
