@@ -1851,12 +1851,15 @@ Token parse_factor(Token t, struct state s) {
     id_str = t.str;
     id_type = getType(*sym_table, id_str);
 
-
     /* TODO: SEMERR table */
-    
+
     //printf("parse_function.id_type: %d\n", id_type);
     
     t = match(TOKEN_ID, t, s);
+
+    if(id_type < 0) {
+      id_type = t_SEMERR;
+    }
     
     factor_tail_in = id_type;
     //printf("id_str: %s\n", id_str);
@@ -1876,8 +1879,6 @@ Token parse_factor(Token t, struct state s) {
     } else {
       factor_type = factor_tail_type;      
     }
-
-
 
 
     /* TODO: check id.profile with returned expression_profile */
@@ -1981,10 +1982,30 @@ Token parse_factor_tail(Token t, struct state s) {
 
     
     struct Stack *stack = pop();
+    /* TODO: check green node stack/llist */
     node symbol = getNode(*s.symbol_table, stack->lex);
+    if(search_green(stack->lex)) {
+      printf("green node %s FOUND\n", stack->lex);
+    } else {
+      printf("green node %s NOT FOUND\n", stack->lex);
+    }
 
-    if(!strcmp(expression_list_profile, symbol->profile)) {
-      factor_tail_type = symbol->type;
+    char *tmp_profile;
+    int t_type;
+    if(symbol == NULL) {
+      tmp_profile = "";
+      t_type = t_SEMERR;
+      printf("SEMERR: Undefined call to '%s'\n", stack->lex);
+    } else {
+      t_type = symbol->type;
+      tmp_profile = symbol->profile;
+    }
+
+
+    
+
+    if(!strcmp(expression_list_profile, tmp_profile)) {
+      factor_tail_type = t_type;
     } else {
       factor_tail_type = t_SEMERR;
 

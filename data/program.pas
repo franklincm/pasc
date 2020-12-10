@@ -8,7 +8,7 @@ function square(a: integer; b: real): real;
        square := a * a
     end;
 begin
-   square := a * a
+   square := square2(3)
 end;
 function add1(a : real): integer;
 begin
@@ -19,5 +19,5 @@ begin
    addTwo := a + 2
 end;
 begin
-   y := addTwo(add1(4.0))
+   y := square2(add1(3))
 end.

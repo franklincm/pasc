@@ -16,6 +16,7 @@ static struct StackNode *eye_stack = NULL;
 void push_eye(struct ColorNode *greenNode) {
   struct StackNode *node = malloc(sizeof(struct StackNode));
   node->addr = (uintptr_t)greenNode;
+  node->lex = greenNode->lex;
 
   if (eye_stack == NULL){
     eye_stack = node;
@@ -36,11 +37,7 @@ void pop_eye() {
   struct StackNode *tmp;
   tmp = eye_stack;
   
-  if (eye_stack->next) {
-    eye_stack = eye_stack->next;
-  } else {
-    eye_stack = NULL;
-  }
+
 
   if (eye_stack) {
     while(get_tail_address() != eye_stack->addr) {
@@ -49,11 +46,17 @@ void pop_eye() {
     }
   }
 
-  struct ColorNode *test;
-  test = dllist;
-  while(test->down) {
-    test = test->down;
+  if (eye_stack->next) {
+    eye_stack = eye_stack->next;
+  } else {
+    eye_stack = NULL;
   }
+
+  /* struct ColorNode *test; */
+  /* test = dllist; */
+  /* while(test->down) { */
+  /*   test = test->down; */
+  /* } */
 }
 
 void prune_list() {
@@ -75,6 +78,7 @@ void prune_list() {
   }
   //printf("POP Green : %s\n", tmp->down->lex);
   //printf("address of %s: 0x%" PRIXPTR "\n", tmp->down->lex, (uintptr_t)tmp->down);
+  //printf("prune: %s\n", tmp->down->lex);
   tmp->down = NULL;
 }
 
@@ -119,7 +123,7 @@ void insert_node(char color, char *lex, int type, char *profile) {
   1 = found
  */
 int search_green(char *lex) {
-  //printf("search: %s\n", lex);
+  printf("search: %s\n", lex);
   if (dllist == NULL) {
     return 0;
   }

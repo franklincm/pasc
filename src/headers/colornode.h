@@ -16,6 +16,7 @@ struct ColorNode {
 
 struct StackNode {
   uintptr_t addr;
+  char *lex;
   struct StackNode *next;
 };
 

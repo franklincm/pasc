@@ -39,5 +39,7 @@ node getNode(node head, char *str) {
 
 int getType(node head, char *lex) {
   node p = getNode(head, lex);
-  return p->type;
+  if (p != NULL)
+    return p->type;
+  return -1;
 }
