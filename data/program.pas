@@ -10,6 +10,7 @@ function square(a: integer; b: real): real;
        square := 2.0
     end;
 begin
+   while (2>=2) do a := a + 2;
    square := 2.0
 end;
 function add1(a : real): integer;

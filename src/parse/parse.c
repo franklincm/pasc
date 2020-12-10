@@ -1142,8 +1142,6 @@ Token parse_statement(Token t, struct state s) {
     level--;
     print_level("*RETURN* to statement\n");
 
-    
-
     // check scope
     if(search_green(lhs)) {
       // get symbol from table
@@ -1155,7 +1153,6 @@ Token parse_statement(Token t, struct state s) {
                symbol->type, expression_type);
       }
     }
-
     
     break;
     
@@ -1176,6 +1173,11 @@ Token parse_statement(Token t, struct state s) {
     t = parse_expression(t, s);
     level--;
     print_level("*RETURN* to statement\n");
+
+    if(expression_type != t_BOOL) {
+      printf("SEMERR: 'while' expression must be a condition\n");
+    }
+    
     
     t = match(TOKEN_DO, t, s);
     t = parse_statement(t, s);
@@ -1502,6 +1504,7 @@ Token parse_expression_tail(Token t, struct state s) {
   print_level("parse expression_tail\n");
   switch(t.type) {
   case TOKEN_RELOP:
+
     t = match(TOKEN_RELOP, t, s);
     
     t = parse_simple_expression(t, s);
@@ -1607,6 +1610,7 @@ Token parse_simple_expression(Token t, struct state s) {
     
     break;
   default:
+    printf("got: %s\n", t.str);
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression");
   }
   return t;
