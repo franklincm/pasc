@@ -74,9 +74,6 @@ int term_type;
 int term_tail_in;
 int term_tail_type;
 
-
-/* TODO: check for LEXERR before adding blue/green nodes */
-/* TODO: check for mixed mode expressions */
 /* TODO: ^L-Attribute Definition */
 
 void print_level(char * msg) {
@@ -827,8 +824,6 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
   case TOKEN_COLON:
     t = match(TOKEN_COLON, t, s);
 
-    /* TODO: update return type */
-    
     t = parse_standard_type(t, s);
     level--;
 
@@ -1745,32 +1740,6 @@ Token parse_simple_expression_tail(Token t, struct state s) {
       simple_expression_tail_in = t_SEMERR;
     }
 
-    
-    /* TODO: SYMERR table */
-    /* if(simple_expression_tail_in == t_INT && term_type == t_INT) { */
-    /*   simple_expression_tail_in = t_INT; */
-    /* } else if (simple_expression_tail_in == t_REAL && term_type == t_REAL) { */
-    /*   simple_expression_tail_in = t_REAL; */
-    /* } else if ((simple_expression_tail_in == t_INT && term_type != t_INT) */
-    /*            || */
-    /*            (simple_expression_tail_in == t_REAL && term_type != t_REAL) */
-    /*            || */
-    /*            (simple_expression_tail_in != t_INT && term_type == t_INT) */
-    /*            || */
-    /*            (simple_expression_tail_in != t_REAL && term_type == t_REAL)) */
-    /*   { */
-    /*     simple_expression_tail_in = t_SEMERR; */
-    /*     printf("SEMERR: Mixed-mode expressions are not allowed.\n"); */
-    /*     printf("\t'%s' operands must be of same type (int or real)\n", */
-    /*            addop_str); */
-    /*   } else if (simple_expression_tail_in == t_SEMERR || term_type == t_SEMERR) { */
-    /*   simple_expression_tail_in = t_SEMERR; */
-    /* } else { */
-    /*   simple_expression_tail_in = t_SEMERR; */
-    /*   printf("SEMERR: operands must be type 'real' or 'int'\n"); */
-    /* } */
-      
-    
     t = parse_simple_expression_tail(t, s);
     level--;
     print_level("*RETURN* to simple_expression_tail\n");
@@ -1855,9 +1824,6 @@ Token parse_term_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to term_tail\n");
 
-    /* TODO: SYMERR table */
-    /* TODO: print SEMERR message */
-
     if(factor_type == t_INT && term_tail_in == t_INT) {
       term_tail_in = t_INT;
     } else if (factor_type == t_REAL && term_tail_in == t_REAL) {
@@ -1900,7 +1866,6 @@ Token parse_term_tail(Token t, struct state s) {
     break;
 
   case TOKEN_DIV:
-    /* TODO: decorate type checking */
     t = match(TOKEN_DIV, t, s);
     t = parse_factor(t, s);
     level--;
@@ -1921,7 +1886,6 @@ Token parse_term_tail(Token t, struct state s) {
     break;
 
   case TOKEN_AND:
-    /* TODO: decorate type checking */
     t = match(TOKEN_AND, t, s);
     t = parse_factor(t, s);
     level--;
@@ -1942,7 +1906,6 @@ Token parse_term_tail(Token t, struct state s) {
     break;
 
   case TOKEN_OR:
-    /* TODO: decorate type checking */
     t = match(TOKEN_OR, t, s);
     t = parse_factor(t, s);
     level--;
@@ -2011,22 +1974,6 @@ Token parse_factor(Token t, struct state s) {
       //printf("blueNode: %s.%s not found\n", parent, id_str);
     }
 
-    
-    /* if(search_blue(id_str)) { */
-    /*   printf("%s.%s found\n", test, id_str); */
-    /*   id_type = getType(*sym_table, id_str); */
-    /*   printf("%s.%s.type = %s\n", test, id_str, profile_type_to_str(id_type)); */
-    /* } else { */
-    /*   printf("%s.%s not found\n", test, id_str); */
-    /* } */
-
-
-    
-
-    /* TODO: SEMERR table */
-
-    //printf("parse_function.id_type: %d\n", id_type);
-    
     t = match(TOKEN_ID, t, s);
 
     if(id_type < 0) {
@@ -2069,8 +2016,6 @@ Token parse_factor(Token t, struct state s) {
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
 
-    /* TODO: decorate type checker */
-    /* TODO: justify need for expression_in here */
     expression_in = factor_in;
     
     t = parse_expression(t, s);
@@ -2089,9 +2034,6 @@ Token parse_factor(Token t, struct state s) {
     t = parse_factor(t, s);
     level--;
     print_level("*RETURN* to factor\n");
-
-    /* TODO: SEMERR table */
-    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "factor");
@@ -2144,7 +2086,6 @@ Token parse_factor_tail(Token t, struct state s) {
 
     // factor_tail -> ( expression_list )
   case TOKEN_LPAREN:
-    /* TODO: decorate type checker */
     t = match(TOKEN_LPAREN, t, s);
     t = parse_expression_list(t, s);
     level--;
