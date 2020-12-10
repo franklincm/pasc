@@ -1154,8 +1154,9 @@ Token parse_statement(Token t, struct state s) {
       // check with expression type
       if(symbol->type == expression_type) {}
       else {
-        printf("SEMERR: wrong type assignment, expecting: '%d', got: '%d'\n",
-               symbol->type, expression_type);
+        printf("SEMERR: wrong type assignment, expecting: '%s', got: '%s'\n",
+               profile_type_to_str(symbol->type),
+               profile_type_to_str(expression_type));
       }
     }
     
