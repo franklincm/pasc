@@ -442,30 +442,37 @@ Token dfa_relops(char *f) {
   switch(*f) {
   case '=':
     f++;
-    t.str = "RELOP";
+    if (*f == '=') {
+      t.str = "==";
+    } else {
+      t.str = "=";      
+    }
     t.type = TOKEN_RELOP;
+    f++;
     break;
   case '<':
     f++;
     if (*f ==  '=') {
-      t.str = "LTE";
+      t.str = "<=";
     } else if (*f == '>') {
-      t.str = "NE";
+      t.str = "<>";
     } else {
       f--;
-      t.str = "LT";
+      t.str = "<";
     }
     t.type = TOKEN_RELOP;
+    f++;
     break;
   case '>':
     f++;
     if (*f == '=') {
-      t.str = "GTE";
+      t.str = ">=";
     } else {
       f--;
-      t.str = "GT";
+      t.str = ">";
     }
     t.type = TOKEN_RELOP;
+    f++;
     break;
   }
   t.f = f;
