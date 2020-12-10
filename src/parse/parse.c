@@ -32,6 +32,9 @@ node *sym_table;
 static int level = 0;
 static int print = 0;
 static int EOP = 0;
+
+int statement_compound = 0;
+
 char *blue_lex;
 int blue_type;
 
@@ -1004,12 +1007,14 @@ Token parse_compound_statement_tail(Token t, struct state s) {
     
     print_level("*RETURN* to compound_statement_tail\n");
     t = match(TOKEN_END, t, s);
-    pop_eye();
+    if (!statement_compound)
+      pop_eye();
     break;
 
   case TOKEN_END:
     t = match(TOKEN_END, t, s);
-    pop_eye();
+    if (!statement_compound)
+      pop_eye();
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement tail");
@@ -1178,9 +1183,10 @@ Token parse_statement(Token t, struct state s) {
       printf("SEMERR: 'while' expression must be a condition\n");
     }
     
-    
+    statement_compound = 1;
     t = match(TOKEN_DO, t, s);
     t = parse_statement(t, s);
+    statement_compound = 0;
     level--;
     print_level("*RETURN* to statement\n");
     break;
