@@ -1864,26 +1864,22 @@ Token parse_factor(Token t, struct state s) {
     factor_tail_in = id_type;
     //printf("id_str: %s\n", id_str);
 
+    // push token lex onto call stack for checking
+    // with factor_tail expression_list
     push(id_str);
-    
+
     t = parse_factor_tail(t, s);
     level--;
     print_level("*RETURN* to factor\n");
 
     // if array expression, return a type
     // otherwise the type wil be in char *expression_list_profile
-
-    if (factor_type == t_SEMERR) {
-      factor_type = id_type;
-      printf("SEMERR: parameter mismatch in call to '%s'\n", id_str);
+    if (factor_tail_type == t_SEMERR) {
+      factor_type = t_SEMERR;
+      //printf("SEMERR: parameter mismatch in call to '%s'\n", id_str);
     } else {
       factor_type = factor_tail_type;      
     }
-
-
-    /* TODO: check id.profile with returned expression_profile */
-    //node symbol = getNode(*s.symbol_table, t.str);
-
 
     break;
     
@@ -1982,17 +1978,14 @@ Token parse_factor_tail(Token t, struct state s) {
 
     
     struct Stack *stack = pop();
-    /* TODO: check green node stack/llist */
 
     char *tmp_profile;
     int t_type;
     
     if(search_green(stack->lex)) {
       node symbol = getNode(*s.symbol_table, stack->lex);
-      //printf("green node %s FOUND\n", stack->lex);
       t_type = symbol->type;
       tmp_profile = symbol->profile;
-      
     } else {
       printf("SEMERR: Undefined call to '%s'\n", stack->lex);
       //printf("green node %s NOT FOUND\n", stack->lex);
@@ -2000,22 +1993,15 @@ Token parse_factor_tail(Token t, struct state s) {
       t_type = t_SEMERR;
     }
 
-
-
-
-
-    
-
     if(!strcmp(expression_list_profile, tmp_profile)) {
       factor_tail_type = t_type;
+    } else if (t_type == t_SEMERR) {
+      factor_tail_type = t_SEMERR;
     } else {
       factor_tail_type = t_SEMERR;
-
+      printf("SEMERR: parameter mismatch in call to '%s'\n", stack->lex);
     }
     
-    //factor_tail_type = expression_list_type;
-    //factor_tail_type = 100;
-
     t = match(TOKEN_RPAREN, t, s);
     break;
     
