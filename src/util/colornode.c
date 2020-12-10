@@ -286,6 +286,9 @@ char *profile_type_to_str(int type) {
   case 10:
     str = "BOOL";
     break;
+  case 51:
+    str = "ERROR";
+    break;
   }
   return str;
 }
