@@ -1983,23 +1983,25 @@ Token parse_factor_tail(Token t, struct state s) {
     
     struct Stack *stack = pop();
     /* TODO: check green node stack/llist */
-    node symbol = getNode(*s.symbol_table, stack->lex);
-    if(search_green(stack->lex)) {
-      printf("green node %s FOUND\n", stack->lex);
-    } else {
-      printf("green node %s NOT FOUND\n", stack->lex);
-    }
 
     char *tmp_profile;
     int t_type;
-    if(symbol == NULL) {
-      tmp_profile = "";
-      t_type = t_SEMERR;
-      printf("SEMERR: Undefined call to '%s'\n", stack->lex);
-    } else {
+    
+    if(search_green(stack->lex)) {
+      node symbol = getNode(*s.symbol_table, stack->lex);
+      //printf("green node %s FOUND\n", stack->lex);
       t_type = symbol->type;
       tmp_profile = symbol->profile;
+      
+    } else {
+      printf("SEMERR: Undefined call to '%s'\n", stack->lex);
+      //printf("green node %s NOT FOUND\n", stack->lex);
+      tmp_profile = "";
+      t_type = t_SEMERR;
     }
+
+
+
 
 
     

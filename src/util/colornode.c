@@ -123,7 +123,7 @@ void insert_node(char color, char *lex, int type, char *profile) {
   1 = found
  */
 int search_green(char *lex) {
-  printf("search: %s\n", lex);
+  //printf("search: %s\n", lex);
   if (dllist == NULL) {
     return 0;
   }
@@ -131,7 +131,7 @@ int search_green(char *lex) {
   tmp = dllist;
   // strcmp() == 0 when identical
   if (!strcmp(tmp->lex, lex)) {
-    printf("found: %s\n", tmp->lex);
+    //printf("found: %s\n", tmp->lex);
     return 1;
   }
 
@@ -139,7 +139,7 @@ int search_green(char *lex) {
   while(tmp->down) {
     tmp = tmp->down;
     if (!strcmp(tmp->lex, lex)) {
-      printf("found: %s\n", tmp->lex);
+      //printf("found: %s\n", tmp->lex);
       return 1;
     }
   }
