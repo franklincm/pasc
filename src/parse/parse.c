@@ -38,6 +38,7 @@ int blue_type;
 char *mulop_str;
 char *addop_str;
 char *id_str;
+char *lhs;
 char *profile_buffer;
 
 int id_type;
@@ -61,6 +62,10 @@ int simple_expression_in;
 int simple_expression_type;
 int simple_expression_tail_in;
 int simple_expression_tail_type;
+
+int variable_tail_in;
+int variable_tail_type;
+int variable_type;
 
 int term_type;
 int term_tail_in;
@@ -1125,14 +1130,33 @@ Token parse_statement(Token t, struct state s) {
   print_level("parse statement\n");
   switch(t.type) {
   case TOKEN_ID:
+
+    lhs = t.str;
+    
     t = parse_variable(t, s);
     level--;
     print_level("*RETURN* to statement\n");
-    
+
     t = match(TOKEN_ASSIGN, t, s);
     t = parse_expression(t, s);
     level--;
     print_level("*RETURN* to statement\n");
+
+    
+
+    // check scope
+    if(search_green(lhs)) {
+      // get symbol from table
+      node symbol = getNode(*s.symbol_table, lhs);
+      // check with expression type
+      if(symbol->type == expression_type) {}
+      else {
+        printf("SEMERR: wrong type assignment, expecting: '%d', got: '%d'\n",
+               symbol->type, expression_type);
+      }
+    }
+
+    
     break;
     
   case TOKEN_BEGIN:
@@ -1247,11 +1271,16 @@ Token parse_variable(Token t, struct state s) {
   print_level("parse variable\n");
   switch(t.type) {
   case TOKEN_ID:
+
+    id_str = t.str;
+    variable_tail_in = t.type;
+    
     t = match(TOKEN_ID, t, s);
     t = parse_variable_tail(t, s);
     level--;
-    
     print_level("*RETURN* to variable\n");
+
+    variable_type = variable_tail_type;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable");
@@ -1275,11 +1304,29 @@ Token parse_variable_tail(Token t, struct state s) {
     t = match(TOKEN_LBRACKET, t, s);
     t = parse_expression(t, s);
     level--;
-    
     print_level("*RETURN* to variable_tail\n");
+
+
+    if(variable_tail_in == t_SEMERR || expression_type == t_SEMERR) {
+      variable_tail_type = t_SEMERR;
+    } else if(expression_type != t_INT) {
+      variable_tail_type = t_SEMERR;
+      printf("SEMERR: array expression must be of type 'int'\n");
+    } else if (expression_type == t_INT && variable_tail_in == t_AINT) {
+      variable_tail_type = t_INT;
+    } else if (expression_type == t_INT && variable_tail_in == t_AREAL) {
+      variable_tail_type = t_REAL;
+    } else if (variable_tail_in != t_AINT && variable_tail_in != t_AREAL) {
+      variable_tail_type = t_SEMERR;
+      printf("SYMERR: '%s' is not an array type\n", id_str);
+    } else {
+      variable_tail_type = t_SEMERR;
+    }
+    
     t = match(TOKEN_RBRACKET, t, s);
     break;
   case TOKEN_ASSIGN:
+    variable_tail_type = variable_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable tail");
@@ -1872,6 +1919,7 @@ Token parse_factor(Token t, struct state s) {
     level--;
     print_level("*RETURN* to factor\n");
 
+
     // if array expression, return a type
     // otherwise the type wil be in char *expression_list_profile
     if (factor_tail_type == t_SEMERR) {
@@ -1937,7 +1985,7 @@ Token parse_factor_tail(Token t, struct state s) {
     TOKEN_REAL,
     TOKEN_NOT
   };
-  
+  struct Stack *stack;  
   level++;
   
   print_level("parse factor_tail\n");
@@ -1950,8 +1998,9 @@ Token parse_factor_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to factor_tail\n");
     t = match(TOKEN_RBRACKET, t, s);
-
-
+    
+    stack = pop();
+    
     if(expression_type == t_INT && factor_tail_in == t_AINT) {
       factor_tail_type = t_INT;
     } else if (expression_type == t_INT && factor_tail_in == t_AREAL) {
@@ -1995,9 +2044,13 @@ Token parse_factor_tail(Token t, struct state s) {
 
     if(!strcmp(expression_list_profile, tmp_profile)) {
       factor_tail_type = t_type;
-    } else if (t_type == t_SEMERR) {
-      factor_tail_type = t_SEMERR;
-    } else {
+    }
+    
+    /* else if (t_type == t_SEMERR) { */
+    /*   //factor_tail_type = t_SEMERR; */
+    /* } */
+
+    else {
       factor_tail_type = t_SEMERR;
       printf("SEMERR: parameter mismatch in call to '%s'\n", stack->lex);
     }

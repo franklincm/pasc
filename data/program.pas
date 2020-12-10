@@ -1,14 +1,16 @@
 program test(input, output);
 var y : integer;
 var z : real;
-var c : array [1 .. 3] of real;
+var c : array [1 .. 3] of integer;
 function square(a: integer; b: real): real;
   function square2(a : integer): integer;
+  var u : integer;
     begin
-       square := a * a
+       u := 1;
+       square := 2.0
     end;
 begin
-   square := square2(3.0)
+   square := 2.0
 end;
 function add1(a : real): integer;
 begin
@@ -19,5 +21,6 @@ begin
    addTwo := a + 2
 end;
 begin
-   y := square2(add1(3))
+   y := addTwo(add1(square(c[1], 3.0)));
+   u := 2
 end.
