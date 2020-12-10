@@ -1517,20 +1517,58 @@ Token parse_expression_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to expression_tail\n");
 
-
-    if(expression_tail_in == t_INT && simple_expression_type == t_INT) {
+    if (expression_tail_in == t_INT && simple_expression_type == t_INT) {
       expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_REAL && simple_expression_type == t_REAL) {
       expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_BOOL && simple_expression_type == t_BOOL) {
       expression_tail_in = t_BOOL;
+    } else if (expression_tail_in == t_INT && simple_expression_type != t_INT) {
+
+      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+             profile_type_to_str(expression_tail_in),
+             profile_type_to_str(simple_expression_type));
+      
+      expression_tail_in = t_SEMERR;      
+
+    } else if (expression_tail_in != t_INT && simple_expression_type == t_INT) {
+      
+      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+             profile_type_to_str(expression_tail_in),
+             profile_type_to_str(simple_expression_type));
+      expression_tail_in = t_SEMERR;
+
+    } else if (expression_tail_in == t_REAL && simple_expression_type != t_REAL) {
+
+      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+             profile_type_to_str(expression_tail_in),
+             profile_type_to_str(simple_expression_type));
+      expression_tail_in = t_SEMERR;
+      
+    } else if (expression_tail_in != t_REAL && simple_expression_type == t_REAL) {
+      
+      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+             profile_type_to_str(expression_tail_in),
+             profile_type_to_str(simple_expression_type));
+      expression_tail_in = t_SEMERR;
+
+    } else if (expression_tail_in == t_BOOL && simple_expression_type != t_BOOL) {
+      
+      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+             profile_type_to_str(expression_tail_in),
+             profile_type_to_str(simple_expression_type));
+      expression_tail_in = t_SEMERR;
+
+    } else if (expression_tail_in != t_BOOL && simple_expression_type == t_BOOL) {
+
+      printf("SEMERR: Illegal Comparison between types '%s' and '%s'\n",
+             profile_type_to_str(expression_tail_in),
+             profile_type_to_str(simple_expression_type));
+      expression_tail_in = t_SEMERR;
+
     } else if (expression_tail_in == t_SEMERR || simple_expression_type == t_SEMERR) {
       expression_tail_in = t_SEMERR;
-    } else {
-      expression_tail_in = t_SEMERR;
-      printf("SYMERR: relational operands must be comparable\n");
     }
-    
     
     t = parse_expression_tail(t, s);
     level--;

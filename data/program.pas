@@ -18,7 +18,10 @@ begin
 end;
 function add1(a : real): integer;
 begin
-   add1 := a + 1
+   if (1 == a) then
+      add1 := a + 1
+   else
+      add1 := a + 2
 end;
 function addTwo(a : integer): integer;
 begin
