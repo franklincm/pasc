@@ -1216,16 +1216,19 @@ Token parse_ifexp(Token t, struct state s) {
     t = match(TOKEN_IF, t, s);
     t = parse_expression(t, s);
     level--;
-    
     print_level("*RETURN* to ifexp\n");
+
+    if (expression_type != t_BOOL) {
+      printf("SEMERR: Invalid Condition, must evaluate to type 'BOOL'\n");
+    }
+    
     t = match(TOKEN_THEN, t, s);
     t = parse_statement(t, s);
     level--;
-    
     print_level("*RETURN* to ifexp\n");
+
     t = parse_ifexp_tail(t, s);
     level--;
-    
     print_level("*RETURN* to ifexp\n");
     break;
   default:

@@ -283,6 +283,9 @@ char *profile_type_to_str(int type) {
   case 9:
     str = "PGPARAM";
     break;
+  case 10:
+    str = "BOOL";
+    break;
   }
   return str;
 }
