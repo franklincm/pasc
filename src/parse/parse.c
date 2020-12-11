@@ -37,48 +37,14 @@ static int level = 0;
 static int print = 0;
 static int EOP = 0;
 
-int statement_compound = 0;
 
-char *blue_lex;
-int blue_type;
-
-char *mulop_str;
-char *addop_str;
 char *id_str;
 char *lhs;
 char *profile_buffer;
 
-int id_type;
-int factor_in;
-int factor_type;
-int factor_tail_in;
-int factor_tail_type;
-int expression_list_type;
-int expression_list_tail_in;
-int expression_list_tail_type;
-
-char *expression_list_profile;
-char *expression_list_tail_profile_in;
-char *expression_list_tail_profile;
-
-int expression_in;
-int expression_type;
-int expression_tail_in;
-int expression_tail_type;
-int simple_expression_in;
-int simple_expression_type;
-int simple_expression_tail_in;
-int simple_expression_tail_type;
-
-int variable_tail_in;
-int variable_tail_type;
-int variable_type;
-
-int term_type;
-int term_tail_in;
-int term_tail_type;
-
-int t_type;
+int type;
+int standard_type;
+int statement_compound;
 
 char buffer [200];
 
@@ -233,12 +199,12 @@ Token synchronize(Token t, struct state s, int *synch, int size, char *productio
 void parse(FILE *source,
            FILE *listing,
            FILE *tokenfile,
-           node reserved_words,
-           node *symbol_table) {
+           FILE *symboltablefile,
+           node reserved_words) {
 
-  sym_table = symbol_table;
+  //sym_table = symbol_table;
   
-  struct state s = {source, listing, tokenfile, reserved_words, symbol_table};
+  struct state s = {source, listing, tokenfile, symboltablefile, reserved_words};
   
   static Token t;
   t = get_tok(s);
@@ -258,6 +224,9 @@ Token parse_program(Token t, struct state s) {
   case TOKEN_PROGRAM:
     t = match(TOKEN_PROGRAM, t, s);
 
+    if(t.type != LEXERR)
+      check_add_green(t.str, PGNAME, "", s.symboltablefile);
+    
     t = match(TOKEN_ID, t, s);
     
     t = match(TOKEN_LPAREN, t, s);
@@ -358,10 +327,13 @@ Token parse_identifier_list(Token t, struct state s) {
   };
 
   level++;
-  
   print_level("parse identifier_list\n");
+
   switch(t.type) {
   case TOKEN_ID:
+    if(t.type != LEXERR)
+      check_add_blue(t.str, PGPARAM, s.symboltablefile);
+    
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
@@ -387,6 +359,10 @@ Token parse_identifier_list_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
+
+    if(t.type != LEXERR)
+      check_add_blue(t.str, PGPARAM, s.symboltablefile);
+    
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
@@ -410,22 +386,26 @@ Token parse_declarations(Token t, struct state s) {
 
   level++;
   print_level("parse declarations\n");
-  
+
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
 
+    if (t.type != LEXERR)
+      id_str = t.str;
+    
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
-
     t = parse_type(t, s);
     level--;
     print_level("*RETURN* to declarations\n");
+
+    if(id_str)
+      check_add_blue(id_str, type, s.symboltablefile);
     
     t = match(TOKEN_SEMICOLON, t, s);
     t = parse_declarations_tail(t, s);
     level--;
-    
     print_level("*RETURN* to declrations\n");
     break;
   default:
@@ -449,14 +429,19 @@ Token parse_declarations_tail(Token t, struct state s) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
 
+    if (t.type != LEXERR)
+      id_str = t.str;
+
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
     level--;
     print_level("*RETURN* to declarations_tail\n");
+
+    if(id_str)
+      check_add_blue(id_str, type, s.symboltablefile);
     
     t = match(TOKEN_SEMICOLON, t, s);
-    
     t = parse_declarations_tail(t, s);
     level--;
     print_level("*RETURN* to declarations_tail\n");
@@ -491,7 +476,8 @@ Token parse_type(Token t, struct state s) {
     t = parse_standard_type(t, s);
     level--;
     print_level("*RETURN* to type\n");
-    
+
+    type = standard_type;
     break;
 
   case TOKEN_ARRAY:
@@ -509,6 +495,7 @@ Token parse_type(Token t, struct state s) {
     level--;
     print_level("*RETURN* to type\n");
 
+    type = standard_type + 4;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "type");
@@ -532,10 +519,12 @@ Token parse_standard_type(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_INTEGER:
     t = match(TOKEN_INTEGER, t, s);
+    standard_type = t_INT;
     break;
 
   case TOKEN_RREAL:
     t = match(TOKEN_RREAL, t, s);
+    standard_type = t_REAL;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "standard type");

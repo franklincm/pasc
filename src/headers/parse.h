@@ -8,8 +8,8 @@ struct state
   FILE *source;
   FILE *listing;
   FILE *tokenfile;
+  FILE *symboltablefile;
   node reserved_words;
-  node *symbol_table;
 };
 int get_semerr_line();
 int get_synerr_line();
@@ -20,8 +20,8 @@ Token synchronize(Token t, struct state s, int *synch, int size, char *productio
 void parse(FILE *source,
            FILE *listing,
            FILE *tokenfile,
-           node reserved_words,
-           node *symbol_table);
+           FILE *symboltablefile,
+           node reserved_words);
 Token parse_program(Token t, struct state s);
 Token parse_program_tail(Token t, struct state s);
 Token parse_program_tail_tail(Token t, struct state s);

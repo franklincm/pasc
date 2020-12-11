@@ -10,6 +10,11 @@
 #include "../headers/token.h"
 #endif
 
+#ifndef OUTPUT
+#define OUTPUT
+#include "../headers/output.h"
+#endif
+
 static struct ColorNode *dllist = NULL;
 static struct StackNode *eye_stack = NULL;
 
@@ -76,13 +81,14 @@ void prune_list() {
   will keep both green and blue nodes, while eye will keep only green
   nodes.
  */
-void insert_node(char color, char *lex, int type, char *profile) {
+void insert_node(char color, char *lex, int type, char *profile, FILE *sym_table_file) {
   // creat node to be inserted with given params
   struct ColorNode *node = malloc(sizeof(struct ColorNode));
   node->color = color;
   node->lex = lex;
   node->type = type;
   node->profile = profile;
+  node->attr = 0;
 
   // if green node, push onto stack
   if (color == 'G') {
@@ -107,6 +113,15 @@ void insert_node(char color, char *lex, int type, char *profile) {
 
   // add created node to bottom of list
   tmp->down = node;
+
+  char line_buffer [100];
+  sprintf(line_buffer,
+          "%3s%-5d%2s%-10s%3s%6s%3s%10d\n",
+          "", node->attr,
+          "", node->lex,
+          "", node->profile,
+          "", node->type);
+  write_line_to_file(line_buffer, sym_table_file);
 }
 
 /*
@@ -172,24 +187,25 @@ int search_local(char *lex) {
 /* check for node in current scope with given lex,
    insert green node if not found.
  */
-void check_add_green(char *lex, int type, char *profile) {
+void check_add_green(char *lex, int type, char *profile, FILE *symboltable) {
 
   if(search_global(lex)) {
     printf("SEMERR: Attempt to redefine `%s`.\n", lex);
     //insert_node('G', "SEMERR", type, profile);
-  } else
-    insert_node('G', lex, type, profile);
+  } else {
+    insert_node('G', lex, type, profile, symboltable);
+  }
 }
 
 /* check for node in local scope with given lex,
    insert blue node if not found.
  */
-void check_add_blue(char *lex, int type) {
+void check_add_blue(char *lex, int type, FILE *symboltable) {
   if(search_local(lex)) {
     printf("SEMERR: `%s` already defined in this scope.\n", lex);
     return;
   }
-  insert_node('B', lex, type, "");
+  insert_node('B', lex, type, "", symboltable);
   return;
 }
 

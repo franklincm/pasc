@@ -19,7 +19,7 @@
 void write_symbol_table(node *SymbolTable);
 
 int main(int argc, char **argv) {
-  char *filename = "data/program.pas";
+  char *filename = "data/final_boss.pas";
   char *listingfilename = "listingfile";
   char *tokenfilename = "tokenfile";
 
@@ -40,35 +40,18 @@ int main(int argc, char **argv) {
   FILE *listing = fopen(listingfilename, "w");
   // open token file
   FILE *tokenfile = fopen(tokenfilename, "w");
-
+  // open symbol table fie
+  FILE *symboltablefile = fopen("symboltable", "w");
+  
   // get reserved words linked list
   node reserved_words = parse_reserved_words();
 
-  // init symbol table
-  static node symbol_table = NULL;
-
   // parse source file
-  parse(source, listing, tokenfile, reserved_words, &symbol_table);
-  
-  // write symbol table
-  write_symbol_table(&symbol_table);
+  parse(source, listing, tokenfile, symboltablefile, reserved_words);
   
   fclose(source);
   fclose(listing);
   fclose(tokenfile);
+  fclose(symboltablefile);
   
-}
-
-void write_symbol_table(node *SymbolTable) {
-  FILE *symbol_table_file = fopen("symboltable", "w");
-  fprintf(symbol_table_file, "%-10s%s%18s%13s", "location", "id", "profile", "type");
-  fprintf(symbol_table_file, "\n");
-  node p = *SymbolTable;
-  int loc = 0;
-  while (p != NULL) {
-    fprintf(symbol_table_file, "%3s%-5d%2s%-10s%3s%6s%3s%10d\n", "", p->attr, "", p->str, "", p->profile, "", p->type);
-    p = p->next;
-    loc++;
-  }
-  fclose(symbol_table_file);
 }
