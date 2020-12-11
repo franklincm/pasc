@@ -258,20 +258,6 @@ Token parse_program(Token t, struct state s) {
   case TOKEN_PROGRAM:
     t = match(TOKEN_PROGRAM, t, s);
 
-    if (t.type != LEXERR) {
-      check_add_green(t);
-      node symbol = getNode(*s.symbol_table, t.str);
-      if (symbol == NULL) {
-        symbol = (node)malloc(sizeof(struct LinkedList));
-        symbol->str = t.str;
-        symbol->type = 0;
-        *s.symbol_table = insertNode(*s.symbol_table, symbol);
-      } else {
-        symbol->str = t.str;
-        symbol->type = 0;
-      }
-    }
-
     t = match(TOKEN_ID, t, s);
     
     t = match(TOKEN_LPAREN, t, s);
@@ -312,7 +298,6 @@ Token parse_program_tail(Token t, struct state s) {
   print_level("parse program_tail\n");
   switch(t.type) {
   case TOKEN_VAR:
-    global_offset = 0;
     t = parse_declarations(t, s);
     level--;
     
@@ -377,27 +362,9 @@ Token parse_identifier_list(Token t, struct state s) {
   print_level("parse identifier_list\n");
   switch(t.type) {
   case TOKEN_ID:
-    blue_lex = t.str;
-    blue_type = PGPARAM;
-
-    if (t.type != LEXERR) {
-      check_add_blue(blue_lex, blue_type);
-      node symbol = getNode(*s.symbol_table, t.str);
-      if (symbol == NULL) {
-        symbol = (node)malloc(sizeof(struct LinkedList));
-        symbol->str = blue_lex;
-        symbol->type = blue_type;
-        *s.symbol_table = insertNode(*s.symbol_table, symbol);
-      } else {
-        symbol->str = blue_lex;
-        symbol->type = blue_type;      
-      }
-    }
-    
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
-    
     print_level("*RETURN* to identifier_list\n");
     break;
   default:
@@ -420,28 +387,9 @@ Token parse_identifier_list_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
-
-    blue_lex = t.str;
-    blue_type = PGPARAM;
-
-    if (t.type != LEXERR) {
-      check_add_blue(blue_lex, blue_type);
-      node symbol = getNode(*s.symbol_table, t.str);
-      if (symbol == NULL) {
-        symbol = (node)malloc(sizeof(struct LinkedList));
-        symbol->str = blue_lex;
-        symbol->type = blue_type;
-        *s.symbol_table = insertNode(*s.symbol_table, symbol);
-      } else {
-        symbol->str = blue_lex;
-        symbol->type = blue_type;      
-      }
-    }
-    
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
-    
     print_level("*RETURN* to identifier_list_tail\n");
     break;
   case TOKEN_RPAREN:
@@ -466,31 +414,14 @@ Token parse_declarations(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
-    blue_lex = t.str;
-    int t_type = t.type;
+
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
-    t = parse_type(t, s);
 
-    if (t_type != LEXERR) {
-      check_add_blue(blue_lex, blue_type);
-      node symbol = getNode(*s.symbol_table, t.str);
-      if (symbol == NULL) {
-        symbol = (node)malloc(sizeof(struct LinkedList));
-        symbol->str = blue_lex;
-        symbol->type = blue_type;
-        symbol->attr = global_offset;
-        global_offset = global_offset + width;
-        *s.symbol_table = insertNode(*s.symbol_table, symbol);
-      } else {
-        symbol->str = blue_lex;
-        symbol->type = blue_type;
-      }
-    }
-    
+    t = parse_type(t, s);
     level--;
-    
     print_level("*RETURN* to declarations\n");
+    
     t = match(TOKEN_SEMICOLON, t, s);
     t = parse_declarations_tail(t, s);
     level--;
@@ -517,42 +448,23 @@ Token parse_declarations_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
-    blue_lex = t.str;
-    int t_type = t.type;
+
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
-
-    if (t_type != LEXERR) {
-      check_add_blue(blue_lex, blue_type);
-      node symbol = getNode(*s.symbol_table, t.str);
-      if (symbol == NULL) {
-        symbol = (node)malloc(sizeof(struct LinkedList));
-        symbol->str = blue_lex;
-        symbol->type = blue_type;
-        symbol->attr = global_offset;
-        global_offset = global_offset + width;
-        *s.symbol_table = insertNode(*s.symbol_table, symbol);
-      } else {
-        symbol->str = blue_lex;
-        symbol->type = blue_type;      
-      }
-    }
-    
     level--;
-    
     print_level("*RETURN* to declarations_tail\n");
+    
     t = match(TOKEN_SEMICOLON, t, s);
+    
     t = parse_declarations_tail(t, s);
     level--;
-    
     print_level("*RETURN* to declarations_tail\n");
     break;
   case TOKEN_FUNCTION:
   case TOKEN_BEGIN:
     break;
   default:
-    printf("dec_tail calling synch...\n");
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "declarations tail");
   }
   return t;
@@ -573,8 +485,6 @@ Token parse_type(Token t, struct state s) {
   level++;
   print_level("parse type\n");
 
-  int val1, val2;
-  
   switch(t.type) {
   case TOKEN_INTEGER:
   case TOKEN_RREAL:
@@ -587,25 +497,18 @@ Token parse_type(Token t, struct state s) {
   case TOKEN_ARRAY:
     t = match(TOKEN_ARRAY, t, s);
     t = match(TOKEN_LBRACKET, t, s);
-    val1 = atoi(t.str);
+
     t = match(TOKEN_INT, t, s);
     t = match(TOKEN_ELIPSIS, t, s);
-    val2 = atoi(t.str);
+
     t = match(TOKEN_INT, t, s);
     t = match(TOKEN_RBRACKET, t, s);
     t = match(TOKEN_OF, t, s);
+
     t = parse_standard_type(t, s);
-    blue_type = blue_type + 2;
     level--;
     print_level("*RETURN* to type\n");
 
-    if (val2 < val1) {
-      sprintf(buffer, "last array index must be greater than first index\n");
-      print_semerr(buffer, s.listing);
-    }
-    
-    width = width * ((val2 - val1) + 1);
-    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "type");
@@ -628,15 +531,11 @@ Token parse_standard_type(Token t, struct state s) {
   print_level("parse standard_type\n");
   switch(t.type) {
   case TOKEN_INTEGER:
-    blue_type = t_INT;
     t = match(TOKEN_INTEGER, t, s);
-    width = 4;
     break;
 
   case TOKEN_RREAL:
-    blue_type = t_REAL;
     t = match(TOKEN_RREAL, t, s);
-    width = 8;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "standard type");
@@ -808,21 +707,6 @@ Token parse_subprogram_head(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = match(TOKEN_FUNCTION, t, s);
-    
-    if (t.type != LEXERR) {
-      check_add_green(t);
-      node symbol = getNode(*s.symbol_table, t.str);
-      if (symbol == NULL) {
-        symbol = (node)malloc(sizeof(struct LinkedList));
-        symbol->str = t.str;
-        symbol->type = 0;
-        *s.symbol_table = insertNode(*s.symbol_table, symbol);
-      } else {
-        symbol->str = t.str;
-        symbol->type = 0;      
-      }
-    }
-    id_str = t.str;
     t = match(TOKEN_ID, t, s);
     t = parse_subprogram_head_tail(t, s);
     level--;
@@ -853,28 +737,11 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to subprogram_head_tail\n");
 
-
-    // after parsing arugments(parameter_list)
-    // the parent green node has the profile
-    // we update the symbol table with that
-    struct ColorNode *tmp = get_parent_green();
-    node symbol = getNode(*s.symbol_table, id_str);
-    symbol->profile = tmp->profile;
-    
     t = match(TOKEN_COLON, t, s);
     t = parse_standard_type(t, s);
     level--;
     print_level("*RETURN* to subprogram_head_tail\n");
 
-    symbol->attr = global_offset;
-    global_offset = global_offset + local_offset + width;
-    
-    // blue_type hold the result of standard_type
-    set_return_type(blue_type, s.symbol_table);
-    
-    tmp = get_parent_green();
-    //printf("%s.profile: %s\n", tmp->lex, tmp->profile);
-    
     t = match(TOKEN_SEMICOLON, t, s);
     break;
 
@@ -884,8 +751,6 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     t = parse_standard_type(t, s);
     level--;
 
-    set_return_type(blue_type, s.symbol_table);
-    
     print_level("*RETURN* to subprogram_head_tail\n");
     t = match(TOKEN_SEMICOLON, t, s);
     break;
@@ -933,27 +798,10 @@ Token parse_parameter_list(Token t, struct state s) {
   print_level("parse parameter_list\n");
   switch(t.type) {
   case TOKEN_ID:
-    blue_lex = t.str;
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
 
-    blue_type = blue_type + 4;
-
-    if (t.type != LEXERR) {
-      check_add_blue(blue_lex, blue_type);
-      node symbol = getNode(*s.symbol_table, t.str);
-      if (symbol == NULL) {
-        symbol = (node)malloc(sizeof(struct LinkedList));
-        symbol->str = blue_lex;
-        symbol->type = blue_type;
-        *s.symbol_table = insertNode(*s.symbol_table, symbol);
-      } else {
-        symbol->str = blue_lex;
-        symbol->type = blue_type;      
-      }
-    }
-    
     level--;
     
     print_level("*RETURN* to parameter_list\n");
@@ -982,24 +830,10 @@ Token parse_parameter_list_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_SEMICOLON:
     t = match(TOKEN_SEMICOLON, t, s);
-    blue_lex = t.str;
+
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
-
-    if (t.type != LEXERR) {
-      check_add_blue(blue_lex, blue_type + 4);
-      node symbol = getNode(*s.symbol_table, t.str);
-      if (symbol == NULL) {
-        symbol = (node)malloc(sizeof(struct LinkedList));
-        symbol->str = blue_lex;
-        symbol->type = blue_type;
-        *s.symbol_table = insertNode(*s.symbol_table, symbol);
-      } else {
-        symbol->str = blue_lex;
-        symbol->type = blue_type;      
-      }
-    }
 
     level--;
     
@@ -1203,8 +1037,6 @@ Token parse_statement(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_ID:
 
-    lhs = t.str;
-    
     t = parse_variable(t, s);
     level--;
     print_level("*RETURN* to statement\n");
@@ -1214,34 +1046,6 @@ Token parse_statement(Token t, struct state s) {
     level--;
     print_level("*RETURN* to statement\n");
 
-    // check scope
-    if(search_green(lhs)) {
-      // get symbol from table
-      node symbol = getNode(*s.symbol_table, lhs);
-
-      // check with expression type
-
-      // all good?
-      if(symbol->type == expression_type) {}
-      else if (symbol->type == t_INT && expression_type == t_PPINT) {}
-      else if (symbol->type == t_PPINT && expression_type == t_INT) {}
-      else if (symbol->type == t_REAL && expression_type == t_PPREAL) {}
-      else if (symbol->type == t_PPREAL && expression_type == t_REAL) {}
-      // silently forward errors
-      else if (expression_type == t_SEMERR) {}
-
-      // write new SEMERR to listing
-      else {
-        
-        sprintf(buffer, "wrong type assignment, expecting: '%s', got: '%s'\n",
-               profile_type_to_str(symbol->type),
-               profile_type_to_str(expression_type));
-
-        print_semerr(buffer, s.listing);
-        
-      }
-    }
-    
     break;
     
   case TOKEN_BEGIN:
@@ -1262,15 +1066,9 @@ Token parse_statement(Token t, struct state s) {
     level--;
     print_level("*RETURN* to statement\n");
 
-    if(expression_type != t_BOOL) {
-      sprintf(buffer, "'while' expression must be a condition\n");
-      print_semerr(buffer, s.listing);
-    }
-    
-    statement_compound = 1;
     t = match(TOKEN_DO, t, s);
     t = parse_statement(t, s);
-    statement_compound = 0;
+
     level--;
     print_level("*RETURN* to statement\n");
     break;
@@ -1302,11 +1100,6 @@ Token parse_ifexp(Token t, struct state s) {
     level--;
     print_level("*RETURN* to ifexp\n");
 
-    if (expression_type != t_BOOL) {
-      sprintf(buffer, "Invalid Condition, must evaluate to type 'BOOL'\n");
-      print_semerr(buffer, s.listing);
-    }
-    
     t = match(TOKEN_THEN, t, s);
     t = parse_statement(t, s);
     level--;
@@ -1368,28 +1161,11 @@ Token parse_variable(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_ID:
 
-    id_str = t.str;
-    variable_tail_in = t.type;
-
-    node symbol = getNode(*s.symbol_table, t.str);
-    //struct ColorNode *blueNode = scope_search_blue(id_str);
-    if(symbol != NULL && search_green(id_str)) {
-      //printf("GOT %s\n", t.str);
-    } else {
-
-
-      
-      sprintf(buffer, "'%s' not declared in this scope.\n", id_str);
-      print_semerr(buffer, s.listing);
-      variable_tail_in = t_SEMERR;
-    }
-    
     t = match(TOKEN_ID, t, s);
     t = parse_variable_tail(t, s);
     level--;
     print_level("*RETURN* to variable\n");
 
-    variable_type = variable_tail_type;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable");
@@ -1415,28 +1191,10 @@ Token parse_variable_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to variable_tail\n");
 
-
-    if(variable_tail_in == t_SEMERR || expression_type == t_SEMERR) {
-      variable_tail_type = t_SEMERR;
-    } else if(expression_type != t_INT) {
-      variable_tail_type = t_SEMERR;
-      sprintf(buffer, "array expression must be of type 'int'\n");
-      print_semerr(buffer, s.listing);
-    } else if (expression_type == t_INT && variable_tail_in == t_AINT) {
-      variable_tail_type = t_INT;
-    } else if (expression_type == t_INT && variable_tail_in == t_AREAL) {
-      variable_tail_type = t_REAL;
-    } else if (variable_tail_in != t_AINT && variable_tail_in != t_AREAL) {
-      variable_tail_type = t_SEMERR;
-      printf("SYMERR: '%s' is not an array type\n", id_str);
-    } else {
-      variable_tail_type = t_SEMERR;
-    }
     
     t = match(TOKEN_RBRACKET, t, s);
     break;
   case TOKEN_ASSIGN:
-    variable_tail_type = variable_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable tail");
@@ -1471,20 +1229,10 @@ Token parse_expression_list(Token t, struct state s) {
     level--;
     print_level("*RETURN* to expression_list\n");
 
-    // pass first type str to expression_tail
-    expression_list_tail_profile_in = malloc(sizeof(char) * 1);
-    sprintf(expression_list_tail_profile_in, "%d", expression_type + 4);
-    
     t = parse_expression_list_tail(t, s);
     level--;
     print_level("*RETURN* to expression_list\n");
 
-    // copy resulting profile
-    if (expression_list_tail_profile != NULL) {
-      expression_list_profile = malloc(sizeof(char) * strlen(expression_list_tail_profile));
-      sprintf(expression_list_profile, "%s", expression_list_tail_profile);
-    }
-    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list");
@@ -1515,23 +1263,12 @@ Token parse_expression_list_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to expression_list_tail\n");
 
-    // store incoming profile str
-    profile_buffer = malloc(sizeof(char) * strlen(expression_list_tail_profile_in));
-    sprintf(profile_buffer, "%s", expression_list_tail_profile_in);
-
-    // allocate space for additonal profile type
-    expression_list_tail_profile_in = malloc(sizeof(char) * (strlen(expression_list_tail_profile_in) + 1));
-
-    // copy original profile and addition expression_type into input buffer
-    sprintf(expression_list_tail_profile_in, "%s%d", profile_buffer, expression_type + 4);
-    
     t = parse_expression_list_tail(t, s);
     level--;
     print_level("*RETURN* to expression_list_tail\n");
     
     break;
   case TOKEN_RPAREN:
-    expression_list_tail_profile = expression_list_tail_profile_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list tail");
@@ -1573,14 +1310,10 @@ Token parse_expression(Token t, struct state s) {
     level--;
     print_level("*RETURN* to expression\n");
 
-    expression_tail_in = simple_expression_type;
-    
     t = parse_expression_tail(t, s);
     level--;
     print_level("*RETURN* to expression\n");
 
-    expression_type = expression_tail_type;
-    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression");
@@ -1621,73 +1354,6 @@ Token parse_expression_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to expression_tail\n");
 
-    if (expression_tail_in == t_INT && simple_expression_type == t_INT) {
-      expression_tail_in = t_BOOL;
-    } else if (expression_tail_in == t_INT && simple_expression_type == t_PPINT) {
-      expression_tail_in = t_BOOL;
-    } else if (expression_tail_in == t_PPINT && simple_expression_type == t_INT) {
-      expression_tail_in = t_BOOL;
-    } else if (expression_tail_in == t_REAL && simple_expression_type == t_PPREAL) {
-      expression_tail_in = t_BOOL;
-    } else if (expression_tail_in == t_PPREAL && simple_expression_type == t_REAL) {
-      expression_tail_in = t_BOOL;
-    } else if (expression_tail_in == t_REAL && simple_expression_type == t_REAL) {
-      expression_tail_in = t_BOOL;
-    } else if (expression_tail_in == t_BOOL && simple_expression_type == t_BOOL) {
-      expression_tail_in = t_BOOL;
-    } else if (expression_tail_in == t_INT && simple_expression_type != t_INT) {
-
-      sprintf(buffer, "Illegal Comparison between types '%s' and '%s'\n",
-             profile_type_to_str(expression_tail_in),
-             profile_type_to_str(simple_expression_type));
-      print_semerr(buffer, s.listing);
-      
-      expression_tail_in = t_SEMERR;      
-
-    } else if (expression_tail_in != t_INT && simple_expression_type == t_INT) {
-      
-      sprintf(buffer, "Illegal Comparison between types '%s' and '%s'\n",
-             profile_type_to_str(expression_tail_in),
-             profile_type_to_str(simple_expression_type));
-      print_semerr(buffer, s.listing);
-      expression_tail_in = t_SEMERR;
-
-    } else if (expression_tail_in == t_REAL && simple_expression_type != t_REAL) {
-
-      sprintf(buffer, "Illegal Comparison between types '%s' and '%s'\n",
-             profile_type_to_str(expression_tail_in),
-             profile_type_to_str(simple_expression_type));
-      print_semerr(buffer, s.listing);
-      expression_tail_in = t_SEMERR;
-      
-    } else if (expression_tail_in != t_REAL && simple_expression_type == t_REAL) {
-      
-      sprintf(buffer, "Illegal Comparison between types '%s' and '%s'\n",
-             profile_type_to_str(expression_tail_in),
-             profile_type_to_str(simple_expression_type));
-      print_semerr(buffer, s.listing);
-      expression_tail_in = t_SEMERR;
-
-    } else if (expression_tail_in == t_BOOL && simple_expression_type != t_BOOL) {
-      
-      sprintf(buffer, "Illegal Comparison between types '%s' and '%s'\n",
-             profile_type_to_str(expression_tail_in),
-             profile_type_to_str(simple_expression_type));
-      print_semerr(buffer, s.listing);
-      expression_tail_in = t_SEMERR;
-
-    } else if (expression_tail_in != t_BOOL && simple_expression_type == t_BOOL) {
-
-      sprintf(buffer, "Illegal Comparison between types '%s' and '%s'\n",
-             profile_type_to_str(expression_tail_in),
-             profile_type_to_str(simple_expression_type));
-      print_semerr(buffer, s.listing);
-      expression_tail_in = t_SEMERR;
-
-    } else if (expression_tail_in == t_SEMERR || simple_expression_type == t_SEMERR) {
-      expression_tail_in = t_SEMERR;
-    }
-    
     t = parse_expression_tail(t, s);
     level--;
     print_level("*RETURN* to expression_tail\n");
@@ -1702,7 +1368,6 @@ Token parse_expression_tail(Token t, struct state s) {
   case TOKEN_RBRACKET:
   case TOKEN_COMMA:
   case TOKEN_RPAREN:
-    expression_tail_type = expression_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression tail");
@@ -1744,13 +1409,10 @@ Token parse_simple_expression(Token t, struct state s) {
     level--;
     print_level("*RETURN* to simple_expression\n");
 
-    simple_expression_tail_in = term_type;
-    
     t = parse_simple_expression_tail(t, s);
     level--;
     print_level("*RETURN* to simple_expression\n");
 
-    simple_expression_type = simple_expression_tail_type;
     break;
     
   case TOKEN_ADDOP:
@@ -1762,14 +1424,11 @@ Token parse_simple_expression(Token t, struct state s) {
     level--;
     print_level("*RETURN* to simple_expression\n");
 
-    simple_expression_tail_in = term_type;
 
     t = parse_simple_expression_tail(t, s);
     level--;
     print_level("*RETURN* to simple_expression\n");
 
-    simple_expression_type = simple_expression_tail_type;
-    
     break;
   default:
     printf("got: %s\n", t.str);
@@ -1804,51 +1463,10 @@ Token parse_simple_expression_tail(Token t, struct state s) {
   
   switch(t.type) {
   case TOKEN_ADDOP:
-    addop_str = t.str;
     t = match(TOKEN_ADDOP, t, s);
     t = parse_term(t, s);
     level--;
     print_level("*RETURN* to simple_expression_tail\n");
-
-    if(simple_expression_tail_in == t_SEMERR || term_type == t_SEMERR) {
-      simple_expression_tail_in = t_SEMERR;
-    } else if (simple_expression_tail_in == t_INT && term_type == t_INT) {
-      simple_expression_tail_in = t_INT;
-    } else if (simple_expression_tail_in == t_PPINT && term_type == t_INT) {
-      simple_expression_tail_in = t_INT;
-    } else if (simple_expression_tail_in == t_INT && term_type == t_PPINT) {
-      simple_expression_tail_in = t_INT;
-    } else if (simple_expression_tail_in == t_REAL && term_type == t_REAL) {
-      simple_expression_tail_in = t_REAL;
-    } else if (simple_expression_tail_in == t_PPREAL && term_type == t_REAL) {
-      simple_expression_tail_in = t_REAL;
-    } else if (simple_expression_tail_in == t_REAL && term_type == t_PPREAL) {
-      simple_expression_tail_in = t_REAL;
-    } else if (simple_expression_tail_in == t_INT && term_type == t_REAL) {
-      sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
-      print_semerr(buffer, s.listing);
-      simple_expression_tail_in = t_SEMERR;
-    } else if (simple_expression_tail_in == t_INT && term_type == t_PPREAL) {
-      sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
-      print_semerr(buffer, s.listing);
-      simple_expression_tail_in = t_SEMERR;
-    } else if (simple_expression_tail_in == t_PPREAL && term_type == t_INT) {
-      sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
-      print_semerr(buffer, s.listing);
-      simple_expression_tail_in = t_SEMERR;
-    }  else if (simple_expression_tail_in == t_REAL && term_type == t_INT) {
-      sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
-      print_semerr(buffer, s.listing);
-      simple_expression_tail_in = t_SEMERR;
-    } else if (simple_expression_tail_in == t_REAL && term_type == t_PPINT) {
-      sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
-      print_semerr(buffer, s.listing);
-      simple_expression_tail_in = t_SEMERR;
-    } else if (simple_expression_tail_in == t_PPINT && term_type == t_REAL) {
-      sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
-      print_semerr(buffer, s.listing);
-      simple_expression_tail_in = t_SEMERR;
-    }
 
     t = parse_simple_expression_tail(t, s);
     level--;
@@ -1865,7 +1483,6 @@ Token parse_simple_expression_tail(Token t, struct state s) {
   case TOKEN_RBRACKET:
   case TOKEN_COMMA:
   case TOKEN_RPAREN:
-    simple_expression_tail_type = simple_expression_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression tail");
@@ -1897,13 +1514,9 @@ Token parse_term(Token t, struct state s) {
     level--;
     print_level("*RETURN* to term\n");
 
-    term_tail_in = factor_type;
-    
     t = parse_term_tail(t, s);
     level--;
     print_level("*RETURN* to term\n");
-
-    term_type = term_tail_type;
 
     break;
   default:
@@ -1927,27 +1540,12 @@ Token parse_term_tail(Token t, struct state s) {
   print_level("parse term_tail\n");
   switch(t.type) {
   case TOKEN_MULOP:
-    mulop_str = t.str;
     t = match(TOKEN_MULOP, t, s);
     
     t = parse_factor(t, s);
     level--;
     print_level("*RETURN* to term_tail\n");
 
-    if(factor_type == t_INT && term_tail_in == t_INT) {
-      term_tail_in = t_INT;
-    } else if (factor_type == t_REAL && term_tail_in == t_REAL) {
-      term_tail_in = t_REAL;
-    } else if (factor_type == t_SEMERR || term_tail_in == t_SEMERR) {
-      term_tail_in = t_SEMERR;
-    } else {
-      term_tail_in = t_SEMERR;
-      sprintf(buffer, "Mixed-mode expressions are not allowed.\n\t'%s' operands must be of same type (int or real)\n", mulop_str);
-      print_semerr(buffer, s.listing);
-    }
-    
-    //term_tail_in = factor_type;
-    
     t = parse_term_tail(t, s);
     level--;
     print_level("*RETURN* to term_tail\n");
@@ -1960,16 +1558,6 @@ Token parse_term_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to term_tail\n");
 
-    if(factor_type == t_INT && term_tail_in == t_INT) {
-      term_tail_in = t_INT;
-    } else if (factor_type == t_SEMERR || term_tail_in == t_SEMERR) {
-      term_tail_in = t_SEMERR;
-    } else {
-      term_tail_in = t_SEMERR;
-      sprintf(buffer, "'mod' operands must both be of type 'int'\n");
-      print_semerr(buffer, s.listing);
-    }
-
     t = parse_term_tail(t, s);
     level--;
     print_level("*RETURN* to term_tail\n");
@@ -1981,16 +1569,6 @@ Token parse_term_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to term_tail\n");
 
-    if(factor_type == t_INT && term_tail_in == t_INT) {
-      term_tail_in = t_INT;
-    } else if (factor_type == t_SEMERR || term_tail_in == t_SEMERR) {
-      term_tail_in = t_SEMERR;
-    } else {
-      term_tail_in = t_SEMERR;
-      sprintf(buffer, "'div' operands must both be of type 'int'\n");
-      print_semerr(buffer, s.listing);
-    }
-    
     t = parse_term_tail(t, s);
     level--;
     print_level("*RETURN* to term_tail\n");
@@ -2002,16 +1580,6 @@ Token parse_term_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to term_tail\n");
 
-    if (factor_type == t_BOOL && term_tail_in == t_BOOL) {
-      term_tail_in = t_BOOL;
-    } else if (factor_type == t_SEMERR || term_tail_in == t_SEMERR) {
-      term_tail_in = t_SEMERR;
-    } else {
-      term_tail_in = t_SEMERR;
-      sprintf(buffer, "'and' operator requires boolean operands\n");
-      print_semerr(buffer, s.listing);
-    }
-    
     t = parse_term_tail(t, s);
     level--;
     print_level("*RETURN* to term_tail\n");
@@ -2023,16 +1591,6 @@ Token parse_term_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to term_tail\n");
 
-    if (factor_type == t_BOOL && term_tail_in == t_BOOL) {
-      term_tail_in = t_BOOL;
-    } else if (factor_type == t_SEMERR || term_tail_in == t_SEMERR) {
-      term_tail_in = t_SEMERR;
-    } else {
-      term_tail_in = t_SEMERR;
-      sprintf(buffer, "'or' operator requires boolean operands\n");
-      print_semerr(buffer, s.listing);
-    }
-    
     t = parse_term_tail(t, s);
     level--;
     print_level("*RETURN* to term_tail\n");
@@ -2048,7 +1606,6 @@ Token parse_term_tail(Token t, struct state s) {
   case TOKEN_RBRACKET:
   case TOKEN_COMMA:
   case TOKEN_RPAREN:
-    term_tail_type = term_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "term tail");
@@ -2073,88 +1630,35 @@ Token parse_factor(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_ID:
     
-    id_str = t.str;
-    id_type = getType(*sym_table, id_str);
-    
-    //char *parent = get_parent_green()->lex;
-
-    //struct ColorNode *blueNode = scope_search_blue(id_str);
-    //node symbol = getNode(*s.symbol_table, t.str);
-    if (search_green(id_str)) {
-      node symbol = getNode(*s.symbol_table, t.str);
-      struct ColorNode *blueNode = scope_search_blue(id_str);
-      if(blueNode != NULL) {
-        id_type = blueNode->type;
-      } else {
-        id_type = symbol->type;
-      }
-      //id_type = blueNode->type;
-
-    } else {
-      //printf("search_green(%s) == %d\n", id_str, search_green(id_str));
-      sprintf(buffer, "'%s' not declared in this scope.\n", id_str);
-      print_semerr(buffer, s.listing);
-      id_type = -1;
-      //printf("blueNode: %s.%s not found\n", parent, id_str);
-    }
-
     t = match(TOKEN_ID, t, s);
-
-    if(id_type < 0) {
-      id_type = t_SEMERR;
-    }
-        
-    factor_tail_in = id_type;
-    //printf("id_str: %s\n", id_str);
-
-    // push token lex onto call stack for checking
-    // with factor_tail expression_list
-    push(id_str);
 
     t = parse_factor_tail(t, s);
     level--;
     print_level("*RETURN* to factor\n");
 
-
-    // if array expression, return a type
-    // otherwise the type wil be in char *expression_list_profile
-    if (factor_tail_type == t_SEMERR) {
-      factor_type = t_SEMERR;
-      //printf("parameter mismatch in call to '%s'\n", id_str);
-    } else {
-      factor_type = factor_tail_type;      
-    }
-
     break;
     
   case TOKEN_INT:
     t = match(TOKEN_INT, t, s);
-    factor_type = t_INT;
     break;
     
   case TOKEN_REAL:
     t = match(TOKEN_REAL, t, s);
-    factor_type = t_REAL;
     break;
     
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
 
-    expression_in = factor_in;
-    
     t = parse_expression(t, s);
-
-    factor_type = expression_type;
-    
     level--;
-    
     print_level("*RETURN* to factor\n");
+    
     t = match(TOKEN_RPAREN, t, s);
     break;
     
   case TOKEN_NOT:
     t = match(TOKEN_NOT, t, s);
-    factor_in = t_BOOL;
+
     t = parse_factor(t, s);
     level--;
     print_level("*RETURN* to factor\n");
@@ -2176,7 +1680,6 @@ Token parse_factor_tail(Token t, struct state s) {
     TOKEN_REAL,
     TOKEN_NOT
   };
-  struct Stack *stack;  
   level++;
   
   print_level("parse factor_tail\n");
@@ -2190,24 +1693,6 @@ Token parse_factor_tail(Token t, struct state s) {
     print_level("*RETURN* to factor_tail\n");
     t = match(TOKEN_RBRACKET, t, s);
     
-    stack = pop();
-    
-    if(expression_type == t_INT && factor_tail_in == t_AINT) {
-      factor_tail_type = t_INT;
-    } else if (expression_type == t_INT && factor_tail_in == t_AREAL) {
-      factor_tail_type = t_REAL;
-    } else if (expression_type == t_SEMERR || factor_tail_in == t_SEMERR) {
-      factor_tail_type = t_SEMERR;
-    } else if (expression_type != t_INT) {
-      factor_tail_type = t_SEMERR;
-      sprintf(buffer, "array expressions must be integers\n");
-      print_semerr(buffer, s.listing);
-    } else if (factor_tail_in != t_AINT && factor_tail_in != t_AREAL) {
-      factor_tail_type = t_SEMERR;
-      sprintf(buffer, "not an array type\n");
-      print_semerr(buffer, s.listing);
-    }
-    
     break;
 
     // factor_tail -> ( expression_list )
@@ -2217,46 +1702,6 @@ Token parse_factor_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to factor_tail\n");
 
-    struct Stack *stack = pop();
-
-    char *tmp_profile;
-    //int t_type;
-
-    
-    if(search_green(stack->lex)) {
-      node symbol = getNode(*s.symbol_table, stack->lex);
-      t_type = symbol->type;
-      tmp_profile = symbol->profile;
-    } else {
-
-      if (factor_tail_in == t_SEMERR) {
-        sprintf(buffer, "Undefined call to '%s'\n", stack->lex);
-        print_semerr(buffer, s.listing);
-        //printf("green node %s NOT FOUND\n", stack->lex);
-        tmp_profile = "";
-        t_type = t_SEMERR;
-      }
-    }
-
-
-    
-    if(expression_list_profile && tmp_profile) {
-
-      if(!strcmp(expression_list_profile, tmp_profile)) {
-        factor_tail_type = t_type;
-      } else if(expression_type == t_type) {
-        factor_tail_type = t_type;
-      } else if (factor_tail_in != t_SEMERR) {
-        factor_tail_type = t_SEMERR;
-        sprintf(buffer, "parameter mismatch in call to '%s'\n", stack->lex);
-        print_semerr(buffer, s.listing);
-      } else {
-        printf("wut\n");
-      }
-    }
-
-
-    
     t = match(TOKEN_RPAREN, t, s);
     break;
     
@@ -2276,7 +1721,6 @@ Token parse_factor_tail(Token t, struct state s) {
   case TOKEN_DO:
   case TOKEN_THEN:
   case TOKEN_RBRACKET:
-    factor_tail_type = factor_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "factor tail");
