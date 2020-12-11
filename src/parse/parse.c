@@ -27,6 +27,10 @@
 #include "../headers/stack.h"
 #endif
 
+int global_offset;
+int local_offset;
+int width;
+
 node *sym_table;
 
 static int level = 0;
@@ -308,6 +312,7 @@ Token parse_program_tail(Token t, struct state s) {
   print_level("parse program_tail\n");
   switch(t.type) {
   case TOKEN_VAR:
+    global_offset = 0;
     t = parse_declarations(t, s);
     level--;
     
@@ -456,28 +461,30 @@ Token parse_declarations(Token t, struct state s) {
   };
 
   level++;
-  
   print_level("parse declarations\n");
+  
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
-
     blue_lex = t.str;
+    int t_type = t.type;
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
 
-    if (t.type != LEXERR) {
+    if (t_type != LEXERR) {
       check_add_blue(blue_lex, blue_type);
       node symbol = getNode(*s.symbol_table, t.str);
       if (symbol == NULL) {
         symbol = (node)malloc(sizeof(struct LinkedList));
         symbol->str = blue_lex;
         symbol->type = blue_type;
+        symbol->attr = global_offset;
+        global_offset = global_offset + width;
         *s.symbol_table = insertNode(*s.symbol_table, symbol);
       } else {
         symbol->str = blue_lex;
-        symbol->type = blue_type;      
+        symbol->type = blue_type;
       }
     }
     
@@ -505,23 +512,26 @@ Token parse_declarations_tail(Token t, struct state s) {
   };
   
   level++;
-  
   print_level("parse declarations_tail\n");
+  
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
     blue_lex = t.str;
+    int t_type = t.type;
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
 
-    if (t.type != LEXERR) {
+    if (t_type != LEXERR) {
       check_add_blue(blue_lex, blue_type);
       node symbol = getNode(*s.symbol_table, t.str);
       if (symbol == NULL) {
         symbol = (node)malloc(sizeof(struct LinkedList));
         symbol->str = blue_lex;
         symbol->type = blue_type;
+        symbol->attr = global_offset;
+        global_offset = global_offset + width;
         *s.symbol_table = insertNode(*s.symbol_table, symbol);
       } else {
         symbol->str = blue_lex;
@@ -561,30 +571,41 @@ Token parse_type(Token t, struct state s) {
   };
 
   level++;
-  
   print_level("parse type\n");
+
+  int val1, val2;
+  
   switch(t.type) {
   case TOKEN_INTEGER:
   case TOKEN_RREAL:
     t = parse_standard_type(t, s);
     level--;
-    
     print_level("*RETURN* to type\n");
+    
     break;
 
   case TOKEN_ARRAY:
     t = match(TOKEN_ARRAY, t, s);
     t = match(TOKEN_LBRACKET, t, s);
+    val1 = atoi(t.str);
     t = match(TOKEN_INT, t, s);
     t = match(TOKEN_ELIPSIS, t, s);
+    val2 = atoi(t.str);
     t = match(TOKEN_INT, t, s);
     t = match(TOKEN_RBRACKET, t, s);
     t = match(TOKEN_OF, t, s);
     t = parse_standard_type(t, s);
     blue_type = blue_type + 2;
     level--;
-    
     print_level("*RETURN* to type\n");
+
+    if (val2 < val1) {
+      sprintf(buffer, "last array index must be greater than first index\n");
+      print_semerr(buffer, s.listing);
+    }
+    
+    width = width * ((val2 - val1) + 1);
+    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "type");
@@ -609,11 +630,13 @@ Token parse_standard_type(Token t, struct state s) {
   case TOKEN_INTEGER:
     blue_type = t_INT;
     t = match(TOKEN_INTEGER, t, s);
+    width = 4;
     break;
 
   case TOKEN_RREAL:
     blue_type = t_REAL;
     t = match(TOKEN_RREAL, t, s);
+    width = 8;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "standard type");

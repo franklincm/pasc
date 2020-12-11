@@ -2,6 +2,7 @@ program test(input, output);
 var y : integer;
 var z : real;
 var c : array [1 .. 3] of integer;
+var h : array [2 .. 4] of integer;
 function square(a: integer; b: real): real;
   function nested(a : integer): integer;
   var u : integer;
@@ -30,6 +31,6 @@ begin
    triangle := a + 2
 end;
 begin
-   y := triangle(circle(square(c[1], 2.0)));
+   y := triangle(circle(square(c[h[2]], 2.0)));
    y := 2
 end.
