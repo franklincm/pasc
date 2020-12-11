@@ -13,6 +13,7 @@
 static struct ColorNode *dllist = NULL;
 static struct StackNode *eye_stack = NULL;
 
+/* push green node onto stack */
 void push_eye(struct ColorNode *greenNode) {
   struct StackNode *node = malloc(sizeof(struct StackNode));
   node->addr = (uintptr_t)greenNode;
@@ -20,15 +21,15 @@ void push_eye(struct ColorNode *greenNode) {
 
   if (eye_stack == NULL){
     eye_stack = node;
-    //printf("push 0x%" PRIXPTR ": %s\n", node->addr, greenNode->lex);
     return;
   }
 
   node->next = eye_stack;
   eye_stack = node;
-  //printf("push 0x%" PRIXPTR ": %s\n", node->addr, greenNode->lex);
 }
 
+/* prunes the linked list up to the current green node
+   and then pops the green node off the stack */
 void pop_eye() {
   if (eye_stack == NULL) {
     return;
@@ -36,12 +37,9 @@ void pop_eye() {
 
   struct StackNode *tmp;
   tmp = eye_stack;
-  
-
 
   if (eye_stack) {
     while(get_tail_address() != eye_stack->addr) {
-      //printf("pruning...\n");
       prune_list();
     }
   }
@@ -51,21 +49,14 @@ void pop_eye() {
   } else {
     eye_stack = NULL;
   }
-
-  /* struct ColorNode *test; */
-  /* test = dllist; */
-  /* while(test->down) { */
-  /*   test = test->down; */
-  /* } */
 }
 
+/* removes last item in linked list */
 void prune_list() {
 
   if (dllist == NULL) {
     return;
   } else if (!dllist->down) {
-    //printf("POP Green : %s\n", dllist->lex);
-    //printf("address of %s: 0x%" PRIXPTR "\n", dllist->lex, (uintptr_t)dllist);
     dllist = NULL;
     return;
   }
@@ -76,9 +67,7 @@ void prune_list() {
   while(tmp->down->down) {
     tmp = tmp->down;
   }
-  //printf("POP Green : %s\n", tmp->down->lex);
-  //printf("address of %s: 0x%" PRIXPTR "\n", tmp->down->lex, (uintptr_t)tmp->down);
-  //printf("prune: %s\n", tmp->down->lex);
+
   tmp->down = NULL;
 }
 
@@ -88,195 +77,148 @@ void prune_list() {
   nodes.
  */
 void insert_node(char color, char *lex, int type, char *profile) {
+  // creat node to be inserted with given params
   struct ColorNode *node = malloc(sizeof(struct ColorNode));
   node->color = color;
   node->lex = lex;
   node->type = type;
   node->profile = profile;
 
+  // if green node, push onto stack
   if (color == 'G') {
     push_eye(node);
   }
 
-
+  // if linked list empty, set this node as the head
   if (dllist == NULL) {
     dllist = node;
-    //printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
     return;
   }
 
+  // traverse down to the bottom of the linked list
   struct ColorNode *tmp;
   tmp = dllist;
   while(tmp->down) {
     tmp = tmp->down;
   }
+
+  // set created node's up pointer to previous bottom of list
   node->up = tmp;
+
+  // add created node to bottom of list
   tmp->down = node;
-  //printf("address of %s: 0x%" PRIXPTR "\n", node->lex, (uintptr_t)node);
 }
 
 /*
-  returns whether or not the lexeme is found in the existing
-  green nodes. 
-
+  searches entire linked list for lex, bottom-up
   0 = not found
   1 = found
  */
-int search_green(char *lex) {
-  //printf("search: %s\n", lex);
+int search_global(char *lex) {
   if (dllist == NULL) {
     return 0;
   }
   struct ColorNode *tmp;
   tmp = dllist;
-  // strcmp() == 0 when identical
-  if (!strcmp(tmp->lex, lex)) {
-    //printf("found: %s\n", tmp->lex);
-    return 1;
-  }
 
-  // while list has more children...
-  while(tmp->down) {
+  // traverse to bottom of list...
+  while(tmp->down)
     tmp = tmp->down;
-    if (!strcmp(tmp->lex, lex)) {
-      //printf("found: %s\n", tmp->lex);
-      return 1;
+
+  // beginning at bottom of list
+  // check node for matching lex
+  // and continue moving up
+  if(!strcmp(tmp->lex, lex))
+    return 1;
+  else {
+    while(tmp->up) {
+      tmp = tmp->up;
+      if (!strcmp(tmp->lex, lex)) {
+        return 1;
+      }
     }
   }
   return 0;
 }
 
-int search_blue(char *lex) {
+/*
+  searches linked list for lex, bottom-up
+  until reaching first green node
+  0 = not found
+  1 = found
+ */
+int search_local(char *lex) {
   if (!dllist) {
     return 0;
   }
+
   struct ColorNode *tmp;
   tmp = dllist;
 
-  while(tmp->down) {
+  // travers to bottom of list
+  while(tmp->down)
     tmp = tmp->down;
-  }
 
-  uintptr_t parent_green_addr = eye_stack->addr;
-  while(get_node_addr(tmp) != parent_green_addr) {
-    if (!strcmp(tmp->lex, lex)) {
+  // while not a green node and can still move up
+  // the list, check for lex and move up if not found
+  while(tmp->color != 'G' && tmp->up) {
+    if(!strcmp(tmp->lex, lex))
       return 1;
-    }
-    if (tmp->up) {
-      tmp = tmp->up;      
-    } else {
-      break;
-    }
+    tmp = tmp->up;
   }
-  
   return 0;
 }
 
-struct ColorNode *scope_search_blue(char *lex) {
-  struct ColorNode *tmp;
+/* check for node in current scope with given lex,
+   insert green node if not found.
+ */
+void check_add_green(char *lex, int type, char *profile) {
 
-  if (!dllist) {
-    return NULL;
-  }
-
-  tmp = dllist;
-
-  while(tmp->down) {
-    tmp = tmp->down;
-  }
-
-  uintptr_t parent_green_addr = eye_stack->addr;
-  while(get_node_addr(tmp) != parent_green_addr) {
-    if (!strcmp(tmp->lex, lex)) {
-      return tmp;
-    }
-    if (tmp->up) {
-      tmp = tmp->up;      
-    } else {
-      break;
-    }
-  }
-  
-  return NULL;
+  if(search_global(lex)) {
+    printf("SEMERR: Attempt to redefine `%s`.\n", lex);
+    //insert_node('G', "SEMERR", type, profile);
+  } else
+    insert_node('G', lex, type, profile);
 }
 
-void check_add_green(Token t) {
-  char *str = t.str;
-  int type = t.type;
-  char *profile = "";
-
-  if(search_green(str)) {
-    printf("SEMERR: Attempt to redefine `%s`\n", str);
-    insert_node('G', "SEMERR", type, profile);
-    printf("PUSH SEMERR Green : %s\n", str);    
-  }
-  insert_node('G', str, type, profile);
-}
-
+/* check for node in local scope with given lex,
+   insert blue node if not found.
+ */
 void check_add_blue(char *lex, int type) {
-  if(search_blue(lex)) {
-    printf("SEMERR: (blue): `%s`\n", lex);
+  if(search_local(lex)) {
+    printf("SEMERR: `%s` already defined in this scope.\n", lex);
     return;
-  }
-  if(type >= 5 && type <= 9) {
-    update_profile(type);
   }
   insert_node('B', lex, type, "");
   return;
 }
 
-uintptr_t get_tail_address() {
+/* same as global_search but returns the node if found */
+struct ColorNode *get_color_node(char *lex) {
+  if (dllist == NULL) 
+    return NULL;
+
   struct ColorNode *tmp;
   tmp = dllist;
 
-  while (tmp->down) {
-    tmp = tmp->down;
-  }
-  return (uintptr_t)tmp;
-}
-
-uintptr_t get_node_addr(struct ColorNode *n) {
-  return (uintptr_t) n;
-}
-
-struct ColorNode *get_parent_green() {
-  struct ColorNode *tmp;
-  tmp = dllist;
+  // traverse to bottom of list
   while(tmp->down)
     tmp = tmp->down;
 
-  uintptr_t parent_addr = eye_stack->addr;
-  while(get_node_addr(tmp) != parent_addr) {
-    if (tmp->up)
+  // beginning at bottom of list
+  // check node for matching lex
+  // and continue moving up
+  if(!strcmp(tmp->lex, lex))
+    return tmp;
+  else {
+    while(tmp->up) {
       tmp = tmp->up;
+      if (!strcmp(tmp->lex, lex)) {
+        return tmp;
+      }
+    }
   }
-  return tmp;
-}
-
-void update_profile(int type) {
-  struct ColorNode *tmp = get_parent_green();
-  char buffer [2];
-  sprintf(buffer, "%d", type);
-  char *old_profile = tmp->profile;
-  tmp->profile = malloc((strlen(tmp->profile) + 2) * sizeof(char));
-  strcat(tmp->profile, old_profile);
-  strcat(tmp->profile, buffer);
-  return;
-}
-
-void set_return_type(int type, node *symbol_table) {
-  // update green node profile
-  struct ColorNode *tmp = get_parent_green();
-  /* char buffer [3]; */
-  /* sprintf(buffer, ":%d", type); */
-  /* char *old_profile = tmp->profile; */
-  /* tmp->profile = malloc((strlen(tmp->profile) + 3) * sizeof(char)); */
-  /* strcat(tmp->profile, old_profile); */
-  /* strcat(tmp->profile, buffer); */
-
-  // update parent type in symbol table
-  node symbol = getNode(*symbol_table, tmp->lex);
-  symbol->type = type;
+  return NULL;
 }
 
 char *profile_type_to_str(int type) {
