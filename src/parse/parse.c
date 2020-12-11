@@ -938,8 +938,10 @@ Token parse_parameter_list(Token t, struct state s) {
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
 
+    blue_type = blue_type + 4;
+
     if (t.type != LEXERR) {
-      check_add_blue(blue_lex, blue_type + 4);
+      check_add_blue(blue_lex, blue_type);
       node symbol = getNode(*s.symbol_table, t.str);
       if (symbol == NULL) {
         symbol = (node)malloc(sizeof(struct LinkedList));
@@ -1221,7 +1223,10 @@ Token parse_statement(Token t, struct state s) {
 
       // all good?
       if(symbol->type == expression_type) {}
-
+      else if (symbol->type == t_INT && expression_type == t_PPINT) {}
+      else if (symbol->type == t_PPINT && expression_type == t_INT) {}
+      else if (symbol->type == t_REAL && expression_type == t_PPREAL) {}
+      else if (symbol->type == t_PPREAL && expression_type == t_REAL) {}
       // silently forward errors
       else if (expression_type == t_SEMERR) {}
 
@@ -1827,11 +1832,19 @@ Token parse_simple_expression_tail(Token t, struct state s) {
       sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
       print_semerr(buffer, s.listing);
       simple_expression_tail_in = t_SEMERR;
-    } else if (simple_expression_tail_in == t_REAL && term_type == t_INT) {
+    } else if (simple_expression_tail_in == t_PPREAL && term_type == t_INT) {
+      sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
+      print_semerr(buffer, s.listing);
+      simple_expression_tail_in = t_SEMERR;
+    }  else if (simple_expression_tail_in == t_REAL && term_type == t_INT) {
       sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
       print_semerr(buffer, s.listing);
       simple_expression_tail_in = t_SEMERR;
     } else if (simple_expression_tail_in == t_REAL && term_type == t_PPINT) {
+      sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
+      print_semerr(buffer, s.listing);
+      simple_expression_tail_in = t_SEMERR;
+    } else if (simple_expression_tail_in == t_PPINT && term_type == t_REAL) {
       sprintf(buffer, "Mixed-mode expressions are not allowed.\n");
       print_semerr(buffer, s.listing);
       simple_expression_tail_in = t_SEMERR;
