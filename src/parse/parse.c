@@ -38,7 +38,8 @@ static int print = 0;
 static int EOP = 0;
 
 
-char *id_str;
+char *param_id_str;
+char *dec_id_str;
 char *lhs;
 char *profile_buffer;
 
@@ -392,7 +393,7 @@ Token parse_declarations(Token t, struct state s) {
     t = match(TOKEN_VAR, t, s);
 
     if (t.type != LEXERR)
-      id_str = t.str;
+      dec_id_str = t.str;
     
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
@@ -400,8 +401,9 @@ Token parse_declarations(Token t, struct state s) {
     level--;
     print_level("*RETURN* to declarations\n");
 
-    if(id_str)
-      check_add_blue(id_str, type, s.symboltablefile);
+    if(dec_id_str)
+      check_add_blue(dec_id_str, type, s.symboltablefile);
+    dec_id_str = NULL;
     
     t = match(TOKEN_SEMICOLON, t, s);
     t = parse_declarations_tail(t, s);
@@ -430,7 +432,7 @@ Token parse_declarations_tail(Token t, struct state s) {
     t = match(TOKEN_VAR, t, s);
 
     if (t.type != LEXERR)
-      id_str = t.str;
+      dec_id_str = t.str;
 
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
@@ -438,8 +440,9 @@ Token parse_declarations_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to declarations_tail\n");
 
-    if(id_str)
-      check_add_blue(id_str, type, s.symboltablefile);
+    if(dec_id_str)
+      check_add_blue(dec_id_str, type, s.symboltablefile);
+    dec_id_str = NULL;
     
     t = match(TOKEN_SEMICOLON, t, s);
     t = parse_declarations_tail(t, s);
@@ -783,17 +786,24 @@ Token parse_parameter_list(Token t, struct state s) {
   };
   
   level++;
-  
   print_level("parse parameter_list\n");
+  
   switch(t.type) {
   case TOKEN_ID:
+    if(t.type != LEXERR)
+      param_id_str = t.str;
+
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
 
-    level--;
+    if(param_id_str)
+      check_add_blue(param_id_str, type, s.symboltablefile);
+    param_id_str = NULL;
     
+    level--;
     print_level("*RETURN* to parameter_list\n");
+    
     t = parse_parameter_list_tail(t, s);
     level--;
     
@@ -814,19 +824,26 @@ Token parse_parameter_list_tail(Token t, struct state s) {
   };
   
   level++;
-  
   print_level("parse parameter_list_tail\n");
+  
   switch(t.type) {
   case TOKEN_SEMICOLON:
     t = match(TOKEN_SEMICOLON, t, s);
 
+    if(t.type != LEXERR)
+      param_id_str = t.str;
+    
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
 
+    if(param_id_str)
+      check_add_blue(param_id_str, type, s.symboltablefile);
+    param_id_str = NULL;
+
     level--;
-    
     print_level("*RETURN* to parameter_list_tail\n");
+    
     t = parse_parameter_list_tail(t, s);
     level--;
     
