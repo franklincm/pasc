@@ -38,8 +38,8 @@ void pop_eye() {
   struct StackNode *tmp;
   tmp = eye_stack;
 
-  if (eye_stack) {
-    while(get_tail_address() != eye_stack->addr) {
+  if (eye_stack && dllist) {
+    while((uintptr_t)get_tail() != eye_stack->addr) {
       prune_list();
     }
   }
@@ -219,6 +219,20 @@ struct ColorNode *get_color_node(char *lex) {
     }
   }
   return NULL;
+}
+
+/* returns last node in the list */
+struct ColorNode *get_tail() {
+  if(dllist == NULL)
+    return NULL;
+
+  struct ColorNode *tmp;
+  tmp = dllist;
+
+  // traverse to end of list and return node
+  while(tmp->down)
+    tmp = tmp->down;
+  return tmp;
 }
 
 char *profile_type_to_str(int type) {

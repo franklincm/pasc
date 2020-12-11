@@ -32,5 +32,6 @@ int search_local(char *lex);
 void check_add_green(char *lex, int type, char *profile);
 void check_add_blue(char *lex, int type);
 struct ColorNode *get_color_node(char *lex);
+struct ColorNode *get_tail();
 char *profile_type_to_str(int type);
 
