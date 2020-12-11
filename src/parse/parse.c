@@ -865,6 +865,9 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     t = parse_standard_type(t, s);
     level--;
     print_level("*RETURN* to subprogram_head_tail\n");
+
+    symbol->attr = global_offset;
+    global_offset = global_offset + local_offset + width;
     
     // blue_type hold the result of standard_type
     set_return_type(blue_type, s.symbol_table);
