@@ -3,33 +3,33 @@ var y : integer;
 var z : real;
 var c : array [1 .. 3] of integer;
 function square(a: integer; b: real): real;
-  function nested(a : integer): integer;
+  function square2(a : integer): integer;
   var u : integer;
     begin
-       u := 1;
-       nested := 2
+       u := (1 > 3);
+       square := 2.0
     end;
 begin
-   while (2>=1) do
+   while (2>=d) do
       begin
          a := a + 2
       end;
    square := 2.0
 end;
-function circle(a : real): integer;
+function add1(a : real): integer;
 begin
-   if (y == 1) then
-      circle := 2 + 1
+   if (y == 1.0) then
+      add1 := 2 + 1
    else
-      circle := 2 + 2
+      add1 := 2 + 2
 end;
-function triangle(a : integer): integer;
+function addTwo(a : integer): integer;
 var d :  integer;
 begin
-   d := 3;
-   triangle := a + 2
+   d := 3.0;
+   addTwo := a + 2
 end;
 begin
-   y := triangle(circle(square(c[1], 2.0)));
+   y := addTwo(add1(square(c[1], 2)));
    y := 2
 end.

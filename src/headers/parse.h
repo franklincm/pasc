@@ -11,7 +11,8 @@ struct state
   node reserved_words;
   node *symbol_table;
 };
-
+int get_semerr_line();
+int get_synerr_line();
 void print_semerr(char *msg, FILE *listing);
 Token get_tok(struct state s);
 Token match(int token_type, Token t, struct state s);

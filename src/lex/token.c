@@ -13,6 +13,22 @@
 #include "../headers/output.h"
 #endif
 
+#ifndef PARSE
+#define PARSE
+#include "../headers/parse.h"
+#endif
+
+static int lineno = 0;
+static int lexerr_line = 0;
+
+int get_lineno() {
+  return lineno;
+}
+
+int get_lexerr_line() {
+  return lexerr_line;
+}
+
 char *print_error(Token t) {
   char *line_buffer = (char *)malloc(150 * sizeof(char));
   sprintf(line_buffer, "%-10s%-30s%s", type_to_str(t.type), attr_to_str(t), t.str);
@@ -30,7 +46,7 @@ Token get_token(FILE *input,
   static FILE *token_file;
   static char *pos;
   static char line_buffer[72];
-  static int lineno = 0;
+  //static int lineno = 0;
 
   Token t;
 
@@ -63,8 +79,9 @@ Token get_token(FILE *input,
   t = get_token_from_line(line_buffer, ReservedWords);
 
   // if LEXERR, write to listing
-  if (t.type == LEXERR) {
+  if (t.type == LEXERR && lineno) {
     write_line_to_file(lexerr_str(t), listing_file);
+    lexerr_line = lineno;
   }
 
   // write token to tokenfile

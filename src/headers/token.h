@@ -87,6 +87,8 @@ typedef struct Token{
   int attr;
 } Token;
 
+int get_lineno();
+int get_lexerr_line();
 Token get_token(FILE *input, FILE *listing, FILE *tokenfile, node ReservedWords);
 Token get_token_from_line(char *line, node ReservedWords);
 Token nfa(char *f, node ReservedWords);
