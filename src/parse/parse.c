@@ -1125,7 +1125,7 @@ Token parse_statement(Token t, struct state s) {
     
   case TOKEN_BEGIN:
     statement_compound = 1;
- t = parse_compound_statement(t, s);
+    t = parse_compound_statement(t, s);
     statement_compound = 0;
     level--;
     print_level("*RETURN* to statement\n");
@@ -1143,6 +1143,12 @@ Token parse_statement(Token t, struct state s) {
     level--;
     print_level("*RETURN* to statement\n");
 
+    if (expression_type == t_SEMERR) {}
+    else if (expression_type != t_BOOL) {
+      sprintf(buffer, "'while' condition must be type BOOL.\n");
+      print_semerr(buffer, s.listing);
+    }
+    
     t = match(TOKEN_DO, t, s);
     t = parse_statement(t, s);
 
@@ -1176,6 +1182,12 @@ Token parse_ifexp(Token t, struct state s) {
     t = parse_expression(t, s);
     level--;
     print_level("*RETURN* to ifexp\n");
+
+    if (expression_type == t_SEMERR) {}
+    else if (expression_type != t_BOOL) {
+      sprintf(buffer, "'if' condition must be type BOOL.\n");
+      print_semerr(buffer, s.listing);
+    }
 
     t = match(TOKEN_THEN, t, s);
     t = parse_statement(t, s);
