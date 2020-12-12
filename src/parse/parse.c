@@ -44,6 +44,7 @@ char *format_buffer;
 char *profile_buffer;
 char *expr_list_profile_buffer;
 char *factor_tail_profile_in;
+char *var_id;
 
 int type;
 int standard_type;
@@ -63,6 +64,9 @@ int term_tail_type;
 int expression_list_type;
 int expression_list_tail_in;
 int expression_list_tail_type;
+int variable_tail_in;
+int variable_tail_type;
+int variable_type;
 
 char buffer [200];
 
@@ -1203,15 +1207,23 @@ Token parse_variable(Token t, struct state s) {
   };
   
   level++;
-  
   print_level("parse variable\n");
+
+  struct ColorNode *symbol;
+  
   switch(t.type) {
   case TOKEN_ID:
-
+    var_id = t.str;
+    symbol = get_color_node(var_id);
     t = match(TOKEN_ID, t, s);
+
+    variable_tail_in = symbol->type;
+    
     t = parse_variable_tail(t, s);
     level--;
     print_level("*RETURN* to variable\n");
+
+    variable_type = variable_tail_type;
 
     break;
   default:
@@ -1238,10 +1250,43 @@ Token parse_variable_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to variable_tail\n");
 
+    // of course there are better ways to do this...
+    if (variable_tail_in == t_AINT && expression_type == t_INT) {
+      variable_tail_type = t_INT;
+    } else if (variable_tail_in == t_AINT && expression_type == t_PPINT) {
+      variable_tail_type = t_INT;
+    } else if (variable_tail_in == t_AREAL && expression_type == t_REAL) {
+      variable_tail_type = t_REAL;
+    } else if (variable_tail_in == t_AREAL&& expression_type == t_PPREAL) {
+      variable_tail_type = t_REAL;
+    } else if (variable_tail_in == t_SEMERR || expression_type == t_SEMERR) {
+      variable_tail_type = t_SEMERR;
+    } else if (variable_tail_in != t_AINT && expression_type == t_INT) {
+      variable_tail_type = t_SEMERR;
+      sprintf(buffer, "'%s' is not an array type and cannot be indexed\n.", var_id);
+      print_semerr(buffer, s.listing);
+    } else if (variable_tail_in != t_AINT && expression_type == t_PPINT) {
+      variable_tail_type = t_SEMERR;
+      sprintf(buffer, "'%s' is not an array type and cannot be indexed\n.", var_id);
+      print_semerr(buffer, s.listing);
+    } else if (variable_tail_in != t_AREAL && expression_type == t_INT) {
+      variable_tail_type = t_SEMERR;
+      sprintf(buffer, "'%s' is not an array type and cannot be indexed\n.", var_id);
+      print_semerr(buffer, s.listing);
+    } else if (variable_tail_in != t_AREAL && expression_type == t_PPINT) {
+      variable_tail_type = t_SEMERR;
+      sprintf(buffer, "'%s' is not an array type and cannot be indexed\n.", var_id);
+      print_semerr(buffer, s.listing);
+    } else if (expression_type != t_INT) {
+      variable_tail_type = t_SEMERR;
+      sprintf(buffer, "array indices must be type INT.\n");
+      print_semerr(buffer, s.listing);
+    }
     
     t = match(TOKEN_RBRACKET, t, s);
     break;
   case TOKEN_ASSIGN:
+    variable_tail_type = variable_tail_in;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable tail");
@@ -1921,6 +1966,8 @@ Token parse_factor(Token t, struct state s) {
 
     t = parse_factor(t, s);
 
+    /* TODO: rework this logic to handle factor_type == t_SEMERR
+       and silently pass it along. */
     if (factor_type != t_BOOL) {
       factor_type = t_SEMERR;
       sprintf(buffer, "'not' requires type BOOL.\n");
