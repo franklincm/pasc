@@ -81,14 +81,14 @@ void prune_list() {
   will keep both green and blue nodes, while eye will keep only green
   nodes.
  */
-void insert_node(char color, char *lex, int type, char *profile, FILE *sym_table_file) {
+void insert_node(char color, char *lex, int type, char *profile, int attr, FILE *sym_table_file) {
   // creat node to be inserted with given params
   struct ColorNode *node = malloc(sizeof(struct ColorNode));
   node->color = color;
   node->lex = lex;
   node->type = type;
   node->profile = profile;
-  node->attr = 0;
+  node->attr = attr;
 
   // if green node, push onto stack
   if (color == 'G') {
@@ -180,25 +180,25 @@ int search_local(char *lex) {
 /* check for node in current scope with given lex,
    insert green node if not found.
  */
-void check_add_green(char *lex, int type, char *profile, FILE *symboltable) {
+void check_add_green(char *lex, int type, char *profile, int attr, FILE *symboltable) {
 
   if(search_global(lex)) {
     printf("SEMERR: Attempt to redefine `%s`.\n", lex);
     //insert_node('G', "SEMERR", type, profile);
   } else {
-    insert_node('G', lex, type, profile, symboltable);
+    insert_node('G', lex, type, profile, attr, symboltable);
   }
 }
 
 /* check for node in local scope with given lex,
    insert blue node if not found.
  */
-void check_add_blue(char *lex, int type, FILE *symboltable) {
+void check_add_blue(char *lex, int type, int attr, FILE *symboltable) {
   if(search_local(lex)) {
     printf("SEMERR: `%s` already defined in this scope.\n", lex);
     return;
   }
-  insert_node('B', lex, type, "", symboltable);
+  insert_node('B', lex, type, "", attr, symboltable);
   return;
 }
 

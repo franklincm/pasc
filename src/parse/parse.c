@@ -27,14 +27,14 @@
 #include "../headers/stack.h"
 #endif
 
-int global_offset;
-int local_offset;
+int offset;
 int width;
 
 static int level = 0;
 static int print = 0;
 static int EOP = 0;
 
+char buffer [200];
 
 char *subp_head_str;
 char *param_id_str;
@@ -46,10 +46,10 @@ char *expr_list_profile_buffer;
 char *factor_tail_profile_in;
 char *var_id;
 
-int type;
-int standard_type;
 int statement_compound;
 
+int type;
+int standard_type;
 int factor_tail_type;
 int factor_type;
 int expression_type;
@@ -68,10 +68,9 @@ int variable_tail_in;
 int variable_tail_type;
 int variable_type;
 
-char buffer [200];
-
 int semerr_line = 0;
 int synerr_line = 0;
+
 
 void update_profile(int type) {
 
@@ -243,7 +242,7 @@ Token parse_program(Token t, struct state s) {
     t = match(TOKEN_PROGRAM, t, s);
 
     if(t.type != LEXERR)
-      check_add_green(t.str, PGNAME, "", s.symboltablefile);
+      check_add_green(t.str, PGNAME, "", 0, s.symboltablefile);
     
     t = match(TOKEN_ID, t, s);
     
@@ -285,6 +284,7 @@ Token parse_program_tail(Token t, struct state s) {
   print_level("parse program_tail\n");
   switch(t.type) {
   case TOKEN_VAR:
+    offset = 0;
     t = parse_declarations(t, s);
     level--;
     
@@ -350,7 +350,7 @@ Token parse_identifier_list(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_ID:
     if(t.type != LEXERR)
-      check_add_blue(t.str, PGPARAM, s.symboltablefile);
+      check_add_blue(t.str, PGPARAM, 0, s.symboltablefile);
     
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
@@ -379,7 +379,7 @@ Token parse_identifier_list_tail(Token t, struct state s) {
     t = match(TOKEN_COMMA, t, s);
 
     if(t.type != LEXERR)
-      check_add_blue(t.str, PGPARAM, s.symboltablefile);
+      check_add_blue(t.str, PGPARAM, 0, s.symboltablefile);
     
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
@@ -419,7 +419,7 @@ Token parse_declarations(Token t, struct state s) {
     print_level("*RETURN* to declarations\n");
 
     if(dec_id_str)
-      check_add_blue(dec_id_str, type, s.symboltablefile);
+      check_add_blue(dec_id_str, type, offset + width, s.symboltablefile);
     dec_id_str = NULL;
     
     t = match(TOKEN_SEMICOLON, t, s);
@@ -443,7 +443,7 @@ Token parse_declarations_tail(Token t, struct state s) {
   
   level++;
   print_level("parse declarations_tail\n");
-  
+
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
@@ -458,7 +458,8 @@ Token parse_declarations_tail(Token t, struct state s) {
     print_level("*RETURN* to declarations_tail\n");
 
     if(dec_id_str)
-      check_add_blue(dec_id_str, type, s.symboltablefile);
+      check_add_blue(dec_id_str, type, offset + width, s.symboltablefile);
+    
     dec_id_str = NULL;
     
     t = match(TOKEN_SEMICOLON, t, s);
@@ -490,6 +491,8 @@ Token parse_type(Token t, struct state s) {
   level++;
   print_level("parse type\n");
 
+  int val1, val2;
+
   switch(t.type) {
   case TOKEN_INTEGER:
   case TOKEN_RREAL:
@@ -504,9 +507,11 @@ Token parse_type(Token t, struct state s) {
     t = match(TOKEN_ARRAY, t, s);
     t = match(TOKEN_LBRACKET, t, s);
 
+    val1 = atoi(t.str);
     t = match(TOKEN_INT, t, s);
     t = match(TOKEN_ELIPSIS, t, s);
 
+    val2 = atoi(t.str);
     t = match(TOKEN_INT, t, s);
     t = match(TOKEN_RBRACKET, t, s);
     t = match(TOKEN_OF, t, s);
@@ -514,6 +519,13 @@ Token parse_type(Token t, struct state s) {
     t = parse_standard_type(t, s);
     level--;
     print_level("*RETURN* to type\n");
+
+    if (val2 >= val1) {
+      width = width * ((2-1) + 1);
+    } else {
+      sprintf(buffer, "invalid array subscript.\n");
+      print_semerr(buffer, s.listing);
+    }
 
     type = standard_type + 2;
     break;
@@ -540,11 +552,13 @@ Token parse_standard_type(Token t, struct state s) {
   case TOKEN_INTEGER:
     t = match(TOKEN_INTEGER, t, s);
     standard_type = t_INT;
+    width = 4;
     break;
 
   case TOKEN_RREAL:
     t = match(TOKEN_RREAL, t, s);
     standard_type = t_REAL;
+    width = 8;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "standard type");
@@ -757,7 +771,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     print_level("*RETURN* to subprogram_head_tail\n");
 
     if(subp_head_str) {
-      check_add_green(subp_head_str, standard_type, profile_buffer, s.symboltablefile);
+      check_add_green(subp_head_str, standard_type, profile_buffer, 0, s.symboltablefile);
       subp_head_str = NULL;
     }
 
@@ -772,7 +786,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     print_level("*RETURN* to subprogram_head_tail\n");
 
     if(subp_head_str) {
-      check_add_green(subp_head_str, type, "0", s.symboltablefile);
+      check_add_green(subp_head_str, type, "0", 0, s.symboltablefile);
       subp_head_str = NULL;
     }
     
@@ -832,7 +846,7 @@ Token parse_parameter_list(Token t, struct state s) {
     print_level("*RETURN* to parameter_list\n");
     
     if(param_id_str) {
-      check_add_blue(param_id_str, type, s.symboltablefile);
+      check_add_blue(param_id_str, type, 0, s.symboltablefile);
       
       // start building profile string
       profile_buffer = malloc(sizeof(char) * 1);
@@ -876,7 +890,7 @@ Token parse_parameter_list_tail(Token t, struct state s) {
     print_level("*RETURN* to parameter_list_tail\n");
 
     if(param_id_str) {
-      check_add_blue(param_id_str, type, s.symboltablefile);
+      check_add_blue(param_id_str, type, 0, s.symboltablefile);
       
       // continue building profile string
       format_buffer = malloc(sizeof(char) * (strlen(profile_buffer) + 1));
