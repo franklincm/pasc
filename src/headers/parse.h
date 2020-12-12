@@ -60,5 +60,5 @@ Token parse_simple_expression_tail(Token t, struct state s);
 Token parse_term(Token t, struct state s);
 Token parse_term_tail(Token t, struct state s);
 Token parse_factor(Token t, struct state s);
-Token parse_factor_tail(Token t, struct state s);
+Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *factor_id);
 Token parse_sign(Token t, struct state s);

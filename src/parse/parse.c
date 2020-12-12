@@ -31,8 +31,6 @@ int global_offset;
 int local_offset;
 int width;
 
-node *sym_table;
-
 static int level = 0;
 static int print = 0;
 static int EOP = 0;
@@ -44,11 +42,13 @@ char *dec_id_str;
 char *lhs;
 char *format_buffer;
 char *profile_buffer;
+char *expr_list_profile_buffer;
+char *factor_tail_profile_in;
 
 int type;
 int standard_type;
 int statement_compound;
-int factor_tail_in;
+
 int factor_tail_type;
 int factor_type;
 int expression_type;
@@ -60,20 +60,23 @@ int simple_expression_tail_type;
 int term_type;
 int term_tail_in;
 int term_tail_type;
+int expression_list_type;
+int expression_list_tail_in;
+int expression_list_tail_type;
 
 char buffer [200];
 
 int semerr_line = 0;
 int synerr_line = 0;
 
-/* TODO: ^L-Attribute Definition */
+void update_profile(int type) {
 
-int get_semerr_line() {
-  return semerr_line;
-}
+  char *old_profile = "";
+  if (expr_list_profile_buffer)
+    old_profile = expr_list_profile_buffer;
 
-int get_synerr_line() {
-  return synerr_line;
+  expr_list_profile_buffer = malloc(sizeof(char) * (strlen(old_profile) + 1));
+  sprintf(expr_list_profile_buffer, "%s%d", old_profile, type);
 }
 
 void print_semerr(char *msg, FILE *listing) {
@@ -85,7 +88,7 @@ void print_semerr(char *msg, FILE *listing) {
   if (get_lineno() != semerr_line
       && get_lineno() != synerr_line) {
     write_line_to_file(sbuffer, listing);
-    //semerr_line = get_lineno();
+    semerr_line = get_lineno();
   }
 }
 
@@ -128,7 +131,6 @@ Token get_tok(struct state s) {
 Token match(int token_type, Token t, struct state s) {
   if(t.type == TOKEN_EOF) {
     write_line_to_file("End of Parse\n", s.listing);
-    //exit(0);
     return t;
   }
   if(print) {
@@ -156,7 +158,6 @@ Token match(int token_type, Token t, struct state s) {
 
 
     char * buffer = (char *)malloc(150 * sizeof(char));
-    //sprintf(buffer, "Missing: '%s'\n", type_to_str(token_type));
     sprintf(buffer, "Expecting: %s, Got: '%s'\n", type_to_str(token_type), t.str);
     write_line_to_file(buffer, s.listing);
     synerr_line = get_lineno();
@@ -179,7 +180,6 @@ Token synchronize(Token t, struct state s, int *synch, int size, char *productio
 
   if(t.type == TOKEN_EOF) {
     write_line_to_file("End of Parse\n", s.listing);
-    //exit(0);
   }
   
   printf("SYNCH CALLED (%s): %s\n", production, t.str);
@@ -217,7 +217,6 @@ void parse(FILE *source,
            FILE *symboltablefile,
            node reserved_words) {
 
-  //sym_table = symbol_table;
   
   struct state s = {source, listing, tokenfile, symboltablefile, reserved_words};
   
@@ -512,7 +511,7 @@ Token parse_type(Token t, struct state s) {
     level--;
     print_level("*RETURN* to type\n");
 
-    type = standard_type + 4;
+    type = standard_type + 2;
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "type");
@@ -1273,14 +1272,23 @@ Token parse_expression_list(Token t, struct state s) {
   case TOKEN_LPAREN:
   case TOKEN_NOT:
   case TOKEN_ADDOP:
+
+    expr_list_profile_buffer = NULL;
+    
     t = parse_expression(t, s);
     level--;
     print_level("*RETURN* to expression_list\n");
 
+    update_profile(expression_type);
+
+    //expression_list_tail_in = expression_type;
+    
     t = parse_expression_list_tail(t, s);
     level--;
     print_level("*RETURN* to expression_list\n");
 
+    //printf("%s\n", expr_list_profile_buffer);
+    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list");
@@ -1311,6 +1319,8 @@ Token parse_expression_list_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to expression_list_tail\n");
 
+    update_profile(expression_type);
+    
     t = parse_expression_list_tail(t, s);
     level--;
     print_level("*RETURN* to expression_list_tail\n");
@@ -1853,27 +1863,30 @@ Token parse_factor(Token t, struct state s) {
   print_level("parse factor\n");
 
   struct ColorNode *symbol;
+  int factor_tail_in;
+  char *factor_id;
   
   switch(t.type) {
   case TOKEN_ID:
 
-    if(t.type != LEXERR) {
-      symbol = get_color_node(t.str);
+    factor_id = t.str;
+    symbol = get_color_node(t.str);
+    if(strlen(symbol->profile) > 0) {
+      factor_tail_profile_in = malloc(sizeof(char) * strlen(symbol->profile));
+      sprintf(factor_tail_profile_in, "%s", symbol->profile);
+    }
 
-      if(symbol != NULL)
-        factor_tail_in = symbol->type;
-      else {
-        factor_tail_in = t_SEMERR;
-        sprintf(buffer, "Undefined reference to '%s'.\n", t.str);
-        print_semerr(buffer, s.listing);
-      }
-    } else {
+    if(symbol != NULL) {
+      factor_tail_in = symbol->type;
+    }
+    else {
       factor_tail_in = t_SEMERR;
+      sprintf(buffer, "Undefined reference to '%s'.\n", t.str);
+      print_semerr(buffer, s.listing);
     }
     
     t = match(TOKEN_ID, t, s);
-
-    t = parse_factor_tail(t, s);
+    t = parse_factor_tail(t, s, factor_tail_in, factor_id);
     level--;
     print_level("*RETURN* to factor\n");
 
@@ -1923,7 +1936,7 @@ Token parse_factor(Token t, struct state s) {
   return t;
 }
 
-Token parse_factor_tail(Token t, struct state s) {
+Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *factor_id) {
   int synch[] = {
     TOKEN_EOF,
     TOKEN_MULOP,
@@ -1946,16 +1959,25 @@ Token parse_factor_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to factor_tail\n");
 
-    if(expression_type != t_INT) {
+    if (factor_tail_in == t_AINT && expression_type == t_INT) {
+      factor_tail_type = t_INT;
+    } else if (factor_tail_in == t_AINT && expression_type == t_PPINT) {
+      factor_tail_type = t_INT;
+    } else if (factor_tail_in == t_AREAL && expression_type == t_INT) {
+      factor_tail_type = t_REAL;
+    } else if (factor_tail_in == t_AREAL && expression_type == t_PPINT) {
+      factor_tail_type = t_REAL;
+    } else if (factor_tail_in == t_SEMERR || expression_type == t_SEMERR) {
+      factor_tail_type = t_SEMERR;
+    } else {
       factor_tail_type = t_SEMERR;
       sprintf(buffer, "array expressions must be type INT.\n");
       print_semerr(buffer, s.listing);
     }
-    
-    t = match(TOKEN_RBRACKET, t, s);
-    
-    break;
 
+    t = match(TOKEN_RBRACKET, t, s);
+    break;
+ 
     // factor_tail -> ( expression_list )
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
@@ -1963,7 +1985,13 @@ Token parse_factor_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to factor_tail\n");
 
-    /* TODO: check expression_list profile against factor id symbol profile */
+    if (!strcmp(factor_tail_profile_in, expr_list_profile_buffer)) {
+      factor_tail_type = factor_tail_in;
+    } else {
+      factor_tail_type = t_SEMERR;
+      sprintf(buffer, "type mismatch in function call '%s'\n", factor_id);
+      print_semerr(buffer, s.listing);
+    }
 
     t = match(TOKEN_RPAREN, t, s);
     break;
