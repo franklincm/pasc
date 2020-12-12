@@ -757,7 +757,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     print_level("*RETURN* to subprogram_head_tail\n");
 
     if(subp_head_str) {
-      check_add_green(subp_head_str, type, profile_buffer, s.symboltablefile);
+      check_add_green(subp_head_str, standard_type, profile_buffer, s.symboltablefile);
       subp_head_str = NULL;
     }
 
@@ -1081,11 +1081,15 @@ Token parse_statement(Token t, struct state s) {
   };
 
   level++;
-  
   print_level("parse statement\n");
+
+  struct ColorNode *symbol;
+  
   switch(t.type) {
   case TOKEN_ID:
 
+    symbol = get_color_node(t.str);
+    
     t = parse_variable(t, s);
     level--;
     print_level("*RETURN* to statement\n");
@@ -1094,6 +1098,28 @@ Token parse_statement(Token t, struct state s) {
     t = parse_expression(t, s);
     level--;
     print_level("*RETURN* to statement\n");
+
+
+    if (symbol->type == t_INT && expression_type == t_INT) {}
+    else if (symbol->type == t_PPINT && expression_type == t_INT) {}
+    else if (symbol->type == t_INT && expression_type == t_PPINT) {}
+    else if (symbol->type == t_PPINT && expression_type == t_PPINT) {}
+    else if (symbol->type == t_AINT && expression_type == t_INT) {}
+    else if (symbol->type == t_AINT && expression_type == t_PPINT) {}
+
+    else if (symbol->type == t_REAL && expression_type == t_REAL) {}
+    else if (symbol->type == t_PPREAL && expression_type == t_REAL) {}
+    else if (symbol->type == t_REAL && expression_type == t_PPREAL) {}
+    else if (symbol->type == t_PPREAL && expression_type == t_PPREAL) {}
+    else if (symbol->type == t_AREAL && expression_type == t_REAL) {}
+    else if (symbol->type == t_AREAL && expression_type == t_PPREAL) {}
+    
+    else {
+      sprintf(buffer, "type mismatch, can't assign type '%s' to '%s'",
+              profile_type_to_str(expression_type),
+              profile_type_to_str(symbol->type));
+      print_semerr(buffer, s.listing);
+    }
 
     break;
     
