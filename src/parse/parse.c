@@ -1406,23 +1406,23 @@ Token parse_expression_tail(Token t, struct state s) {
     print_level("*RETURN* to expression_tail\n");
 
     if (expression_tail_in == t_INT && simple_expression_type == t_INT) {
-      expression_tail_in = t_INT;
+      expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_INT && simple_expression_type == t_PPINT) {
-      expression_tail_in = t_INT;
+      expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_PPINT && simple_expression_type == t_INT) {
-      expression_tail_in = t_INT;
+      expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_PPINT && simple_expression_type == t_PPINT) {
-      expression_tail_in = t_INT;
+      expression_tail_in = t_BOOL;
     }
 
     else if (expression_tail_in == t_REAL && simple_expression_type == t_REAL) {
-      expression_tail_in = t_REAL;
+      expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_REAL && simple_expression_type == t_PPREAL) {
-      expression_tail_in = t_REAL;
+      expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_PPREAL && simple_expression_type == t_REAL) {
-      expression_tail_in = t_REAL;
+      expression_tail_in = t_BOOL;
     } else if (expression_tail_in == t_PPREAL && simple_expression_type == t_PPREAL) {
-      expression_tail_in = t_REAL;
+      expression_tail_in = t_BOOL;
     }
 
     else if(expression_tail_in == t_SEMERR || simple_expression_type == t_SEMERR) {
@@ -1897,6 +1897,8 @@ Token parse_factor(Token t, struct state s) {
     t = parse_expression(t, s);
     level--;
     print_level("*RETURN* to factor\n");
+
+    factor_type = expression_type;
     
     t = match(TOKEN_RPAREN, t, s);
     break;
