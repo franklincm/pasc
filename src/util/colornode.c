@@ -98,6 +98,7 @@ void insert_node(char color, char *lex, int type, char *profile, FILE *sym_table
   // if linked list empty, set this node as the head
   if (dllist == NULL) {
     dllist = node;
+    write_line_to_symtable(node->attr, node->lex, node->profile, node->type, sym_table_file);
     return;
   }
 
@@ -113,15 +114,7 @@ void insert_node(char color, char *lex, int type, char *profile, FILE *sym_table
 
   // add created node to bottom of list
   tmp->down = node;
-
-  char line_buffer [100];
-  sprintf(line_buffer,
-          "%3s%-5d%2s%-10s%3s%6s%3s%10d\n",
-          "", node->attr,
-          "", node->lex,
-          "", node->profile,
-          "", node->type);
-  write_line_to_file(line_buffer, sym_table_file);
+  write_line_to_symtable(node->attr, node->lex, node->profile, node->type, sym_table_file);
 }
 
 /*
@@ -289,4 +282,15 @@ char *profile_type_to_str(int type) {
     break;
   }
   return str;
+}
+
+void write_line_to_symtable(int attr, char *lex, char *profile, int type, FILE *sym_table_file) {
+  char line_buffer [100];
+  sprintf(line_buffer,
+          "%3s%-5d%2s%-10s%3s%6s%3s%10d\n",
+          "", attr,
+          "", lex,
+          "", profile,
+          "", type);
+  write_line_to_file(line_buffer, sym_table_file);
 }

@@ -35,4 +35,4 @@ void check_add_blue(char *lex, int type, FILE *symboltable);
 struct ColorNode *get_color_node(char *lex);
 struct ColorNode *get_tail();
 char *profile_type_to_str(int type);
-
+void write_line_to_symtable(int attr, char *lex, char *profile, int type, FILE *sym_table_file);

@@ -37,10 +37,11 @@ static int level = 0;
 static int print = 0;
 static int EOP = 0;
 
-
+char *subp_head_str;
 char *param_id_str;
 char *dec_id_str;
 char *lhs;
+char *format_buffer;
 char *profile_buffer;
 
 int type;
@@ -699,6 +700,11 @@ Token parse_subprogram_head(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = match(TOKEN_FUNCTION, t, s);
+
+    if(t.type != LEXERR) {
+      subp_head_str = t.str;
+    }
+    
     t = match(TOKEN_ID, t, s);
     t = parse_subprogram_head_tail(t, s);
     level--;
@@ -734,6 +740,11 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to subprogram_head_tail\n");
 
+    if(subp_head_str) {
+      check_add_green(subp_head_str, type, profile_buffer, s.symboltablefile);
+      subp_head_str = NULL;
+    }
+
     t = match(TOKEN_SEMICOLON, t, s);
     break;
 
@@ -742,8 +753,13 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
 
     t = parse_standard_type(t, s);
     level--;
-
     print_level("*RETURN* to subprogram_head_tail\n");
+
+    if(subp_head_str) {
+      check_add_green(subp_head_str, type, "0", s.symboltablefile);
+      subp_head_str = NULL;
+    }
+    
     t = match(TOKEN_SEMICOLON, t, s);
     break;
   default:
@@ -796,18 +812,22 @@ Token parse_parameter_list(Token t, struct state s) {
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
-
-    if(param_id_str)
-      check_add_blue(param_id_str, type, s.symboltablefile);
-    param_id_str = NULL;
-    
     level--;
     print_level("*RETURN* to parameter_list\n");
+    
+    if(param_id_str) {
+      check_add_blue(param_id_str, type, s.symboltablefile);
+      
+      // start building profile string
+      profile_buffer = malloc(sizeof(char) * 1);
+      sprintf(profile_buffer, "%d", type);
+    }
+    param_id_str = NULL;
     
     t = parse_parameter_list_tail(t, s);
     level--;
-    
     print_level("*RETURN* to parameter_list\n");
+
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "parameter list");
@@ -836,18 +856,25 @@ Token parse_parameter_list_tail(Token t, struct state s) {
     t = match(TOKEN_ID, t, s);
     t = match(TOKEN_COLON, t, s);
     t = parse_type(t, s);
+    level--;
+    print_level("*RETURN* to parameter_list_tail\n");
 
-    if(param_id_str)
+    if(param_id_str) {
       check_add_blue(param_id_str, type, s.symboltablefile);
+      
+      // continue building profile string
+      format_buffer = malloc(sizeof(char) * (strlen(profile_buffer) + 1));
+      sprintf(format_buffer, "%s%d", profile_buffer, type);
+
+      profile_buffer = malloc(sizeof(char) * strlen(format_buffer));
+      sprintf(profile_buffer, "%s", format_buffer);
+    }
     param_id_str = NULL;
 
-    level--;
-    print_level("*RETURN* to parameter_list_tail\n");
-    
     t = parse_parameter_list_tail(t, s);
     level--;
-    
     print_level("*RETURN* to parameter_list_tail\n");
+
     break;
   case TOKEN_RPAREN:
     break;
