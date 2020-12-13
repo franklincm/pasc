@@ -1129,7 +1129,7 @@ Token parse_statement(Token t, struct state s) {
     else if (symbol->type == t_AREAL && expression_type == t_PPREAL) {}
     
     else {
-      sprintf(buffer, "type mismatch, can't assign type '%s' to '%s'",
+      sprintf(buffer, "type mismatch, can't assign type '%s' to '%s'\n",
               profile_type_to_str(expression_type),
               profile_type_to_str(symbol->type));
       print_semerr(buffer, s.listing);
@@ -2018,9 +2018,9 @@ Token parse_factor(Token t, struct state s) {
 
     t = parse_factor(t, s);
 
-    /* TODO: rework this logic to handle factor_type == t_SEMERR
-       and silently pass it along. */
-    if (factor_type != t_BOOL) {
+    if (factor_type == t_SEMERR) {
+      factor_type = t_SEMERR;
+    } else if (factor_type != t_BOOL) {
       factor_type = t_SEMERR;
       sprintf(buffer, "'not' requires type BOOL.\n");
       print_semerr(buffer, s.listing);
