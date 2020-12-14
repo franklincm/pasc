@@ -21,7 +21,7 @@ static int print_header = 1;
 
 /* push green node onto stack */
 void push_eye(struct ColorNode *greenNode) {
-  struct StackNode *node = malloc(sizeof(struct StackNode));
+  struct StackNode *node = (struct StackNode *)malloc(sizeof(struct StackNode));
   node->addr = (uintptr_t)greenNode;
   node->lex = greenNode->lex;
 
@@ -84,7 +84,7 @@ void prune_list() {
  */
 void insert_node(char color, char *lex, int type, char *profile, int attr, int offset, FILE *sym_table_file) {
   // creat node to be inserted with given params
-  struct ColorNode *node = malloc(sizeof(struct ColorNode));
+  struct ColorNode *node = (struct ColorNode *)malloc(sizeof(struct ColorNode));
   node->color = color;
   node->lex = lex;
   node->type = type;
