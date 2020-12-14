@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "../headers/stack.h"
 
-static struct Stack *stack;
+struct Stack *stack;
 
 void push(char *str) {
   struct Stack *node = malloc(sizeof(struct Stack));
