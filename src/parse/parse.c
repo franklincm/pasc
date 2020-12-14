@@ -446,13 +446,16 @@ Token parse_declarations(Token t, struct state s) {
     print_level("*RETURN* to declarations\n");
 
     if(dec_id_str) {
-      address = address + width;
+      address = 0;
      
       err = check_add_blue(dec_id_str, type, address, offset, s.symboltablefile);
       if (err == 0) {
         sprintf(buffer, "'%s' already defined in this scope.\n", dec_id_str);
         print_semerr(buffer, s.listing);
+      } else {
+        address = address + width;
       }
+
     }
     dec_id_str = NULL;
     
@@ -494,11 +497,13 @@ Token parse_declarations_tail(Token t, struct state s) {
     print_level("*RETURN* to declarations_tail\n");
 
     if(dec_id_str) {
-      address = address + width;
+
       err = check_add_blue(dec_id_str, type, address, offset, s.symboltablefile);
       if (err == 0) {
         sprintf(buffer, "'%s' already defined in this scope.\n", dec_id_str);
         print_semerr(buffer, s.listing);
+      } else {
+        address = address + width;
       }
     }
     
@@ -773,8 +778,7 @@ Token parse_subprogram_head(Token t, struct state s) {
   case TOKEN_FUNCTION:
     t = match(TOKEN_FUNCTION, t, s);
 
-    offset = address + offset + width;
-    address = 0;
+    offset = address + offset;
     
     if(t.type != LEXERR) {
       subp_head_str = t.str;

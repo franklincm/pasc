@@ -100,7 +100,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, int o
   // if linked list empty, set this node as the head
   if (dllist == NULL) {
     dllist = node;
-    write_line_to_symtable(node->attr, node->offset, node->lex, node->profile, node->type, sym_table_file);
+    write_line_to_symtable(color, node->attr, node->offset, node->lex, node->profile, node->type, sym_table_file);
     return;
   }
 
@@ -116,7 +116,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, int o
 
   // add created node to bottom of list
   tmp->down = node;
-  write_line_to_symtable(node->attr, node->offset, node->lex, node->profile, node->type, sym_table_file);
+  write_line_to_symtable(color, node->attr, node->offset, node->lex, node->profile, node->type, sym_table_file);
 }
 
 /*
@@ -290,19 +290,24 @@ char *profile_type_to_str(int type) {
   return str;
 }
 
-void write_line_to_symtable(int attr, int offset, char *lex, char *profile, int type, FILE *sym_table_file) {
+void write_line_to_symtable(char color, int attr, int offset, char *lex, char *profile, int type, FILE *sym_table_file) {
+
+  if(color == 'G')
+    return;
+  
   char line_buffer [100];
 
   if (print_header) {
-    sprintf(line_buffer, "%8s%8s%8s%8s%6s\n", "address", "offset", "lexeme", "profile", "type");
+    sprintf(line_buffer, "%8s%8s%8s%6s\n", "address", "offset", "lexeme", "type");
     write_line_to_file(line_buffer, sym_table_file);
     print_header = 0;
   }
 
-  if (type == t_PPINT || type == t_PPREAL || type == t_PPAINT || type == t_PPAREAL) {
-    sprintf(line_buffer, "%23s%8s%8s\n", lex, profile, profile_type_to_str(type));
+  if (type == t_PPINT || type == t_PPREAL || type == t_PPAINT || type == t_PPAREAL || type == PGPARAM || type == PGNAME) {
+    //sprintf(line_buffer, "%23s%8s%8s\n", lex, profile, profile_type_to_str(type));
+    return;
   } else {
-    sprintf(line_buffer, "%5d%8d%10s%8s%6d\n", attr, offset, lex, profile, type);
+    sprintf(line_buffer, "%5d%8d%10s%6d\n", attr, offset, lex, type);
     
   }
 
