@@ -22,9 +22,6 @@ struct StackNode {
   struct StackNode *next;
 };
 
-static struct ColorNode *dllist;
-static struct StackNode *eye_stack;
-
 void push_eye(struct ColorNode *GreenNode);
 void pop_eye();
 void prune_list();

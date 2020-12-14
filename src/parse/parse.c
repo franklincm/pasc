@@ -228,6 +228,8 @@ void parse(FILE *source,
   Token t;
   t = get_tok(s);
   parse_program(t, s);
+  free(profile_buffer);
+  free(format_buffer);
 }
 
 Token parse_program(Token t, struct state s) {
@@ -2048,6 +2050,7 @@ Token parse_factor(Token t, struct state s) {
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "factor");
   }
+
   return t;
 }
 
@@ -2106,9 +2109,11 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
       factor_tail_type = t_SEMERR;
       sprintf(buffer, "type mismatch in function call '%s'\n", factor_id);
       print_semerr(buffer, s.listing);
-      free(profile_buffer);
-      free(format_buffer);
+      
+      
     }
+
+    free(factor_tail_profile_in);
 
     t = match(TOKEN_RPAREN, t, s);
     break;

@@ -15,9 +15,9 @@
 #include "../headers/output.h"
 #endif
 
-static struct ColorNode *dllist = NULL;
-static struct StackNode *eye_stack = NULL;
-static int print_header = 1;
+struct ColorNode *dllist = NULL;
+struct StackNode *eye_stack = NULL;
+int print_header = 1;
 
 /* push green node onto stack */
 void push_eye(struct ColorNode *greenNode) {
