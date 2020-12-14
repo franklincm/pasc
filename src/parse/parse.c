@@ -49,6 +49,7 @@ char *var_id;
 
 int statement_compound;
 int profile_length;
+int insert;
 
 int type;
 int standard_type;
@@ -155,15 +156,15 @@ Token match(int token_type, Token t, struct state s) {
       return t;
     }
   } else {
-    printf("SYNERR\n");
+    printf("SYNERR ");
     fflush(stdout);
     printf("Expecting: %s, Got: %s    %s\n", type_to_str(token_type), type_to_str(t.type), t.str);
     fflush(stdout);
-    write_line_to_file("SYNERR\n", s.listing);
+    //write_line_to_file("SYNERR\n", s.listing);
 
 
     char * buffer = (char *)malloc(150 * sizeof(char));
-    sprintf(buffer, "Expecting: %s, Got: '%s'\n", type_to_str(token_type), t.str);
+    sprintf(buffer, "SYNERR: Expecting: %s, Got: '%s'\n", type_to_str(token_type), t.str);
     write_line_to_file(buffer, s.listing);
     synerr_line = get_lineno();
 
@@ -175,13 +176,8 @@ Token match(int token_type, Token t, struct state s) {
 
 Token synchronize(Token t, struct state s, int *synch, int size, char *production) {
   char * buffer = (char *)malloc(150 * sizeof(char));
-  sprintf(buffer, "SYNERR\nExpecting %s, Got: '%s'\n", production, t.str);
+  sprintf(buffer, "SYNERR: Expecting %s, Got: '%s'\n", production, t.str);
   synerr_line = get_lineno();
-  //write_line_to_file(buffer, s.listing);
-  //write_line_to_file("synching...\n\n", s.listing);
-
-  /* sprintf(buffer, "Expecting %s, Got: %s", production, t.str); */
-  /* write_line_to_file(listing_err(buffer), s.listing); */
 
   if(t.type == TOKEN_EOF) {
     write_line_to_file("End of Parse\n", s.listing);
@@ -189,14 +185,15 @@ Token synchronize(Token t, struct state s, int *synch, int size, char *productio
   
   printf("SYNCH CALLED (%s): %s\n", production, t.str);
 
-  for(int token = 0; token < size; token++) {
-    if (t.type == synch[token]) {
-      sprintf(buffer, "skipping %s...\n\n", t.str);
-      write_line_to_file(buffer, s.listing);
-      printf("SYNCH FOUND: %s\n\n", t.str);
-      return t;
-    }
-  }
+  /* for(int token = 0; token < size; token++) { */
+  /*   if (t.type == synch[token]) { */
+  /*     printf("skipping %s...\n\n", t.str); */
+
+  /*     sprintf(buffer, "SYNCH FOUND: %s\n\n", t.str); */
+  /*     write_line_to_file(buffer, s.listing); */
+  /*     return t; */
+  /*   } */
+  /* } */
   
   int synch_found = 0;
 
@@ -252,7 +249,8 @@ Token parse_program(Token t, struct state s) {
       if (err == 0) {
         sprintf(buffer, "Attempt to redefine '%s'.\n", t.str);
         print_semerr(buffer, s.listing);
-        check_add_green("null", 99, "", address, offset, s.symboltablefile);
+      } else {
+        insert = 1;
       }
     }
     
@@ -826,7 +824,8 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
       if (err == 0) {
         sprintf(buffer, "Attempt to redefine '%s'.\n", subp_head_str);
         print_semerr(buffer, s.listing);
-        check_add_green("null", 99, "", address, offset, s.symboltablefile);
+      } else {
+        insert = 1;
       }
       subp_head_str = NULL;
     }
@@ -846,7 +845,8 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
       if (err == 0) {
         sprintf(buffer, "Attempt to redefine '%s'.\n", t.str);
         print_semerr(buffer, s.listing);
-        check_add_green("null", 99, "", address, offset, s.symboltablefile);
+      } else {
+        insert = 1;
       }
       subp_head_str = NULL;
     }
@@ -1048,14 +1048,20 @@ Token parse_compound_statement_tail(Token t, struct state s) {
     
     print_level("*RETURN* to compound_statement_tail\n");
     t = match(TOKEN_END, t, s);
-    if (!statement_compound)
+    if (!statement_compound && insert) {
       pop_eye();
+      insert = 0;
+    }
+
     break;
 
   case TOKEN_END:
     t = match(TOKEN_END, t, s);
-    if (!statement_compound)
+    if (!statement_compound && insert) {
       pop_eye();
+      insert = 0;
+    }
+
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement tail");
@@ -1864,7 +1870,9 @@ Token parse_term_tail(Token t, struct state s) {
     TOKEN_MULOP,
     TOKEN_ID,
     TOKEN_NOT,
-    TOKEN_LPAREN
+    TOKEN_LPAREN,
+    TOKEN_RPAREN,
+    TOKEN_RBRACKET
   };
   
   level++;
@@ -2064,6 +2072,7 @@ Token parse_factor(Token t, struct state s) {
   struct ColorNode *symbol;
   int factor_tail_in;
   char *factor_id;
+  char *factor_tail_profile_in;
 
   switch(t.type) {
   case TOKEN_ID:
@@ -2075,7 +2084,6 @@ Token parse_factor(Token t, struct state s) {
 
       factor_tail_profile_in = (char *)malloc(sizeof(char) * strlen(symbol->profile));
       sprintf(factor_tail_profile_in, "%s", symbol->profile);
-
       factor_tail_in = symbol->type;
     } else {
       factor_tail_in = t_SEMERR;
@@ -2083,13 +2091,13 @@ Token parse_factor(Token t, struct state s) {
       factor_tail_profile_in = (char *)malloc(sizeof(char) * 2);
       sprintf(factor_tail_profile_in, "%d", 99);
       
-      sprintf(buffer, "Undefined reference to '%s'.\n", factor_id);
+      sprintf(buffer, "Unknown reference to '%s'.\n", factor_id);
       print_semerr(buffer, s.listing);
 
     }
 
     t = match(TOKEN_ID, t, s);
-    t = parse_factor_tail(t, s, factor_tail_in, factor_id);
+    t = parse_factor_tail(t, s, factor_tail_in, factor_id, factor_tail_profile_in);
     level--;
     print_level("*RETURN* to factor\n");
 
@@ -2142,7 +2150,7 @@ Token parse_factor(Token t, struct state s) {
   return t;
 }
 
-Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *factor_id) {
+Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *factor_id, char *factor_tail_profile_in) {
   int synch[] = {
     TOKEN_EOF,
     TOKEN_MULOP,
