@@ -295,7 +295,7 @@ void write_line_to_symtable(int attr, int offset, char *lex, char *profile, int 
     print_header = 0;
   }
 
-  if (type == t_PPINT || type == t_PPREAL) {
+  if (type == t_PPINT || type == t_PPREAL || type == t_PPAINT || type == t_PPAREAL) {
     sprintf(line_buffer, "%23s%8s%8s\n", lex, profile, profile_type_to_str(type));
   } else {
     sprintf(line_buffer, "%5d%8d%10s%8s%6d\n", attr, offset, lex, profile, type);

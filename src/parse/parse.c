@@ -859,7 +859,7 @@ Token parse_parameter_list(Token t, struct state s) {
     print_level("*RETURN* to parameter_list\n");
     
     if(param_id_str) {
-      check_add_blue(param_id_str, type, address, offset, s.symboltablefile);
+      check_add_blue(param_id_str, type+4, address, offset, s.symboltablefile);
       
       // start building profile string
       profile_length = 1;
@@ -904,7 +904,7 @@ Token parse_parameter_list_tail(Token t, struct state s) {
 
     
     if(param_id_str) {
-      check_add_blue(param_id_str, type, address, offset, s.symboltablefile);
+      check_add_blue(param_id_str, type+4, address, offset, s.symboltablefile);
       
       // continue building profile string
       profile_buffer = realloc(profile_buffer, profile_length + 1);
@@ -1136,6 +1136,8 @@ Token parse_statement(Token t, struct state s) {
     else if (symbol->type == t_PPINT && expression_type == t_PPINT) {}
     else if (symbol->type == t_AINT && expression_type == t_INT) {}
     else if (symbol->type == t_AINT && expression_type == t_PPINT) {}
+    else if (symbol->type == t_PPAINT && expression_type == t_INT) {}
+    else if (symbol->type == t_PPAINT && expression_type == t_PPINT) {}
 
     else if (symbol->type == t_REAL && expression_type == t_REAL) {}
     else if (symbol->type == t_PPREAL && expression_type == t_REAL) {}
@@ -1143,6 +1145,8 @@ Token parse_statement(Token t, struct state s) {
     else if (symbol->type == t_PPREAL && expression_type == t_PPREAL) {}
     else if (symbol->type == t_AREAL && expression_type == t_REAL) {}
     else if (symbol->type == t_AREAL && expression_type == t_PPREAL) {}
+    else if (symbol->type == t_PPAREAL && expression_type == t_REAL) {}
+    else if (symbol->type == t_PPAREAL && expression_type == t_PPREAL) {}
     
     else {
       sprintf(buffer, "type mismatch, can't assign type '%s' to '%s'\n",
@@ -1323,11 +1327,23 @@ Token parse_variable_tail(Token t, struct state s) {
       variable_tail_type = t_INT;
     } else if (variable_tail_in == t_AINT && expression_type == t_PPINT) {
       variable_tail_type = t_INT;
-    } else if (variable_tail_in == t_AREAL && expression_type == t_REAL) {
+    } else if (variable_tail_in == t_PPAINT && expression_type == t_INT) {
+      variable_tail_type = t_INT;
+    } else if (variable_tail_in == t_PPAINT && expression_type == t_PPINT) {
+      variable_tail_type = t_INT;
+    }
+
+    else if (variable_tail_in == t_AREAL && expression_type == t_REAL) {
       variable_tail_type = t_REAL;
     } else if (variable_tail_in == t_AREAL&& expression_type == t_PPREAL) {
       variable_tail_type = t_REAL;
-    } else if (variable_tail_in == t_SEMERR || expression_type == t_SEMERR) {
+    } else if (variable_tail_in == t_PPAREAL&& expression_type == t_REAL) {
+      variable_tail_type = t_REAL;
+    } else if (variable_tail_in == t_PPAREAL&& expression_type == t_PPREAL) {
+      variable_tail_type = t_REAL;
+    }
+
+    else if (variable_tail_in == t_SEMERR || expression_type == t_SEMERR) {
       variable_tail_type = t_SEMERR;
     } else if (variable_tail_in != t_AINT && expression_type == t_INT) {
       variable_tail_type = t_SEMERR;
