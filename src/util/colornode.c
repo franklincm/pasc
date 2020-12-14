@@ -301,13 +301,6 @@ void write_line_to_symtable(int attr, int offset, char *lex, char *profile, int 
     sprintf(line_buffer, "%5d%8d%10s%8s%6d\n", attr, offset, lex, profile, type);
     
   }
-  
 
-  /* sprintf(line_buffer, */
-  /*         "%3s%-5d%2s%-10s%3s%6s%3s%10d\n", */
-  /*         "", attr, */
-  /*         "", lex, */
-  /*         "", profile, */
-  /*         "", type); */
   write_line_to_file(line_buffer, sym_table_file);
 }
