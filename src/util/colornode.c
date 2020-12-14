@@ -17,6 +17,7 @@
 
 static struct ColorNode *dllist = NULL;
 static struct StackNode *eye_stack = NULL;
+static int print_header = 1;
 
 /* push green node onto stack */
 void push_eye(struct ColorNode *greenNode) {
@@ -81,7 +82,7 @@ void prune_list() {
   will keep both green and blue nodes, while eye will keep only green
   nodes.
  */
-void insert_node(char color, char *lex, int type, char *profile, int attr, FILE *sym_table_file) {
+void insert_node(char color, char *lex, int type, char *profile, int attr, int offset, FILE *sym_table_file) {
   // creat node to be inserted with given params
   struct ColorNode *node = malloc(sizeof(struct ColorNode));
   node->color = color;
@@ -89,6 +90,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, FILE 
   node->type = type;
   node->profile = profile;
   node->attr = attr;
+  node->offset = offset;
 
   // if green node, push onto stack
   if (color == 'G') {
@@ -98,7 +100,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, FILE 
   // if linked list empty, set this node as the head
   if (dllist == NULL) {
     dllist = node;
-    write_line_to_symtable(node->attr, node->lex, node->profile, node->type, sym_table_file);
+    write_line_to_symtable(node->attr, node->offset, node->lex, node->profile, node->type, sym_table_file);
     return;
   }
 
@@ -114,7 +116,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, FILE 
 
   // add created node to bottom of list
   tmp->down = node;
-  write_line_to_symtable(node->attr, node->lex, node->profile, node->type, sym_table_file);
+  write_line_to_symtable(node->attr, node->offset, node->lex, node->profile, node->type, sym_table_file);
 }
 
 /*
@@ -180,25 +182,25 @@ int search_local(char *lex) {
 /* check for node in current scope with given lex,
    insert green node if not found.
  */
-void check_add_green(char *lex, int type, char *profile, int attr, FILE *symboltable) {
+void check_add_green(char *lex, int type, char *profile, int attr, int offset, FILE *symboltable) {
 
   if(search_global(lex)) {
     printf("SEMERR: Attempt to redefine `%s`.\n", lex);
     //insert_node('G', "SEMERR", type, profile);
   } else {
-    insert_node('G', lex, type, profile, attr, symboltable);
+    insert_node('G', lex, type, profile, attr, offset, symboltable);
   }
 }
 
 /* check for node in local scope with given lex,
    insert blue node if not found.
  */
-void check_add_blue(char *lex, int type, int attr, FILE *symboltable) {
+void check_add_blue(char *lex, int type, int attr, int offset, FILE *symboltable) {
   if(search_local(lex)) {
     printf("SEMERR: `%s` already defined in this scope.\n", lex);
     return;
   }
-  insert_node('B', lex, type, "", attr, symboltable);
+  insert_node('B', lex, type, "", attr, offset, symboltable);
   return;
 }
 
@@ -284,13 +286,28 @@ char *profile_type_to_str(int type) {
   return str;
 }
 
-void write_line_to_symtable(int attr, char *lex, char *profile, int type, FILE *sym_table_file) {
+void write_line_to_symtable(int attr, int offset, char *lex, char *profile, int type, FILE *sym_table_file) {
   char line_buffer [100];
-  sprintf(line_buffer,
-          "%3s%-5d%2s%-10s%3s%6s%3s%10d\n",
-          "", attr,
-          "", lex,
-          "", profile,
-          "", type);
+
+  if (print_header) {
+    sprintf(line_buffer, "%8s%8s%8s%8s%6s\n", "address", "offset", "lexeme", "profile", "type");
+    write_line_to_file(line_buffer, sym_table_file);
+    print_header = 0;
+  }
+
+  if (type == t_PPINT || type == t_PPREAL) {
+    sprintf(line_buffer, "%23s%8s%8s\n", lex, profile, profile_type_to_str(type));
+  } else {
+    sprintf(line_buffer, "%5d%8d%10s%8s%6d\n", attr, offset, lex, profile, type);
+    
+  }
+  
+
+  /* sprintf(line_buffer, */
+  /*         "%3s%-5d%2s%-10s%3s%6s%3s%10d\n", */
+  /*         "", attr, */
+  /*         "", lex, */
+  /*         "", profile, */
+  /*         "", type); */
   write_line_to_file(line_buffer, sym_table_file);
 }
