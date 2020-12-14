@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic
+CFLAGS = -std=c11 -O2 -Wall -Wextra -Wpedantic #-fsanitize=address -g
 DEPS = reserved.h linkedlist.h output.h parse.h colornode.h stack.h
 
 VPATH = src:src/lex/:src/parse/:src/util/:obj
