@@ -182,26 +182,25 @@ int search_local(char *lex) {
 /* check for node in current scope with given lex,
    insert green node if not found.
  */
-void check_add_green(char *lex, int type, char *profile, int attr, int offset, FILE *symboltable) {
+int check_add_green(char *lex, int type, char *profile, int attr, int offset, FILE *symboltable) {
 
   if(search_global(lex)) {
-    printf("SEMERR: Attempt to redefine `%s`.\n", lex);
-    //insert_node('G', "SEMERR", type, profile);
+    return 0;
   } else {
     insert_node('G', lex, type, profile, attr, offset, symboltable);
+    return 1;
   }
 }
 
 /* check for node in local scope with given lex,
    insert blue node if not found.
  */
-void check_add_blue(char *lex, int type, int attr, int offset, FILE *symboltable) {
+int check_add_blue(char *lex, int type, int attr, int offset, FILE *symboltable) {
   if(search_local(lex)) {
-    printf("SEMERR: `%s` already defined in this scope.\n", lex);
-    return;
+    return 0;
   }
   insert_node('B', lex, type, "", attr, offset, symboltable);
-  return;
+  return 1;
 }
 
 /* same as global_search but returns the node if found */
