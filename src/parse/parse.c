@@ -203,7 +203,7 @@ Token synchronize(Token t, struct state s, int *synch, int size, char *productio
 
       if (t.type == synch[token]) {
         synch_found = 1;
-        sprintf(buffer, "skipping...\n\n");
+        //sprintf(buffer, "skipping...\n\n");
         //write_line_to_file(buffer, s.listing);
         printf("SYNCH FOUND: %s\n\n", t.str);
         return t;
