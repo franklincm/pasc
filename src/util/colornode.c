@@ -100,7 +100,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, int o
   // if linked list empty, set this node as the head
   if (dllist == NULL) {
     dllist = node;
-    write_line_to_symtable(color, node->attr, node->offset, node->lex, node->profile, node->type, sym_table_file);
+    write_line_to_symtable(color, node->attr, node->offset, node->lex, node->type, node->profile, sym_table_file);
     return;
   }
 
@@ -116,7 +116,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, int o
 
   // add created node to bottom of list
   tmp->down = node;
-  write_line_to_symtable(color, node->attr, node->offset, node->lex, node->profile, node->type, sym_table_file);
+  write_line_to_symtable(color, node->attr, node->offset, node->lex, node->type, node->profile, sym_table_file);
 }
 
 /*
@@ -183,13 +183,11 @@ int search_local(char *lex) {
    insert green node if not found.
  */
 int check_add_green(char *lex, int type, char *profile, int attr, int offset, FILE *symboltable) {
-
-  if(strcmp(lex, "null")) {
-    insert_node('G', lex, type, profile, attr, offset, symboltable);
-    return 1;
-  }
+  //char lex_buf[10];
+  //sprintf(lex_buf, "d%d", (rand() % 20));
   
   if(search_global(lex)) {
+    //insert_node('G', lex_buf, 99, profile, attr, offset, symboltable);
     return 0;
   } else {
     insert_node('G', lex, type, profile, attr, offset, symboltable);
@@ -290,7 +288,7 @@ char *profile_type_to_str(int type) {
   return str;
 }
 
-void write_line_to_symtable(char color, int attr, int offset, char *lex, char *profile, int type, FILE *sym_table_file) {
+void write_line_to_symtable(char color, int attr, int offset, char *lex, int type, char *profile, FILE *sym_table_file) {
 
   if(color == 'G')
     return;
@@ -303,7 +301,7 @@ void write_line_to_symtable(char color, int attr, int offset, char *lex, char *p
     print_header = 0;
   }
 
-  if (type == t_PPINT || type == t_PPREAL || type == t_PPAINT || type == t_PPAREAL || type == PGPARAM || type == PGNAME) {
+  if (type == t_PPINT || type == t_PPREAL || type == t_PPAINT || type == t_PPAREAL || type == PGPARAM || type == PGNAME ) {
     //sprintf(line_buffer, "%23s%8s%8s\n", lex, profile, profile_type_to_str(type));
     return;
   } else {
