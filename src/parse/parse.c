@@ -31,9 +31,9 @@ int offset;
 int address;
 int width;
 
-static int level = 0;
-static int print = 0;
-static int EOP = 0;
+int level = 0;
+int print = 0;
+int EOP = 0;
 
 char buffer [200];
 
@@ -48,6 +48,7 @@ char *factor_tail_profile_in;
 char *var_id;
 
 int statement_compound;
+int profile_length;
 
 int type;
 int standard_type;
@@ -79,14 +80,14 @@ void update_profile(int type) {
   if (expr_list_profile_buffer)
     old_profile = expr_list_profile_buffer;
 
-  expr_list_profile_buffer = malloc(sizeof(char) * (strlen(old_profile) + 1));
+  expr_list_profile_buffer = (char *)malloc(sizeof(char) * (strlen(old_profile) + 1));
   sprintf(expr_list_profile_buffer, "%s%d", old_profile, type);
 }
 
 void print_semerr(char *msg, FILE *listing) {
   char *sbuffer;
   char *prefix = "SEMERR: ";
-  sbuffer = malloc(sizeof(char) * (strlen(msg) + strlen(prefix)));
+  sbuffer = (char *)malloc(sizeof(char) * (strlen(msg) + strlen(prefix)));
   sprintf(sbuffer, "%s%s", prefix, msg);
 
   if (get_lineno() != semerr_line
@@ -224,7 +225,7 @@ void parse(FILE *source,
   
   struct state s = {source, listing, tokenfile, symboltablefile, reserved_words};
   
-  static Token t;
+  Token t;
   t = get_tok(s);
   parse_program(t, s);
 }
@@ -496,7 +497,7 @@ Token parse_type(Token t, struct state s) {
 
   level++;
   print_level("parse type\n");
-
+  type = 0;
   int val1, val2;
 
   switch(t.type) {
@@ -737,7 +738,7 @@ Token parse_subprogram_head(Token t, struct state s) {
   case TOKEN_FUNCTION:
     t = match(TOKEN_FUNCTION, t, s);
 
-    offset = address + offset;
+    offset = address + offset + width;
     address = 0;
     
     if(t.type != LEXERR) {
@@ -825,6 +826,7 @@ Token parse_arguments(Token t, struct state s) {
     
     print_level("*RETURN* to arguments\n");
     t = match(TOKEN_RPAREN, t, s);
+
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "arguments");
@@ -855,10 +857,11 @@ Token parse_parameter_list(Token t, struct state s) {
     print_level("*RETURN* to parameter_list\n");
     
     if(param_id_str) {
-      check_add_blue(param_id_str, type + 4, address, offset, s.symboltablefile);
+      check_add_blue(param_id_str, type, address, offset, s.symboltablefile);
       
       // start building profile string
-      profile_buffer = malloc(sizeof(char) * 1);
+      profile_length = 1;
+      profile_buffer = (char *)malloc(sizeof(char) * profile_length);
       sprintf(profile_buffer, "%d", type);
     }
     param_id_str = NULL;
@@ -866,7 +869,6 @@ Token parse_parameter_list(Token t, struct state s) {
     t = parse_parameter_list_tail(t, s);
     level--;
     print_level("*RETURN* to parameter_list\n");
-
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "parameter list");
@@ -898,15 +900,18 @@ Token parse_parameter_list_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to parameter_list_tail\n");
 
+    
     if(param_id_str) {
       check_add_blue(param_id_str, type, address, offset, s.symboltablefile);
       
       // continue building profile string
-      format_buffer = malloc(sizeof(char) * (strlen(profile_buffer) + 1));
-      sprintf(format_buffer, "%s%d", profile_buffer, type);
+      profile_buffer = realloc(profile_buffer, profile_length + 1);
+      
+      format_buffer = (char *)malloc(sizeof(char) * 1);
+      sprintf(format_buffer, "%d", type);
 
-      profile_buffer = malloc(sizeof(char) * strlen(format_buffer));
-      sprintf(profile_buffer, "%s", format_buffer);
+      strcat(profile_buffer, format_buffer);
+      profile_length++;
     }
     param_id_str = NULL;
 
@@ -1387,14 +1392,10 @@ Token parse_expression_list(Token t, struct state s) {
 
     update_profile(expression_type);
 
-    //expression_list_tail_in = expression_type;
-    
     t = parse_expression_list_tail(t, s);
     level--;
     print_level("*RETURN* to expression_list\n");
 
-    //printf("%s\n", expr_list_profile_buffer);
-    
     break;
   default:
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list");
@@ -1984,7 +1985,7 @@ Token parse_factor(Token t, struct state s) {
     factor_id = t.str;
     symbol = get_color_node(t.str);
     if(strlen(symbol->profile) > 0) {
-      factor_tail_profile_in = malloc(sizeof(char) * strlen(symbol->profile));
+      factor_tail_profile_in = (char *)malloc(sizeof(char) * strlen(symbol->profile));
       sprintf(factor_tail_profile_in, "%s", symbol->profile);
     }
 
@@ -2105,6 +2106,8 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
       factor_tail_type = t_SEMERR;
       sprintf(buffer, "type mismatch in function call '%s'\n", factor_id);
       print_semerr(buffer, s.listing);
+      free(profile_buffer);
+      free(format_buffer);
     }
 
     t = match(TOKEN_RPAREN, t, s);
