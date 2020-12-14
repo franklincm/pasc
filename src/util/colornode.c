@@ -184,6 +184,11 @@ int search_local(char *lex) {
  */
 int check_add_green(char *lex, int type, char *profile, int attr, int offset, FILE *symboltable) {
 
+  if(strcmp(lex, "null")) {
+    insert_node('G', lex, type, profile, attr, offset, symboltable);
+    return 1;
+  }
+  
   if(search_global(lex)) {
     return 0;
   } else {

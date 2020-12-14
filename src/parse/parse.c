@@ -252,6 +252,7 @@ Token parse_program(Token t, struct state s) {
       if (err == 0) {
         sprintf(buffer, "Attempt to redefine '%s'.\n", t.str);
         print_semerr(buffer, s.listing);
+        check_add_green("null", 99, "", address, offset, s.symboltablefile);
       }
     }
     
@@ -366,7 +367,6 @@ Token parse_identifier_list(Token t, struct state s) {
     if(t.type != LEXERR) {
       err = check_add_blue(t.str, PGPARAM, address, offset, s.symboltablefile);
       if (err == 0) {
-        printf("test\n");
         sprintf(buffer, "'%s' already defined in this scope.\n", t.str);
         print_semerr(buffer, s.listing);
       }
@@ -802,8 +802,10 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
   };
   
   level++;
-  
   print_level("parse subprogram_head_tail\n");
+
+  int err;
+  
   switch(t.type) {
   case TOKEN_LPAREN:
     t = parse_arguments(t, s);
@@ -816,7 +818,12 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     print_level("*RETURN* to subprogram_head_tail\n");
 
     if(subp_head_str) {
-      check_add_green(subp_head_str, standard_type, profile_buffer, address, offset, s.symboltablefile);
+      err = check_add_green(subp_head_str, standard_type, profile_buffer, address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "Attempt to redefine '%s'.\n", subp_head_str);
+        print_semerr(buffer, s.listing);
+        check_add_green("null", 99, "", address, offset, s.symboltablefile);
+      }
       subp_head_str = NULL;
     }
 
@@ -831,7 +838,12 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     print_level("*RETURN* to subprogram_head_tail\n");
 
     if(subp_head_str) {
-      check_add_green(subp_head_str, standard_type, profile_buffer, address, offset, s.symboltablefile);
+      err = check_add_green(subp_head_str, standard_type, profile_buffer, address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "Attempt to redefine '%s'.\n", t.str);
+        print_semerr(buffer, s.listing);
+        check_add_green("null", 99, "", address, offset, s.symboltablefile);
+      }
       subp_head_str = NULL;
     }
     
@@ -1159,12 +1171,14 @@ Token parse_statement(Token t, struct state s) {
   print_level("parse statement\n");
 
   struct ColorNode *symbol;
+  char *st_id;
   
   switch(t.type) {
   case TOKEN_ID:
 
-    symbol = get_color_node(t.str);
-    
+    st_id = t.str;
+    symbol = get_color_node(st_id);
+
     t = parse_variable(t, s);
     level--;
     print_level("*RETURN* to statement\n");
@@ -1174,30 +1188,33 @@ Token parse_statement(Token t, struct state s) {
     level--;
     print_level("*RETURN* to statement\n");
 
+    if (symbol) {
+      if (symbol->type == t_INT && expression_type == t_INT) {}
+      else if (symbol->type == t_PPINT && expression_type == t_INT) {}
+      else if (symbol->type == t_INT && expression_type == t_PPINT) {}
+      else if (symbol->type == t_PPINT && expression_type == t_PPINT) {}
+      else if (symbol->type == t_AINT && expression_type == t_INT) {}
+      else if (symbol->type == t_AINT && expression_type == t_PPINT) {}
+      else if (symbol->type == t_PPAINT && expression_type == t_INT) {}
+      else if (symbol->type == t_PPAINT && expression_type == t_PPINT) {}
 
-    if (symbol->type == t_INT && expression_type == t_INT) {}
-    else if (symbol->type == t_PPINT && expression_type == t_INT) {}
-    else if (symbol->type == t_INT && expression_type == t_PPINT) {}
-    else if (symbol->type == t_PPINT && expression_type == t_PPINT) {}
-    else if (symbol->type == t_AINT && expression_type == t_INT) {}
-    else if (symbol->type == t_AINT && expression_type == t_PPINT) {}
-    else if (symbol->type == t_PPAINT && expression_type == t_INT) {}
-    else if (symbol->type == t_PPAINT && expression_type == t_PPINT) {}
-
-    else if (symbol->type == t_REAL && expression_type == t_REAL) {}
-    else if (symbol->type == t_PPREAL && expression_type == t_REAL) {}
-    else if (symbol->type == t_REAL && expression_type == t_PPREAL) {}
-    else if (symbol->type == t_PPREAL && expression_type == t_PPREAL) {}
-    else if (symbol->type == t_AREAL && expression_type == t_REAL) {}
-    else if (symbol->type == t_AREAL && expression_type == t_PPREAL) {}
-    else if (symbol->type == t_PPAREAL && expression_type == t_REAL) {}
-    else if (symbol->type == t_PPAREAL && expression_type == t_PPREAL) {}
+      else if (symbol->type == t_REAL && expression_type == t_REAL) {}
+      else if (symbol->type == t_PPREAL && expression_type == t_REAL) {}
+      else if (symbol->type == t_REAL && expression_type == t_PPREAL) {}
+      else if (symbol->type == t_PPREAL && expression_type == t_PPREAL) {}
+      else if (symbol->type == t_AREAL && expression_type == t_REAL) {}
+      else if (symbol->type == t_AREAL && expression_type == t_PPREAL) {}
+      else if (symbol->type == t_PPAREAL && expression_type == t_REAL) {}
+      else if (symbol->type == t_PPAREAL && expression_type == t_PPREAL) {}
     
-    else {
-      sprintf(buffer, "type mismatch, can't assign type '%s' to '%s'\n",
-              profile_type_to_str(expression_type),
-              profile_type_to_str(symbol->type));
-      print_semerr(buffer, s.listing);
+      else {
+        sprintf(buffer, "type mismatch, can't assign type '%s' to '%s'\n",
+                profile_type_to_str(expression_type),
+                profile_type_to_str(symbol->type));
+        print_semerr(buffer, s.listing);
+      }
+    } else {
+      sprintf(buffer, "cannot find symbol '%s'.\n", st_id);
     }
 
     break;
@@ -1334,7 +1351,10 @@ Token parse_variable(Token t, struct state s) {
     symbol = get_color_node(var_id);
     t = match(TOKEN_ID, t, s);
 
-    variable_tail_in = symbol->type;
+    if (symbol)
+      variable_tail_in = symbol->type;
+    else
+      variable_tail_in = t_SEMERR;
     
     t = parse_variable_tail(t, s);
     level--;
@@ -1704,7 +1724,6 @@ Token parse_simple_expression(Token t, struct state s) {
 
     break;
   default:
-    printf("got: %s\n", t.str);
     t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression");
   }
   return t;
@@ -2041,26 +2060,30 @@ Token parse_factor(Token t, struct state s) {
   struct ColorNode *symbol;
   int factor_tail_in;
   char *factor_id;
-  
+
   switch(t.type) {
   case TOKEN_ID:
 
     factor_id = t.str;
-    symbol = get_color_node(t.str);
-    if(strlen(symbol->profile) > 0) {
-      factor_tail_profile_in = (char *)malloc(sizeof(char) * strlen(symbol->profile));
-      sprintf(factor_tail_profile_in, "%s", symbol->profile);
-    }
+    symbol = get_color_node(factor_id);
 
     if(symbol != NULL) {
+
+      factor_tail_profile_in = (char *)malloc(sizeof(char) * strlen(symbol->profile));
+      sprintf(factor_tail_profile_in, "%s", symbol->profile);
+
       factor_tail_in = symbol->type;
-    }
-    else {
+    } else {
       factor_tail_in = t_SEMERR;
-      sprintf(buffer, "Undefined reference to '%s'.\n", t.str);
+
+      factor_tail_profile_in = (char *)malloc(sizeof(char) * 2);
+      sprintf(factor_tail_profile_in, "%d", 99);
+      
+      sprintf(buffer, "Undefined reference to '%s'.\n", factor_id);
       print_semerr(buffer, s.listing);
+
     }
-    
+
     t = match(TOKEN_ID, t, s);
     t = parse_factor_tail(t, s, factor_tail_in, factor_id);
     level--;
@@ -2170,8 +2193,6 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
       factor_tail_type = t_SEMERR;
       sprintf(buffer, "type mismatch in function call '%s'\n", factor_id);
       print_semerr(buffer, s.listing);
-      
-      
     }
 
     free(factor_tail_profile_in);
