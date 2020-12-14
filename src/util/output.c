@@ -26,23 +26,23 @@ char *token_str(Token t, int lineno) {
   if(t.type != TOKEN_WS) {
     char *attr_str;
     char *attr;
+    attr = (char *)malloc(10 * sizeof(char));
     if (t.type == TOKEN_ID) {
       attr_str = "ptr to sym tab";
-      attr = (char *)malloc(10 * sizeof(char));
       sprintf(attr, "loc%d", t.attr);
       
     } else if (t.type == TOKEN_INT) {
       attr_str = "int value";
-      attr = (char *)malloc(10 * sizeof(char));
       sprintf(attr, "%d", t.attr);
       
     } else {
       attr_str = (char *)malloc(3 * sizeof(char));
       sprintf(attr_str, "%s", attr_to_str(t));
-      attr = (char *)malloc(10 * sizeof(char));
       sprintf(attr, "%d", t.attr);
     }
     sprintf(line_buffer, "%4d     %-14s%-4d%-20s %6s (%s)\n", lineno, t.str, t.type, type, attr, attr_str);
+    free(attr);
+    free(type);
   }
   return line_buffer;
 }
