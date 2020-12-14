@@ -239,14 +239,21 @@ Token parse_program(Token t, struct state s) {
   };
 
   level++;
-  
   print_level("parse program\n");
+
+  int err;
+  
   switch(t.type) {
   case TOKEN_PROGRAM:
     t = match(TOKEN_PROGRAM, t, s);
 
-    if(t.type != LEXERR)
-      check_add_green(t.str, PGNAME, "", address, offset, s.symboltablefile);
+    if(t.type != LEXERR) {
+      err = check_add_green(t.str, PGNAME, "", address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "Attempt to redefine '%s'.\n", t.str);
+        print_semerr(buffer, s.listing);
+      }
+    }
     
     t = match(TOKEN_ID, t, s);
     
@@ -352,11 +359,18 @@ Token parse_identifier_list(Token t, struct state s) {
   level++;
   print_level("parse identifier_list\n");
 
+  int err;
+  
   switch(t.type) {
   case TOKEN_ID:
-    if(t.type != LEXERR)
-      check_add_blue(t.str, PGPARAM, address, offset, s.symboltablefile);
-    
+    if(t.type != LEXERR) {
+      err = check_add_blue(t.str, PGPARAM, address, offset, s.symboltablefile);
+      if (err == 0) {
+        printf("test\n");
+        sprintf(buffer, "'%s' already defined in this scope.\n", t.str);
+        print_semerr(buffer, s.listing);
+      }
+    }
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
     level--;
@@ -377,14 +391,20 @@ Token parse_identifier_list_tail(Token t, struct state s) {
   };
   
   level++;
-  
   print_level("parse identifier_list_tail\n");
+
+  int err;
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
 
-    if(t.type != LEXERR)
-      check_add_blue(t.str, PGPARAM, address, offset, s.symboltablefile);
+    if(t.type != LEXERR) {
+      err = check_add_blue(t.str, PGPARAM, address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "'%s' already defined in this scope.\n", t.str);
+        print_semerr(buffer, s.listing);
+      }
+    }
     
     t = match(TOKEN_ID, t, s);
     t = parse_identifier_list_tail(t, s);
@@ -410,6 +430,8 @@ Token parse_declarations(Token t, struct state s) {
   level++;
   print_level("parse declarations\n");
 
+  int err;
+  
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
@@ -425,7 +447,12 @@ Token parse_declarations(Token t, struct state s) {
 
     if(dec_id_str) {
       address = address + width;
-      check_add_blue(dec_id_str, type, address, offset, s.symboltablefile);
+     
+      err = check_add_blue(dec_id_str, type, address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "'%s' already defined in this scope.\n", dec_id_str);
+        print_semerr(buffer, s.listing);
+      }
     }
     dec_id_str = NULL;
     
@@ -451,6 +478,8 @@ Token parse_declarations_tail(Token t, struct state s) {
   level++;
   print_level("parse declarations_tail\n");
 
+  int err;
+  
   switch(t.type) {
   case TOKEN_VAR:
     t = match(TOKEN_VAR, t, s);
@@ -466,7 +495,11 @@ Token parse_declarations_tail(Token t, struct state s) {
 
     if(dec_id_str) {
       address = address + width;
-      check_add_blue(dec_id_str, type, address, offset, s.symboltablefile);
+      err = check_add_blue(dec_id_str, type, address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "'%s' already defined in this scope.\n", dec_id_str);
+        print_semerr(buffer, s.listing);
+      }
     }
     
     dec_id_str = NULL;
@@ -846,6 +879,8 @@ Token parse_parameter_list(Token t, struct state s) {
   
   level++;
   print_level("parse parameter_list\n");
+
+  int err;
   
   switch(t.type) {
   case TOKEN_ID:
@@ -859,7 +894,11 @@ Token parse_parameter_list(Token t, struct state s) {
     print_level("*RETURN* to parameter_list\n");
     
     if(param_id_str) {
-      check_add_blue(param_id_str, type+4, address, offset, s.symboltablefile);
+      err = check_add_blue(param_id_str, type+4, address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "'%s' already defined in this scope.\n", param_id_str);
+        print_semerr(buffer, s.listing);
+      }
       
       // start building profile string
       profile_length = 1;
@@ -888,6 +927,8 @@ Token parse_parameter_list_tail(Token t, struct state s) {
   
   level++;
   print_level("parse parameter_list_tail\n");
+
+  int err;
   
   switch(t.type) {
   case TOKEN_SEMICOLON:
@@ -904,7 +945,11 @@ Token parse_parameter_list_tail(Token t, struct state s) {
 
     
     if(param_id_str) {
-      check_add_blue(param_id_str, type+4, address, offset, s.symboltablefile);
+      err = check_add_blue(param_id_str, type+4, address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "'%s' already defined in this scope.\n", param_id_str);
+        print_semerr(buffer, s.listing);
+      }
       
       // continue building profile string
       profile_buffer = realloc(profile_buffer, profile_length + 1);
