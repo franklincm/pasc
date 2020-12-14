@@ -444,7 +444,6 @@ Token parse_declarations(Token t, struct state s) {
     print_level("*RETURN* to declarations\n");
 
     if(dec_id_str) {
-      address = 0;
      
       err = check_add_blue(dec_id_str, type, address, offset, s.symboltablefile);
       if (err == 0) {
@@ -776,7 +775,7 @@ Token parse_subprogram_head(Token t, struct state s) {
   case TOKEN_FUNCTION:
     t = match(TOKEN_FUNCTION, t, s);
 
-    offset = address + offset;
+
     
     if(t.type != LEXERR) {
       subp_head_str = t.str;
@@ -825,6 +824,8 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
         sprintf(buffer, "Attempt to redefine '%s'.\n", subp_head_str);
         print_semerr(buffer, s.listing);
       } else {
+        offset = address + offset;
+        address = 0;
         insert = 1;
       }
       subp_head_str = NULL;
