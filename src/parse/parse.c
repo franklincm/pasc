@@ -185,15 +185,16 @@ Token synchronize(Token t, struct state s, int *synch, int size, char *productio
   
   printf("SYNCH CALLED (%s): %s\n", production, t.str);
 
-  /* for(int token = 0; token < size; token++) { */
-  /*   if (t.type == synch[token]) { */
-  /*     printf("skipping %s...\n\n", t.str); */
+  for(int token = 0; token < size; token++) {
+    if (t.type == synch[token]) {
+      printf("skipping %s...\n\n", t.str);
 
-  /*     sprintf(buffer, "SYNCH FOUND: %s\n\n", t.str); */
-  /*     write_line_to_file(buffer, s.listing); */
-  /*     return t; */
-  /*   } */
-  /* } */
+      //sprintf(buffer, "SYNCH FOUND: %s\n\n", t.str);
+      //sprintf(buffer, "SYNERR: Expecting %s, Got: '%s'\n", production, t.str);
+      write_line_to_file(buffer, s.listing);
+      return t;
+    }
+  }
   
   int synch_found = 0;
 
@@ -375,7 +376,7 @@ Token parse_identifier_list(Token t, struct state s) {
     print_level("*RETURN* to identifier_list\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "identifier list"); 
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "identifier_list"); 
   }
   return t;
 }
@@ -412,7 +413,7 @@ Token parse_identifier_list_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "identifier list tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "identifier_list_tail");
   }
   return t;
 }
@@ -515,7 +516,7 @@ Token parse_declarations_tail(Token t, struct state s) {
   case TOKEN_BEGIN:
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "declarations tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "declarations_tail");
   }
   return t;
 }
@@ -605,7 +606,7 @@ Token parse_standard_type(Token t, struct state s) {
     width = 8;
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "standard type");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "standard_type");
   }
   return t;
 }
@@ -633,7 +634,7 @@ Token parse_subprogram_declarations(Token t, struct state s) {
     print_level("*RETURN* to subprogram_declarations\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram declarations");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram_declarations");
   }
   return t;
 }
@@ -663,7 +664,7 @@ Token parse_subprogram_declarations_tail(Token t, struct state s) {
   case TOKEN_BEGIN:
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram declarations tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram_declarations_tail");
   }
   return t;
 }
@@ -694,7 +695,7 @@ Token parse_subprogram_declaration(Token t, struct state s) {
     print_level("*RETURN* to subprogram_declaration_tail\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram declaration");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram_declaration");
   }
   return t;
 }
@@ -756,7 +757,7 @@ Token parse_subprogram_declaration_tail_tail(Token t, struct state s) {
     print_level("*RETURN* to subprogram_declaration_tail_tail\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram declaration tail tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram_declaration_tail_tail");
   }
   return t;
 }
@@ -788,7 +789,7 @@ Token parse_subprogram_head(Token t, struct state s) {
     
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram head");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram_head");
   }
   return t;
 }
@@ -855,7 +856,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     t = match(TOKEN_SEMICOLON, t, s);
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram head tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "subprogram_head_tail");
   }
   return t;
 }
@@ -929,7 +930,7 @@ Token parse_parameter_list(Token t, struct state s) {
     print_level("*RETURN* to parameter_list\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "parameter list");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "parameter_list");
   }
   return t;
 }
@@ -987,7 +988,7 @@ Token parse_parameter_list_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "parameter list tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "parameter_list_tail");
   }
   return t;
 }
@@ -1018,7 +1019,7 @@ Token parse_compound_statement(Token t, struct state s) {
     print_level("*RETURN* to compound_statement\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound_statement");
   }
   return t;
 }
@@ -1065,7 +1066,7 @@ Token parse_compound_statement_tail(Token t, struct state s) {
 
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound statement tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "compound_statement_tail");
   }
   return t;
 }
@@ -1094,7 +1095,7 @@ Token parse_optional_statements(Token t, struct state s) {
     print_level("*RETURN* to optional_statements\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "optional statements");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "optional_statements");
   }
   return t;
 }
@@ -1127,7 +1128,7 @@ Token parse_statement_list(Token t, struct state s) {
     print_level("*RETURN* to statement_list\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "statement list");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "statement_list");
   }
   return t;
 }
@@ -1161,7 +1162,7 @@ Token parse_statement_list_tail(Token t, struct state s) {
   case TOKEN_END:
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "statement list tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "statement_list_tail");
   }
   return t;
 }
@@ -1306,7 +1307,7 @@ Token parse_ifexp(Token t, struct state s) {
     print_level("*RETURN* to ifexp\n");
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "if expression");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "if_expression");
   }
   return t;
 }
@@ -1336,7 +1337,7 @@ Token parse_ifexp_tail(Token t, struct state s) {
   case TOKEN_IF:
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "if expression tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "if_expression_tail");
   }
   return t;
 }
@@ -1449,7 +1450,7 @@ Token parse_variable_tail(Token t, struct state s) {
     variable_tail_type = variable_tail_in;
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "variable_tail");
   }
   return t;
 }
@@ -1492,7 +1493,7 @@ Token parse_expression_list(Token t, struct state s) {
 
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression_list");
   }
   return t;
 }
@@ -1530,7 +1531,7 @@ Token parse_expression_list_tail(Token t, struct state s) {
   case TOKEN_RPAREN:
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression list tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression_list_tail");
   }
   return t;
 }
@@ -1667,7 +1668,7 @@ Token parse_expression_tail(Token t, struct state s) {
     expression_tail_type = expression_tail_in;
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "expression_tail");
   }
   return t;
 }
@@ -1735,7 +1736,7 @@ Token parse_simple_expression(Token t, struct state s) {
 
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple_expression");
   }
   return t;
 }
@@ -1820,7 +1821,7 @@ Token parse_simple_expression_tail(Token t, struct state s) {
     simple_expression_tail_type = simple_expression_tail_in;
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple expression tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "simple_expression_tail");
   }
   return t;
 }
@@ -2051,7 +2052,7 @@ Token parse_term_tail(Token t, struct state s) {
     term_tail_type = term_tail_in;
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "term tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "term_tail");
   }
   return t;
 }
@@ -2200,11 +2201,15 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
     level--;
     print_level("*RETURN* to factor_tail\n");
 
-    if (!strcmp(factor_tail_profile_in, expr_list_profile_buffer)) {
+    if(strlen(factor_tail_profile_in) != strlen(expr_list_profile_buffer)) {
+      factor_tail_type = t_SEMERR;
+      sprintf(buffer, "Wrong number of parameters in function call '%s'\n", factor_id);
+      print_semerr(buffer, s.listing);
+    } else if (!strcmp(factor_tail_profile_in, expr_list_profile_buffer)) {
       factor_tail_type = factor_tail_in;
     } else {
       factor_tail_type = t_SEMERR;
-      sprintf(buffer, "type mismatch in function call '%s'\n", factor_id);
+      sprintf(buffer, "Parameter type mismatch in function call '%s'\n", factor_id);
       print_semerr(buffer, s.listing);
     }
 
@@ -2232,7 +2237,7 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
     factor_tail_type = factor_tail_in;
     break;
   default:
-    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "factor tail");
+    t = synchronize(t, s, synch, sizeof(synch)/sizeof(synch[0]), "factor_tail");
   }
   return t;
 }
