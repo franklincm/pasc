@@ -32,7 +32,7 @@ int address;
 int width;
 
 int level = 0;
-int print = 1;
+int print = 0;
 int EOP = 0;
 
 char buffer [200];
@@ -1357,6 +1357,8 @@ Token parse_variable(Token t, struct state s) {
   print_level("parse variable\n");
 
   struct ColorNode *symbol;
+  struct ColorNode *tmp;
+  struct StackNode *parent;
   
   switch(t.type) {
   case TOKEN_ID:
@@ -1364,10 +1366,32 @@ Token parse_variable(Token t, struct state s) {
     symbol = get_color_node(var_id);
     t = match(TOKEN_ID, t, s);
 
-    if (symbol)
+    if (symbol) {
       variable_tail_in = symbol->type;
-    else
-      variable_tail_in = t_SEMERR;
+
+      // check current function body here?
+
+      
+      if (symbol->color == 'G') {
+        tmp = get_tail();
+        if(tmp->color != 'B') {
+          //sprintf(buffer, "...%s\n", tmp->lex);
+          parent = get_parent();
+          sprintf(buffer, "var id: %s, tail id: %s, parent id:%s\n",
+                  var_id, tmp->lex, parent->lex);
+          print_semerr(buffer, s.listing);
+        }
+      }
+
+
+      
+    }
+    else {
+      sprintf(buffer, "'%s' has not been declared.\n", var_id);
+      print_semerr(buffer, s.listing);
+      variable_tail_in = t_SEMERR;      
+    }
+
     
     t = parse_variable_tail(t, s);
     level--;

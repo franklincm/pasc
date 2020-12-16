@@ -30,6 +30,7 @@ int search_global(char *lex);
 int search_local(char *lex);
 int check_add_green(char *lex, int type, char *profile, int attr, int offset, FILE *symboltable);
 int check_add_blue(char *lex, int type, int attr, int offset, FILE *symboltable);
+struct StackNode *get_parent();
 struct ColorNode *get_color_node(char *lex);
 struct ColorNode *get_tail();
 char *profile_type_to_str(int type);

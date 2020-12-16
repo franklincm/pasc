@@ -41,15 +41,19 @@ void pop_eye() {
     return;
   }
 
-  struct StackNode *tmp;
-  tmp = eye_stack;
+  //struct StackNode *tmp;
+  //tmp = eye_stack;
 
+  // prune blue nodes from linked list
   if (eye_stack && dllist) {
     while((uintptr_t)get_tail() != eye_stack->addr) {
+    //while(get_tail()->color != 'G') {
+      printf("pruning...%s\n", get_tail()->lex);
       prune_list();
     }
   }
 
+  // pop green node from stack
   if (eye_stack->next) {
     eye_stack = eye_stack->next;
   } else {
@@ -232,6 +236,13 @@ struct ColorNode *get_color_node(char *lex) {
     }
   }
   return NULL;
+}
+
+/* returns the immediate Green parent node lex */
+struct StackNode *get_parent() {
+  struct StackNode *tmp;
+  tmp = eye_stack;
+  return tmp;
 }
 
 /* returns last node in the list */
