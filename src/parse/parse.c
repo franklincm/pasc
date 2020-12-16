@@ -2104,6 +2104,7 @@ Token parse_factor(Token t, struct state s) {
     print_level("*RETURN* to factor\n");
 
     factor_type = factor_tail_type;
+    factor_tail_profile_in[0] = '\0';
     
     break;
     
@@ -2234,6 +2235,11 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
   case TOKEN_DO:
   case TOKEN_THEN:
   case TOKEN_RBRACKET:
+    // catch missing '()' semerr, ie: "a := fun1;"
+    if(strlen(factor_tail_profile_in) > 0) {
+      sprintf(buffer, "'%s' is a function.\n", factor_id);
+      print_semerr(buffer, s.listing);
+    }
     factor_tail_type = factor_tail_in;
     break;
   default:
