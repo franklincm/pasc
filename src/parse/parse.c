@@ -32,7 +32,7 @@ int address;
 int width;
 
 int level = 0;
-int print = 0;
+int print = 1;
 int EOP = 0;
 
 char buffer [200];
@@ -825,6 +825,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
         sprintf(buffer, "Attempt to redefine '%s'.\n", subp_head_str);
         print_semerr(buffer, s.listing);
       } else {
+        profile_buffer = NULL;
         offset = address + offset;
         address = 0;
         insert = 1;
@@ -2083,9 +2084,13 @@ Token parse_factor(Token t, struct state s) {
     symbol = get_color_node(factor_id);
 
     if(symbol != NULL) {
-
-      factor_tail_profile_in = (char *)malloc(sizeof(char) * strlen(symbol->profile));
-      sprintf(factor_tail_profile_in, "%s", symbol->profile);
+      if (symbol->profile != NULL) {
+        factor_tail_profile_in = (char *)malloc(sizeof(char) * strlen(symbol->profile));
+        sprintf(factor_tail_profile_in, "%s", symbol->profile);          
+      } else {
+        factor_tail_profile_in = NULL;
+      }
+      
       factor_tail_in = symbol->type;
     } else {
       factor_tail_in = t_SEMERR;
@@ -2104,7 +2109,8 @@ Token parse_factor(Token t, struct state s) {
     print_level("*RETURN* to factor\n");
 
     factor_type = factor_tail_type;
-    factor_tail_profile_in[0] = '\0';
+    if(factor_tail_profile_in != NULL)
+      factor_tail_profile_in[0] = '\0';
     
     break;
     
@@ -2236,8 +2242,9 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
   case TOKEN_THEN:
   case TOKEN_RBRACKET:
     // catch missing '()' semerr, ie: "a := fun1;"
-    if(strlen(factor_tail_profile_in) > 0) {
-      sprintf(buffer, "'%s' is a function.\n", factor_id);
+
+    if(factor_tail_profile_in != NULL && strlen(factor_tail_profile_in) > 0) {
+      sprintf(buffer, "'%s' requires parameters.\n", factor_id);
       print_semerr(buffer, s.listing);
     }
     factor_tail_type = factor_tail_in;
