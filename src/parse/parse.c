@@ -70,6 +70,7 @@ int expression_list_tail_type;
 int variable_tail_in;
 int variable_tail_type;
 int variable_type;
+int subprogram_head_tail_type;
 
 int semerr_line = 0;
 int synerr_line = 0;
@@ -770,22 +771,40 @@ Token parse_subprogram_head(Token t, struct state s) {
   };
   
   level++;
-  
   print_level("parse subprogram_head\n");
+
+  struct ColorNode *tmp;
+  int err;
+  
   switch(t.type) {
   case TOKEN_FUNCTION:
     t = match(TOKEN_FUNCTION, t, s);
 
-
+    
     
     if(t.type != LEXERR) {
       subp_head_str = t.str;
+
+      err = check_add_green(subp_head_str, 0, "", address, offset, s.symboltablefile);
+      if (err == 0) {
+        sprintf(buffer, "Attempt to redefine '%s'.\n", subp_head_str);
+        print_semerr(buffer, s.listing);
+      } else {
+        profile_buffer = NULL;
+        offset = address + offset;
+        address = 0;
+        insert = 1;
+      }
     }
     
     t = match(TOKEN_ID, t, s);
     t = parse_subprogram_head_tail(t, s);
     level--;
     print_level("*RETURN* to subprogram_head\n");
+
+    tmp = get_color_node(subp_head_str);
+    tmp->profile = profile_buffer;
+    tmp->type = subprogram_head_tail_type;
     
     break;
   default:
@@ -806,8 +825,6 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
   level++;
   print_level("parse subprogram_head_tail\n");
 
-  int err;
-  
   switch(t.type) {
   case TOKEN_LPAREN:
     t = parse_arguments(t, s);
@@ -819,20 +836,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to subprogram_head_tail\n");
 
-    if(subp_head_str) {
-      err = check_add_green(subp_head_str, standard_type, profile_buffer, address, offset, s.symboltablefile);
-      if (err == 0) {
-        sprintf(buffer, "Attempt to redefine '%s'.\n", subp_head_str);
-        print_semerr(buffer, s.listing);
-      } else {
-        profile_buffer = NULL;
-        offset = address + offset;
-        address = 0;
-        insert = 1;
-      }
-      subp_head_str = NULL;
-    }
-
+    subprogram_head_tail_type = standard_type;
     t = match(TOKEN_SEMICOLON, t, s);
     break;
 
@@ -843,16 +847,7 @@ Token parse_subprogram_head_tail(Token t, struct state s) {
     level--;
     print_level("*RETURN* to subprogram_head_tail\n");
 
-    if(subp_head_str) {
-      err = check_add_green(subp_head_str, standard_type, profile_buffer, address, offset, s.symboltablefile);
-      if (err == 0) {
-        sprintf(buffer, "Attempt to redefine '%s'.\n", t.str);
-        print_semerr(buffer, s.listing);
-      } else {
-        insert = 1;
-      }
-      subp_head_str = NULL;
-    }
+    subprogram_head_tail_type = standard_type;
     
     t = match(TOKEN_SEMICOLON, t, s);
     break;
@@ -1369,21 +1364,14 @@ Token parse_variable(Token t, struct state s) {
     if (symbol) {
       variable_tail_in = symbol->type;
 
-      // check current function body here?
-
-      
+      /* TODO: check current function body here... */
       if (symbol->color == 'G') {
         tmp = get_tail();
-        if(tmp->color != 'B') {
-          //sprintf(buffer, "...%s\n", tmp->lex);
-          parent = get_parent();
-          sprintf(buffer, "var id: %s, tail id: %s, parent id:%s\n",
-                  var_id, tmp->lex, parent->lex);
-          print_semerr(buffer, s.listing);
-        }
+        parent = get_parent();
+        sprintf(buffer, "var id: %s, tail id: %s, parent id:%s\n",
+                var_id, tmp->lex, parent->lex);
+        print_semerr(buffer, s.listing);
       }
-
-
       
     }
     else {

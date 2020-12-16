@@ -41,9 +41,6 @@ void pop_eye() {
     return;
   }
 
-  //struct StackNode *tmp;
-  //tmp = eye_stack;
-
   // prune blue nodes from linked list
   if (eye_stack && dllist) {
     while((uintptr_t)get_tail() != eye_stack->addr) {
@@ -191,7 +188,6 @@ int check_add_green(char *lex, int type, char *profile, int attr, int offset, FI
   //sprintf(lex_buf, "d%d", (rand() % 20));
   
   if(search_global(lex)) {
-    //insert_node('G', lex_buf, 99, profile, attr, offset, symboltable);
     return 0;
   } else {
     insert_node('G', lex, type, profile, attr, offset, symboltable);
