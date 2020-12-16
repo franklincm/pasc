@@ -49,7 +49,6 @@ char *var_id;
 
 int statement_compound;
 int profile_length;
-int insert;
 
 int type;
 int standard_type;
@@ -252,7 +251,7 @@ Token parse_program(Token t, struct state s) {
         sprintf(buffer, "Attempt to redefine '%s'.\n", t.str);
         print_semerr(buffer, s.listing);
       } else {
-        insert = 1;
+
       }
     }
     
@@ -793,7 +792,7 @@ Token parse_subprogram_head(Token t, struct state s) {
         profile_buffer = NULL;
         offset = address + offset;
         address = 0;
-        insert = 1;
+
       }
     }
     
@@ -1046,18 +1045,18 @@ Token parse_compound_statement_tail(Token t, struct state s) {
     
     print_level("*RETURN* to compound_statement_tail\n");
     t = match(TOKEN_END, t, s);
-    if (!statement_compound && insert) {
+    if (!statement_compound) {
       pop_eye();
-      insert = 0;
+
     }
 
     break;
 
   case TOKEN_END:
     t = match(TOKEN_END, t, s);
-    if (!statement_compound && insert) {
+    if (!statement_compound) {
       pop_eye();
-      insert = 0;
+
     }
 
     break;
@@ -1364,18 +1363,18 @@ Token parse_variable(Token t, struct state s) {
     if (symbol) {
       variable_tail_in = symbol->type;
 
-      /* TODO: check current function body here... */
-      if (symbol->color == 'G') {
-        tmp = get_tail();
-        parent = get_parent();
-        sprintf(buffer, "var id: %s, tail id: %s, parent id:%s\n",
-                var_id, tmp->lex, parent->lex);
+      // can't assign function return value outside of function
+      parent = get_parent();
+      if (symbol->color == 'G' && strcmp(parent->lex, var_id)) {
+        
+        sprintf(buffer, "Return value cannot be assigned outside of function body.\n");
         print_semerr(buffer, s.listing);
+        variable_tail_in = t_SEMERR;
       }
       
     }
     else {
-      sprintf(buffer, "'%s' has not been declared.\n", var_id);
+      sprintf(buffer, "'%s' has not been declared in this scope.\n", var_id);
       print_semerr(buffer, s.listing);
       variable_tail_in = t_SEMERR;      
     }

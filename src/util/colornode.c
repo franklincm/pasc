@@ -37,25 +37,32 @@ void push_eye(struct ColorNode *greenNode) {
 /* prunes the linked list up to the current green node
    and then pops the green node off the stack */
 void pop_eye() {
+  struct StackNode *tmp;
+  
   if (eye_stack == NULL) {
     return;
   }
-
+  
   // prune blue nodes from linked list
   if (eye_stack && dllist) {
     while((uintptr_t)get_tail() != eye_stack->addr) {
-    //while(get_tail()->color != 'G') {
-      printf("pruning...%s\n", get_tail()->lex);
       prune_list();
     }
   }
 
   // pop green node from stack
-  if (eye_stack->next) {
+  if(eye_stack == NULL)
+    return;
+  else if(eye_stack->next == NULL) {
+    return;
+  }else {
+    tmp = eye_stack;
+    //printf("pop: %s\n", tmp->lex);
     eye_stack = eye_stack->next;
-  } else {
-    eye_stack = NULL;
+    free(tmp);
+    //printf("new top: %s\n", eye_stack->lex);
   }
+  
 }
 
 /* removes last item in linked list */
@@ -74,7 +81,7 @@ void prune_list() {
   while(tmp->down->down) {
     tmp = tmp->down;
   }
-
+  //printf("pruning: %s\n", tmp->down->lex);
   tmp->down = NULL;
 }
 
