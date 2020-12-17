@@ -47,6 +47,8 @@ char *expr_list_profile_buffer;
 char *factor_tail_profile_in;
 char *var_id;
 
+struct Stack *stnode;
+
 int statement_compound;
 int profile_length;
 
@@ -107,6 +109,20 @@ void print_level(char *msg) {
     printf("| ");
     printf("%s", msg);
   };
+}
+
+char *profile_to_str(char *profile) {
+  char *buffer = malloc(sizeof(char) * 1);
+  char *tmp;
+  char *p;
+  for(p = profile; *p != '\0'; p++) {
+    tmp = profile_type_to_str(atoi(p));
+    buffer = realloc(buffer, strlen(buffer) + strlen(tmp) + 2);
+    strcat(buffer, profile_type_to_str(atoi(p)));
+    strcat(buffer, ",");
+  }
+  buffer[strlen(buffer) - 1] = 0;
+  return buffer;
 }
 
 Token get_tok(struct state s) {
@@ -1351,7 +1367,6 @@ Token parse_variable(Token t, struct state s) {
   print_level("parse variable\n");
 
   struct ColorNode *symbol;
-  struct ColorNode *tmp;
   struct StackNode *parent;
   
   switch(t.type) {
@@ -1491,12 +1506,13 @@ Token parse_expression_list(Token t, struct state s) {
   case TOKEN_NOT:
   case TOKEN_ADDOP:
 
-    expr_list_profile_buffer = NULL;
+
+    expr_list_profile_buffer = "";
     
     t = parse_expression(t, s);
     level--;
     print_level("*RETURN* to expression_list\n");
-
+    
     update_profile(expression_type);
 
     t = parse_expression_list_tail(t, s);
@@ -1529,6 +1545,7 @@ Token parse_expression_list_tail(Token t, struct state s) {
   switch(t.type) {
   case TOKEN_COMMA:
     t = match(TOKEN_COMMA, t, s);
+
     t = parse_expression(t, s);
     level--;
     print_level("*RETURN* to expression_list_tail\n");
@@ -1538,7 +1555,7 @@ Token parse_expression_list_tail(Token t, struct state s) {
     t = parse_expression_list_tail(t, s);
     level--;
     print_level("*RETURN* to expression_list_tail\n");
-    
+
     break;
   case TOKEN_RPAREN:
     break;
@@ -1659,7 +1676,7 @@ Token parse_expression_tail(Token t, struct state s) {
       expression_tail_in = t_SEMERR;
     } else {
       expression_tail_in = t_SEMERR;
-      sprintf(buffer, "Illegals comparison. Operands must  be of same type.\n");
+      sprintf(buffer, "Illegal comparison. Operands must  be of same type.\n");
       print_semerr(buffer, s.listing);
     }
 
@@ -1965,7 +1982,7 @@ Token parse_term_tail(Token t, struct state s) {
       term_tail_in = t_SEMERR;
     } else {
       term_tail_in = t_SEMERR;
-      sprintf(buffer, "mod mixed expressions not allowed\n");
+      sprintf(buffer, "mod: mixed expressions not allowed\n");
       print_semerr(buffer, s.listing);
     }
 
@@ -2094,6 +2111,9 @@ Token parse_factor(Token t, struct state s) {
     factor_id = t.str;
     symbol = get_color_node(factor_id);
 
+    push(expr_list_profile_buffer);
+    //printf("ppush %s\n", expr_list_profile_buffer);
+
     if(symbol != NULL) {
       if (symbol->profile != NULL) {
         factor_tail_profile_in = (char *)malloc(sizeof(char) * strlen(symbol->profile));
@@ -2122,6 +2142,8 @@ Token parse_factor(Token t, struct state s) {
     factor_type = factor_tail_type;
     if(factor_tail_profile_in != NULL)
       factor_tail_profile_in[0] = '\0';
+
+
     
     break;
     
@@ -2182,8 +2204,10 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
     TOKEN_NOT
   };
   level++;
-  
   print_level("parse factor_tail\n");
+
+  char *concat = NULL;
+  
   switch(t.type) {
 
     // factor_tail -> [ expression ]
@@ -2215,23 +2239,46 @@ Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *facto
     // factor_tail -> ( expression_list )
   case TOKEN_LPAREN:
     t = match(TOKEN_LPAREN, t, s);
+
+    stnode = pop();
+    
     t = parse_expression_list(t, s);
     level--;
     print_level("*RETURN* to factor_tail\n");
 
+    if(stnode->lex && strlen(expr_list_profile_buffer) == 1) {
+      concat = malloc(sizeof(char) * (strlen(stnode->lex) + strlen(expr_list_profile_buffer)));
+      strcat(concat, stnode->lex);
+      strcat(concat, expr_list_profile_buffer);
+      expr_list_profile_buffer = concat;
+    } else {
+      concat = NULL;
+    }
+
+    if (concat) {
+      printf("concat: %s, expr: %s\n", concat, expr_list_profile_buffer);
+      //expr_list_profile_buffer = concat;
+    }
+
+    //printf("concat: %s\n", concat);
+    
     if(strlen(factor_tail_profile_in) != strlen(expr_list_profile_buffer)) {
       factor_tail_type = t_SEMERR;
-      sprintf(buffer, "Wrong number of parameters in function call '%s'\n", factor_id);
+      sprintf(buffer, "Wrong number of parameters: %s(%s)\n",
+              factor_id, profile_to_str(factor_tail_profile_in));
       print_semerr(buffer, s.listing);
+
+      printf("symbol: %s\n", factor_id);
+      printf("got: %s, expecting: %s\n", expr_list_profile_buffer, factor_tail_profile_in);
     } else if (!strcmp(factor_tail_profile_in, expr_list_profile_buffer)) {
       factor_tail_type = factor_tail_in;
     } else {
       factor_tail_type = t_SEMERR;
-      sprintf(buffer, "Parameter type mismatch in function call '%s'\n", factor_id);
+      sprintf(buffer, "Parameter type mismatch: %s(%s)\n", factor_id, profile_to_str(factor_tail_profile_in));
       print_semerr(buffer, s.listing);
     }
 
-    free(factor_tail_profile_in);
+    expr_list_profile_buffer = "";
 
     t = match(TOKEN_RPAREN, t, s);
     break;

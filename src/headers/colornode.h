@@ -34,4 +34,4 @@ struct StackNode *get_parent();
 struct ColorNode *get_color_node(char *lex);
 struct ColorNode *get_tail();
 char *profile_type_to_str(int type);
-void write_line_to_symtable(char color, int attr, int offset, char *lex, int type, char *profile, FILE *sym_table_file);
+void write_line_to_symtable(char color, int attr, int offset, char *lex, int type, FILE *sym_table_file);

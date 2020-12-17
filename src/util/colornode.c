@@ -108,7 +108,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, int o
   // if linked list empty, set this node as the head
   if (dllist == NULL) {
     dllist = node;
-    write_line_to_symtable(color, node->attr, node->offset, node->lex, node->type, node->profile, sym_table_file);
+    write_line_to_symtable(color, node->attr, node->offset, node->lex, node->type, sym_table_file);
     return;
   }
 
@@ -124,7 +124,7 @@ void insert_node(char color, char *lex, int type, char *profile, int attr, int o
 
   // add created node to bottom of list
   tmp->down = node;
-  write_line_to_symtable(color, node->attr, node->offset, node->lex, node->type, node->profile, sym_table_file);
+  write_line_to_symtable(color, node->attr, node->offset, node->lex, node->type, sym_table_file);
 }
 
 /*
@@ -302,7 +302,7 @@ char *profile_type_to_str(int type) {
   return str;
 }
 
-void write_line_to_symtable(char color, int attr, int offset, char *lex, int type, char *profile, FILE *sym_table_file) {
+void write_line_to_symtable(char color, int attr, int offset, char *lex, int type, FILE *sym_table_file) {
 
   if(color == 'G')
     return;

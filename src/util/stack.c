@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "../headers/stack.h"
 
-struct Stack *stack;
+static struct Stack *stack;
 
 void push(char *str) {
   struct Stack *node = malloc(sizeof(struct Stack));
@@ -17,16 +17,13 @@ void push(char *str) {
 }
 
 struct Stack *pop() {
-  struct Stack *p = NULL;
-  if (stack == NULL)
-    return p;
-
+  struct Stack *p;
   p = stack;
-  if(stack->next) {
+  if(stack == NULL)
+    return p;
+  else if (stack->next) {
     stack = stack->next;
     return p;
-  } else {
-    stack = NULL;
-    return p;
   }
+  return p;
 }
