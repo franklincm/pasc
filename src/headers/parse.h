@@ -8,18 +8,20 @@ struct state
   FILE *source;
   FILE *listing;
   FILE *tokenfile;
+  FILE *symboltablefile;
   node reserved_words;
-  node *symbol_table;
 };
-
+int get_semerr_line();
+int get_synerr_line();
+void print_semerr(char *msg, FILE *listing);
 Token get_tok(struct state s);
 Token match(int token_type, Token t, struct state s);
 Token synchronize(Token t, struct state s, int *synch, int size, char *production);
 void parse(FILE *source,
            FILE *listing,
            FILE *tokenfile,
-           node reserved_words,
-           node *symbol_table);
+           FILE *symboltablefile,
+           node reserved_words);
 Token parse_program(Token t, struct state s);
 Token parse_program_tail(Token t, struct state s);
 Token parse_program_tail_tail(Token t, struct state s);
@@ -58,5 +60,5 @@ Token parse_simple_expression_tail(Token t, struct state s);
 Token parse_term(Token t, struct state s);
 Token parse_term_tail(Token t, struct state s);
 Token parse_factor(Token t, struct state s);
-Token parse_factor_tail(Token t, struct state s);
+Token parse_factor_tail(Token t, struct state s, int factor_tail_in, char *factor_id, char *factor_tail_profile_in);
 Token parse_sign(Token t, struct state s);

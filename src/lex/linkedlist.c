@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef _LINKEDLIST
+#define _LINKEDLIST
 #include "../headers/linkedlist.h"
+#endif
 
 node createNode() {
   node tmp;
@@ -23,22 +27,6 @@ node insertNode(node head, node n) {
   return head;
 }
 
-node addNode(node head, char *str) {
-  node tmp, p;
-  tmp = createNode();
-  tmp->str = str;
-  if(head == NULL) {
-    head = tmp;
-  } else {
-    p = head;
-    while(p->next != NULL) {
-      p = p->next;
-    }
-    p->next = tmp;
-  }
-  return head;
-}
-
 node getNode(node head, char *str) {
   while(head != NULL) {
     if(strcmp(head->str, str) == 0) {
@@ -47,4 +35,11 @@ node getNode(node head, char *str) {
     head = head->next;
   }
   return head;
+}
+
+int getType(node head, char *lex) {
+  node p = getNode(head, lex);
+  if (p != NULL)
+    return p->type;
+  return -1;
 }

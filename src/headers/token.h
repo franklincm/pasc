@@ -53,6 +53,21 @@
 #define TOKEN_MOD 118
 #define TOKEN_AND 119
 
+#define PGPARAM 10
+#define PGNAME 11
+#define t_NULL 0
+#define t_INT 1
+#define t_REAL 2
+#define t_AINT 3
+#define t_AREAL 4
+#define t_PPINT 5
+#define t_PPREAL 6
+#define t_PPAINT 7
+#define t_PPAREAL 8
+#define t_BOOL 9
+#define t_ERR 50
+#define t_SEMERR 51
+
 #define TOKEN_UNRECOGNIZED_SYMBOL 999
 
 /* LEXERR ATTRIBUTES */
@@ -73,10 +88,12 @@ typedef struct Token{
   int attr;
 } Token;
 
-Token get_token(FILE *input, FILE *listing, FILE *tokenfile, node ReservedWords, node *SymbolTable);
-Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable);
-Token nfa(char *f, node ReservedWords, node *SymbolTable);
-Token dfa_idres(char *f, node ReservedWords, node *SymbolTable);
+int get_lineno();
+int get_lexerr_line();
+Token get_token(FILE *input, FILE *listing, FILE *tokenfile, node ReservedWords);
+Token get_token_from_line(char *line, node ReservedWords);
+Token nfa(char *f, node ReservedWords);
+Token dfa_idres(char *f, node ReservedWords);
 Token dfa_whitespace(char *f);
 Token dfa_int(char *f);
 Token dfa_relops(char *f);

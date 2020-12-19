@@ -13,6 +13,22 @@
 #include "../headers/output.h"
 #endif
 
+#ifndef PARSE
+#define PARSE
+#include "../headers/parse.h"
+#endif
+
+static int lineno = 0;
+static int lexerr_line = 0;
+
+int get_lineno() {
+  return lineno;
+}
+
+int get_lexerr_line() {
+  return lexerr_line;
+}
+
 char *print_error(Token t) {
   char *line_buffer = (char *)malloc(150 * sizeof(char));
   sprintf(line_buffer, "%-10s%-30s%s", type_to_str(t.type), attr_to_str(t), t.str);
@@ -22,8 +38,7 @@ char *print_error(Token t) {
 Token get_token(FILE *input,
                 FILE *listing,
                 FILE *tokenfile,
-                node ReservedWords,
-                node *SymbolTable) {
+                node ReservedWords) {
 
   // static vars to keep state
   static FILE *source;
@@ -31,7 +46,7 @@ Token get_token(FILE *input,
   static FILE *token_file;
   static char *pos;
   static char line_buffer[72];
-  static int lineno = 0;
+  //static int lineno = 0;
 
   Token t;
 
@@ -61,11 +76,12 @@ Token get_token(FILE *input,
   }
 
   // get next token
-  t = get_token_from_line(line_buffer, ReservedWords, SymbolTable);
+  t = get_token_from_line(line_buffer, ReservedWords);
 
   // if LEXERR, write to listing
-  if (t.type == LEXERR) {
+  if (t.type == LEXERR && lineno) {
     write_line_to_file(lexerr_str(t), listing_file);
+    lexerr_line = lineno;
   }
 
   // write token to tokenfile
@@ -77,7 +93,7 @@ Token get_token(FILE *input,
   return t;
 }
 
-Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable) {
+Token get_token_from_line(char *line, node ReservedWords) {
 
   static char *f;
   static char line_remaining[72];
@@ -88,7 +104,7 @@ Token get_token_from_line(char *line, node ReservedWords, node *SymbolTable) {
   }
   
   Token t;
-  t = nfa(f, ReservedWords, SymbolTable);
+  t = nfa(f, ReservedWords);
   f = t.f;
 
   return t;
@@ -101,7 +117,7 @@ int is_unrec(Token t) {
   return 0;
 }
 
-Token nfa(char *f, node ReservedWords, node *SymbolTable) {
+Token nfa(char *f, node ReservedWords) {
   Token t;
   t.str = "UNRECSYM";
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
@@ -109,7 +125,7 @@ Token nfa(char *f, node ReservedWords, node *SymbolTable) {
   t = dfa_whitespace(f);
   if(!is_unrec(t)) return t;
   
-  t = dfa_idres(f, ReservedWords, SymbolTable);
+  t = dfa_idres(f, ReservedWords);
   if(!is_unrec(t)) return t;
 
   t = dfa_long_real(f);    
@@ -128,7 +144,7 @@ Token nfa(char *f, node ReservedWords, node *SymbolTable) {
   return t;
 }
 
-Token dfa_idres(char *f, node ReservedWords, node *SymbolTable) {
+Token dfa_idres(char *f, node ReservedWords) {
   char *b = f;
   Token t;
   t.type = TOKEN_UNRECOGNIZED_SYMBOL;
@@ -176,25 +192,28 @@ Token dfa_idres(char *f, node ReservedWords, node *SymbolTable) {
     }
 
     // else get or insert symbol
-    node symbol = getNode(*SymbolTable, t.str);
-    if(symbol == NULL) {
-      symbol = (node)malloc(sizeof(struct LinkedList));
-      symbol->str = t.str;
-      symbol->type = TOKEN_ID;
-      *SymbolTable = insertNode(*SymbolTable, symbol);
-    }
+    /* node symbol = getNode(*SymbolTable, t.str); */
+    /* if(symbol == NULL) { */
+    /*   symbol = (node)malloc(sizeof(struct LinkedList)); */
+    /*   symbol->str = t.str; */
+    /*   symbol->type = TOKEN_ID; */
+    /*   *SymbolTable = insertNode(*SymbolTable, symbol); */
+    /* } */
 
+    /* int loc = 0; */
+    /* node p = *SymbolTable; */
+    /* while(p != NULL) { */
+    /*   if(strcmp(p->str, t.str) == 0) { */
+    /*     break; */
+    /*   } */
+    /*   p = p->next; */
+    /*   loc++; */
+    /* } */
+
+    /* t.type = symbol->type; */
+    /* t.attr = loc; */
     int loc = 0;
-    node p = *SymbolTable;
-    while(p != NULL) {
-      if(strcmp(p->str, t.str) == 0) {
-        break;
-      }
-      p = p->next;
-      loc++;
-    }
-
-    t.type = symbol->type;
+    t.type = TOKEN_ID;
     t.attr = loc;
   }
   
@@ -440,30 +459,37 @@ Token dfa_relops(char *f) {
   switch(*f) {
   case '=':
     f++;
-    t.str = "RELOP";
+    if (*f == '=') {
+      t.str = "==";
+    } else {
+      t.str = "=";      
+    }
     t.type = TOKEN_RELOP;
+    f++;
     break;
   case '<':
     f++;
     if (*f ==  '=') {
-      t.str = "LTE";
+      t.str = "<=";
     } else if (*f == '>') {
-      t.str = "NE";
+      t.str = "<>";
     } else {
       f--;
-      t.str = "LT";
+      t.str = "<";
     }
     t.type = TOKEN_RELOP;
+    f++;
     break;
   case '>':
     f++;
     if (*f == '=') {
-      t.str = "GTE";
+      t.str = ">=";
     } else {
       f--;
-      t.str = "GT";
+      t.str = ">";
     }
     t.type = TOKEN_RELOP;
+    f++;
     break;
   }
   t.f = f;
