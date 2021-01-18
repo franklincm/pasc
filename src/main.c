@@ -19,7 +19,7 @@
 void write_symbol_table(node *SymbolTable);
 
 int main(int argc, char **argv) {
-  char *filename = "data/final_boss.pas";
+  char *filename = "data/program.pas";
   char *listingfilename = "listingfile";
   char *tokenfilename = "tokenfile";
 
