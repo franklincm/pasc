@@ -9,8 +9,8 @@ vpath %.o obj
 obj/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-lex: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o obj/output.o obj/colornode.o obj/stack.o obj/parse.o
-	$(CC) $(CFLAGS) -o bin/lex $^
+pasc: obj/main.o obj/reserved.o obj/linkedlist.o obj/token.o obj/output.o obj/colornode.o obj/stack.o obj/parse.o
+	$(CC) $(CFLAGS) -o bin/pasc $^
 
 v:
 	make clean && make && \
